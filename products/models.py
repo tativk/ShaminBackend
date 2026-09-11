@@ -1,3 +1,4 @@
+from decimal import Decimal, ROUND_HALF_UP
 from django.db import models
 
 
@@ -40,7 +41,11 @@ class Product(models.Model):
 
     @property
     def final_price(self):
-        return self.price * (1 - self.discount_percent / 100)
+
+        return (self.price * (Decimal('100') - self.discount_percent) / Decimal('100')).quantize(
+            Decimal('0.01'), rounding=ROUND_HALF_UP
+        )
+
 
     def __str__(self):
         return self.name

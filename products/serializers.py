@@ -1,4 +1,7 @@
 from rest_framework import serializers
+
+from decimal import Decimal
+
 from .models import Brand, Product, ProductImage
 
 
@@ -28,10 +31,12 @@ class ProductListSerializer(serializers.ModelSerializer):
             'main_image', 'is_active',
         ]
 
-    def get_final_price(self, obj):
+
+    def get_final_price(self, obj) -> Decimal:
         return obj.final_price
 
-    def get_main_image(self, obj):
+    def get_main_image(self, obj) -> str | None:
+
         main = obj.images.filter(is_main=True).first()
         if main:
             request = self.context.get('request')
@@ -47,6 +52,9 @@ class ProductDetailSerializer(ProductListSerializer):
     class Meta(ProductListSerializer.Meta):
         fields = ProductListSerializer.Meta.fields + ['description', 'stock', 'images', 'average_rating']
 
-    def get_average_rating(self, obj):
+
+    def get_average_rating(self, obj) -> float | None:
+
+
         # تا اسپرینت ۷ null برمی‌گردونه
         return None

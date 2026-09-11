@@ -1,4 +1,15 @@
-# قرارداد API — اسپرینت ۱
+# قرارداد API — اسپرینت ۱ و ۲
+
+قرارداد اسپرینت ۴، ورودی/خروجی مسیرهای سبد خرید و تصمیم‌های هزینه ارسال در
+[SPRINT4.md](SPRINT4.md) ثبت شده است. تأیید همکار هنوز انجام نشده است.
+
+## احراز هویت با OTP — اسپرینت ۲
+
+- `POST /api/auth/request-otp/` عمومی است و ورودی آن `{"phone":"09123456789"}` است.
+- `POST /api/auth/verify-otp/` عمومی است و ورودی آن `{"phone":"09123456789","code":"123456"}` است؛ پاسخ موفق شامل `access`، `refresh` و `user` است.
+- `POST /api/auth/token/refresh/` با ورودی `{"refresh":"<refresh-token>"}` توکن `access` جدید برمی‌گرداند.
+- `GET/PATCH /api/auth/profile/` و `GET/PUT /api/auth/address/` به هدر `Authorization: Bearer <access-token>` نیاز دارند.
+- کد OTP پنج دقیقه اعتبار دارد و یک‌بارمصرف است.
 
 تنها endpoint این اسپرینت برای بررسی اجرای Django و DRF است.
 
@@ -136,4 +147,6 @@ class ProductImage(models.Model):
     is_main = models.BooleanField(default=False)
 
     def __str__(self):
+
         return f"{self.product.name} - {'main' if self.is_main else 'secondary'}"
+

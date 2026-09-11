@@ -1,3 +1,88 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.db import models
+import random
+import string
+from django.utils import timezone
+from datetime import timedelta
+
+
+class UserManager(BaseUserManager):
+    def create_user(self, phone, password=None, **extra_fields):
+        if not phone:
+            raise ValueError("شماره موبایل الزامی است")
+        user = self.model(phone=phone, **extra_fields)
+        user.set_unusable_password()
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, phone, password=None, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        user = self.model(phone=phone, **extra_fields)
+        if password:
+            user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+
+class User(AbstractUser):
+    username = None
+    phone = models.CharField(max_length=11, unique=True, verbose_name="موبایل")
+    first_name = models.CharField(max_length=50, blank=True, verbose_name="نام")
+    last_name = models.CharField(max_length=50, blank=True, verbose_name="نام خانوادگی")
+    email = models.EmailField(blank=True, verbose_name="ایمیل")
+    is_active = models.BooleanField(default=True)
+
+    USERNAME_FIELD = "phone"
+    REQUIRED_FIELDS = []
+
+    objects = UserManager()
+
+    class Meta:
+        verbose_name = "کاربر"
+        verbose_name_plural = "کاربران"
+
+    def __str__(self):
+        return self.phone
+
+
+class Address(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="address", verbose_name="کاربر")
+    province = models.CharField(max_length=100, verbose_name="استان")
+    city = models.CharField(max_length=100, verbose_name="شهر")
+    street = models.CharField(max_length=255, verbose_name="خیابان")
+    postal_code = models.CharField(max_length=10, blank=True, verbose_name="کد پستی")
+    detail = models.TextField(blank=True, verbose_name="جزئیات آدرس")
+
+    class Meta:
+        verbose_name = "آدرس"
+        verbose_name_plural = "آدرس‌ها"
+
+    def __str__(self):
+        return f"{self.user.phone} — {self.city}"
+
+
+class OtpCode(models.Model):
+    phone = models.CharField(max_length=11, verbose_name="موبایل")
+    code = models.CharField(max_length=6, verbose_name="کد OTP")
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False, verbose_name="استفاده شده")
+
+    class Meta:
+        verbose_name = "کد OTP"
+        verbose_name_plural = "کدهای OTP"
+
+    def is_valid(self):
+        """کد حداکثر ۵ دقیقه اعتبار دارد"""
+        expiry = self.created_at + timedelta(minutes=5)
+        return not self.is_used and timezone.now() < expiry
+
+    def __str__(self):
+        return f"{self.phone} — {self.code}"
+
+    @classmethod
+    def generate_code(cls):
+        return "".join(random.choices(string.digits, k=6))
 
 # Create your models here.
