@@ -147,4 +147,6 @@ class ProductImage(models.Model):
     is_main = models.BooleanField(default=False)
 
     def __str__(self):
+
         return f"{self.product.name} - {'main' if self.is_main else 'secondary'}"
+
