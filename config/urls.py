@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from config.views import health
 
@@ -12,3 +13,9 @@ urlpatterns = [
     path('api/', include('products.urls')),
     path('api/', include('carts.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if settings.DEBUG:
+    urlpatterns += [
+        path('api/schema/', SpectacularAPIView.as_view(permission_classes=[], authentication_classes=[]), name='schema'),
+        path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema', permission_classes=[], authentication_classes=[]), name='swagger-ui'),
+    ]

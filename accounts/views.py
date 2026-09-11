@@ -73,6 +73,7 @@ class VerifyOtpView(APIView):
 
 
 class ProfileView(APIView):
+    serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
     @extend_schema(summary="دریافت پروفایل", tags=["کاربر"])
@@ -89,6 +90,7 @@ class ProfileView(APIView):
 
 
 class AddressView(APIView):
+    serializer_class = AddressSerializer
     permission_classes = [IsAuthenticated]
 
     @extend_schema(summary="دریافت آدرس", tags=["کاربر"])

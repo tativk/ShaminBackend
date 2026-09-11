@@ -5,6 +5,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from products.models import Product
 from .models import Cart, CartItem, ShippingRate
@@ -24,6 +25,10 @@ def validate_stock(product, quantity):
         raise ValidationError({'quantity': 'تعداد درخواستی بیشتر از موجودی است.'})
 
 
+@extend_schema_view(
+    get=extend_schema(responses=CartSerializer),
+    patch=extend_schema(request=CartCitySerializer, responses=CartSerializer),
+)
 class CartView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -41,6 +46,7 @@ class CartView(APIView):
         return Response(CartSerializer(cart).data)
 
 
+@extend_schema_view(post=extend_schema(request=AddItemSerializer, responses={200: CartSerializer, 201: CartSerializer}))
 class CartItemsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -61,6 +67,10 @@ class CartItemsView(APIView):
         return Response(CartSerializer(cart).data, status=status.HTTP_200_OK if item else status.HTTP_201_CREATED)
 
 
+@extend_schema_view(
+    patch=extend_schema(request=QuantitySerializer, responses=CartSerializer),
+    delete=extend_schema(responses={204: None}),
+)
 class CartItemView(APIView):
     permission_classes = [IsAuthenticated]
 
