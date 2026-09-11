@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'carts.apps.CartsConfig',
     'orders.apps.OrdersConfig',
     'reviews.apps.ReviewsConfig',
+    'products',
 ]
 
 MIDDLEWARE = [
@@ -100,3 +101,6 @@ USE_I18N = True
 USE_TZ = True
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
