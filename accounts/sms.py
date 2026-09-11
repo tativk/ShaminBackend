@@ -50,8 +50,12 @@ def send_otp_mellipayam(phone: str, code: str) -> bool:
 
 
 def send_otp(phone: str, code: str) -> bool:
-    """انتخاب provider از settings"""
-    provider = getattr(settings, "SMS_PROVIDER", "kavenegar")
+    """انتخاب provider از settings؛ در توسعه کد را در کنسول چاپ می‌کند."""
+    provider = getattr(settings, "SMS_PROVIDER", "console").lower()
+    if provider == "console":
+        logger.info("OTP for %s: %s", phone, code)
+        print(f"[OTP] {phone}: {code}")
+        return True
     if provider == "mellipayam":
         return send_otp_mellipayam(phone, code)
     return send_otp_kavenegar(phone, code)

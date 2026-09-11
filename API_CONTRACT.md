@@ -1,4 +1,12 @@
-# قرارداد API — اسپرینت ۱
+# قرارداد API — اسپرینت ۱ و ۲
+
+## احراز هویت با OTP — اسپرینت ۲
+
+- `POST /api/auth/request-otp/` عمومی است و ورودی آن `{"phone":"09123456789"}` است.
+- `POST /api/auth/verify-otp/` عمومی است و ورودی آن `{"phone":"09123456789","code":"123456"}` است؛ پاسخ موفق شامل `access`، `refresh` و `user` است.
+- `POST /api/auth/token/refresh/` با ورودی `{"refresh":"<refresh-token>"}` توکن `access` جدید برمی‌گرداند.
+- `GET/PATCH /api/auth/profile/` و `GET/PUT /api/auth/address/` به هدر `Authorization: Bearer <access-token>` نیاز دارند.
+- کد OTP پنج دقیقه اعتبار دارد و یک‌بارمصرف است.
 
 تنها endpoint این اسپرینت برای بررسی اجرای Django و DRF است.
 

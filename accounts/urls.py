@@ -1,16 +1,12 @@
-from django.contrib import admin
-from django.urls import path, include
-from django.conf import settings
-from django.conf.urls.static import static
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from django.urls import path
+from rest_framework_simplejwt.views import TokenRefreshView
+
+from .views import AddressView, ProfileView, RequestOtpView, VerifyOtpView
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("api/", include("accounts.urls")),
-    # Swagger
-    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
-    path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path("auth/request-otp/", RequestOtpView.as_view(), name="request-otp"),
+    path("auth/verify-otp/", VerifyOtpView.as_view(), name="verify-otp"),
+    path("auth/token/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
+    path("auth/profile/", ProfileView.as_view(), name="profile"),
+    path("auth/address/", AddressView.as_view(), name="address"),
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -124,9 +124,12 @@ STATIC_URL = 'static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-SMS_API_KEY = os.getenv('SMS_API_KEY', '')
-SMS_SENDER = os.getenv('SMS_SENDER', '')
-SMS_OTP_TEMPLATE = os.getenv('SMS_OTP_TEMPLATE', '')
+SMS_PROVIDER = os.getenv('SMS_PROVIDER', 'console' if DEBUG else 'kavenegar').lower()
+KAVENEGAR_API_KEY = os.getenv('KAVENEGAR_API_KEY', os.getenv('SMS_API_KEY', ''))
+KAVENEGAR_TEMPLATE = os.getenv('KAVENEGAR_TEMPLATE', os.getenv('SMS_OTP_TEMPLATE', ''))
+MELLIPAYAM_USERNAME = os.getenv('MELLIPAYAM_USERNAME', '')
+MELLIPAYAM_PASSWORD = os.getenv('MELLIPAYAM_PASSWORD', '')
+MELLIPAYAM_FROM = os.getenv('MELLIPAYAM_FROM', os.getenv('SMS_SENDER', ''))
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Tehran'
