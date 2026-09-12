@@ -20,6 +20,7 @@ ALLOWED_HOSTS = [
 ]
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -37,7 +38,6 @@ INSTALLED_APPS = [
     'carts.apps.CartsConfig',
     'orders.apps.OrdersConfig',
     'reviews.apps.ReviewsConfig',
-    'products',
 ]
 
 MIDDLEWARE = [
@@ -142,3 +142,24 @@ MEDIA_URL = '/media/'
 
 MEDIA_ROOT = BASE_DIR / 'media'
 
+JAZZMIN_SETTINGS = {
+    "site_title": "شامین",
+    "site_header": "پنل مدیریت شامین",
+    "site_brand": "ShaminBackend",
+    "site_icon": None,
+    "welcome_sign": "خوش آمدید به پنل مدیریت",
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "order_with_respect_to": ["accounts", "products"],
+    "icons": {
+        "accounts.User": "fas fa-user",
+        "accounts.Address": "fas fa-map-marker",
+        "products.Product": "fas fa-box",
+        "products.Brand": "fas fa-tag",
+    },
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+    "related_modal_active": False,
+    "language_chooser": False,
+}
