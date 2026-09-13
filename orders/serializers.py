@@ -63,5 +63,8 @@ class CreateOrderSerializer(serializers.Serializer):
 
         attrs['cart'] = cart
         return attrs
+<<<<<<< HEAD
 
     # mobin
+=======
+>>>>>>> 97b7c49 (sprint5)
