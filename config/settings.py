@@ -1,6 +1,9 @@
 import os
 from datetime import timedelta
 from pathlib import Path
+import environ
+env = environ.Env()
+environ.Env.read_env()  # یا read_env(BASE_DIR / '.env')
 
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
@@ -142,3 +145,9 @@ MEDIA_URL = '/media/'
 
 MEDIA_ROOT = BASE_DIR / 'media'
 
+
+
+PAYMENT_SERVICE = env('PAYMENT_SERVICE', default='mock')
+BACKEND_BASE_URL = env('BACKEND_BASE_URL', default='http://localhost:8000')
+
+# mobin
