@@ -15,6 +15,7 @@ urlpatterns = [
     path('api/', include('accounts.urls')),
     path('api/', include('products.urls')),
     path('api/', include('carts.urls')),
+    path('api/', include('reviews.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
@@ -23,11 +24,3 @@ if settings.DEBUG:
         path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema', permission_classes=[], authentication_classes=[]), name='swagger-ui'),
     ]
 
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', include('products.urls')),
-    path('api/', include('accounts.urls')),
-    path('api/', include('carts.urls')),
-    path('api/', include('orders.urls')),
-    path('api/', include('reviews.urls')),  # ← اضافه کن
-]
