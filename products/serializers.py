@@ -58,3 +58,18 @@ class ProductDetailSerializer(ProductListSerializer):
 
         # تا اسپرینت ۷ null برمی‌گردونه
         return None
+from django.db.models import Avg
+
+class ProductDetailSerializer(serializers.ModelSerializer):
+    images = ProductImageSerializer(source='productimage_set', many=True, read_only=True)
+    average_rating = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'brand', 'category', 'gender', 'description', 'price', 
+                  'discount_percent', 'final_price', 'stock', 'is_active', 'images', 'average_rating']
+
+    def get_average_rating(self, obj):
+        """میانگین امتیاز نظرات تأیید شده"""
+        avg = obj.reviews.filter(is_approved=True).aggregate(Avg('rating'))['rating__avg']
+        return round(avg, 2) if avg else None
