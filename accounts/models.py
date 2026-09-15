@@ -39,6 +39,23 @@ class User(AbstractUser):
 
     objects = UserManager()
 
+    @property
+    def is_profile_complete(self):
+        if self.is_staff or self.is_superuser:
+            return True
+        if not self.first_name.strip() or not self.last_name.strip():
+            return False
+        try:
+            address = self.address
+        except Address.DoesNotExist:
+            return False
+        return all([
+            address.province.strip(),
+            address.city.strip(),
+            address.street.strip(),
+            address.postal_code.strip(),
+        ])
+
     class Meta:
         verbose_name = "کاربر"
         verbose_name_plural = "کاربران"

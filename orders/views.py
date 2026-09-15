@@ -1,18 +1,16 @@
-from django.shortcuts import render
-
-# Create your views here.
 from decimal import Decimal
 
 from django.conf import settings
 from django.db import transaction
 from django.db.models import F
-from rest_framework import generics, permissions, status
+from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Order, OrderItem
 from .serializers import CreateOrderSerializer, OrderSerializer
-from payments.factory import get_payment_service  # noqa: PLC0415
+from .services.base import PaymentRequest, VerifyRequest
+from .services.factory import get_payment_service
 
 
 class CreateOrderView(APIView):
@@ -69,12 +67,9 @@ class CreateOrderView(APIView):
         # ── ساخت سفارش ─────────────────────────────────────────────────
         order = Order.objects.create(
             user=user,
-            status=Order.Status.PAYMENT_PENDING,
-            total_amount=total_amount,
-            shipping_cost=shipping_cost,
-            city=city,
-            address=address,
-            postal_code=postal_code,
+            status=Order.Status.PENDING,
+            total_price=total_amount,
+            address=f'{city}، {address}، کد پستی: {postal_code}',
         )
 
         # ── کپی آیتم‌ها با قیید (snapshot) ──────────────────ه خرید (snapshot) ──────────────────
@@ -83,9 +78,8 @@ class CreateOrderView(APIView):
             order_items.append(OrderItem(
                 order=order,
                 product=item.product,
-                product_name=item.product.name,  # snapshot نام
                 quantity=item.quantity,
-                unit_price=item.product.final_price,  # snapshot قیمت
+                price=item.product.final_price,
             ))
             # کاهش موجودی با F expression برای جلوگیری از race condition
             item.product.__class__.objects.filter(pk=item.product.pk).update(
@@ -101,25 +95,24 @@ class CreateOrderView(APIView):
         callback_url = (
             f"{settings.FRONTEND_URL}/payment/callback"
             if hasattr(settings, 'FRONTEND_URL')
-            else f"{settings.SITE_URL}/api/payment/callback/"
+            else f"{settings.BACKEND_BASE_URL}/api/orders/payment/callback/"
         )
 
         payment_service = get_payment_service()
-        result = payment_service.request_payment(
-            amount=int(total_amount),  # تومان
+        result = payment_service.request_payment(PaymentRequest(
+            amount=total_amount,
             description=f'سفارش شماره {order.id} — شامین گالری',
             callback_url=callback_url,
             order_id=order.id,
-        )
+        ))
 
-        if not result.get('success'):
-            raise ValueError(result.get('message', 'خطا در اتصال به درگاه پرداخت.'))
+        if not result.success:
+            raise ValueError(result.error_message or 'خطا در اتصال به درگاه پرداخت.')
 
-        # ذخیره authority برای تطبیق در callback
-        order.payment_authority = result['authority']
+        order.payment_authority = result.authority
         order.save(update_fields=['payment_authority'])
 
-        return order, result['payment_url']
+        return order, result.payment_url
 
 
 class PaymentCallbackView(APIView):
@@ -149,7 +142,7 @@ class PaymentCallbackView(APIView):
             )
 
         # اگر قبلاً پردازش شده باشد
-        if order.status != Order.Status.PAYMENT_PENDING:
+        if order.status != Order.Status.PENDING:
             return Response(
                 {'detail': 'این تراکنش قبلاً پردازش شده است.', 'status': order.status},
                 status=status.HTTP_200_OK,
@@ -157,7 +150,8 @@ class PaymentCallbackView(APIView):
 
         # کاربر از صفحه پرداخت انصراف داده
         if payment_status != 'OK':
-            self._cancel_order(order)
+            order.status = Order.Status.CANCELLED
+            order.save(update_fields=['status', 'updated_at'])
             return Response(
                 {'detail': 'پرداخت لغو شد.', 'order_id': order.id},
                 status=status.HTTP_200_OK,
@@ -165,20 +159,28 @@ class PaymentCallbackView(APIView):
 
         # تأیید پرداخت
         payment_service = get_payment_service()
-        result = payment_service.verify_payment(
+        result = payment_service.verify_payment(VerifyRequest(
             authority=authority,
-            amount=int(order.total_amount),
-        )
+            amount=order.total_price,
+        ))
 
-        if result.get('success'):
-            order.status = Order.Status.PROCESSING
-            order.save(update_fields=['status'])
+        if result.success:
+            order.status = Order.Status.PAID
+            order.payment_ref_id = result.ref_id
+            order.save(update_fields=['status', 'payment_ref_id', 'updated_at'])
             return Response(
                 {
                     'detail': 'پرداخت با موفقیت انجام شد.',
                     'order_id': order.id,
-                    'ref_id': result.get('ref_id'),
+                    'ref_id': result.ref_id,
                 },
                 status=status.HTTP_200_OK,
             )
+
+        order.status = Order.Status.FAILED
+        order.save(update_fields=['status', 'updated_at'])
+        return Response(
+            {'detail': result.error_message or 'پرداخت ناموفق بود.', 'order_id': order.id},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
