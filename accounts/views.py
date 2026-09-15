@@ -7,10 +7,18 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import extend_schema, OpenApiResponse
+from django.db import transaction
 
-from .serializers import RequestOtpSerializer, VerifyOtpSerializer, UserSerializer, AddressSerializer
+from .serializers import (
+    AddressSerializer,
+    CompleteRegistrationSerializer,
+    RequestOtpSerializer,
+    UserSerializer,
+    VerifyOtpSerializer,
+)
 from .services import create_and_send_otp, verify_otp_and_get_user
 from .models import Address
+from orders.models import OrderItem
 
 
 def get_tokens_for_user(user):
@@ -69,7 +77,66 @@ class VerifyOtpView(APIView):
         return Response({
             **tokens,
             "user": UserSerializer(user).data,
+            "next_step": "dashboard" if user.is_profile_complete else "complete_registration",
         }, status=status.HTTP_200_OK)
+
+
+class CompleteRegistrationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        request=CompleteRegistrationSerializer,
+        responses={200: UserSerializer, 400: OpenApiResponse(description="خطا")},
+        summary="تکمیل ثبت‌نام کاربر",
+        tags=["احراز هویت"],
+    )
+    @transaction.atomic
+    def post(self, request):
+        serializer = CompleteRegistrationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        request.user.first_name = data["first_name"].strip()
+        request.user.last_name = data["last_name"].strip()
+        request.user.email = data.get("email", "").strip()
+        request.user.save(update_fields=["first_name", "last_name", "email"])
+
+        address_data = {
+            field: data[field]
+            for field in ("province", "city", "street", "postal_code", "detail")
+            if field in data
+        }
+        Address.objects.update_or_create(
+            user=request.user,
+            defaults=address_data,
+        )
+        return Response(UserSerializer(request.user).data, status=status.HTTP_200_OK)
+
+
+class PurchasedProductsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(summary="محصولات خریداری‌شده", tags=["کاربر"])
+    def get(self, request):
+        from orders.models import Order
+
+        order_items = (
+            OrderItem.objects
+            .filter(order__user=request.user, order__status=Order.Status.PAID)
+            .select_related("product", "order")
+            .order_by("-order__created_at")
+        )
+        return Response([
+            {
+                "product_id": item.product_id,
+                "product_name": item.product.name,
+                "quantity": item.quantity,
+                "unit_price": item.price,
+                "order_id": item.order_id,
+                "purchased_at": item.order.created_at,
+            }
+            for item in order_items
+        ])
 
 
 class ProfileView(APIView):

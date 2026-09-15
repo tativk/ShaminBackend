@@ -1,7 +1,4 @@
 from django.db import models
-
-# Create your models here.
-from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from decimal import Decimal
@@ -26,15 +23,11 @@ class Order(models.Model):
         default=Status.PENDING,
         verbose_name=_('وضعیت'),
     )
-    total_price = models.DecimalField(
-        max_digits=12,
-        decimal_places=0,
-        verbose_name=_('مبلغ کل'),
-    )
+    total_price = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('مبلغ کل'))
     address     = models.TextField(verbose_name=_('آدرس تحویل'))
 
     # فیلدهای درگاه — الان با Mock پر می‌شن، بعداً واقعی
-    payment_authority = models.CharField(max_length=200, blank=True)
+    payment_authority = models.CharField(max_length=200, blank=True, null=True, unique=True)
     payment_ref_id    = models.CharField(max_length=200, blank=True)
 
     created_at  = models.DateTimeField(auto_now_add=True)
@@ -47,9 +40,6 @@ class Order(models.Model):
 
     def __str__(self):
         return f'Order #{self.pk} — {self.user} — {self.status}'
-
-# در کلاس Order، بعد از tracking_code اضافه کن:
-payment_authority = models.CharField(max_length=100, blank=True, null=True, unique=True)
 
 class OrderItem(models.Model):
     order    = models.ForeignKey(
@@ -67,7 +57,7 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField(default=1, verbose_name=_('تعداد'))
     price    = models.DecimalField(
         max_digits=12,
-        decimal_places=0,
+        decimal_places=2,
         verbose_name=_('قیمت لحظه خرید'),
     )  # snapshot — تغییر قیمت بعداً روی سفارش تأثیر نمی‌ذاره
 
