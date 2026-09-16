@@ -1,0 +1,30 @@
+@font-face {
+  font-family: 'Dana';
+  src: url('../public/fonts/dana/dana-fanum-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Dana';
+  src: url('../public/fonts/dana/dana-fanum-bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+html {
+  font-family: 'Dana', sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: 'Dana', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  font-family: inherit;
+}
