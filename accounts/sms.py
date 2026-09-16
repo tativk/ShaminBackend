@@ -15,7 +15,7 @@ def send_otp_kavenegar(phone: str, code: str) -> bool:
             "token": code,
             "template": settings.KAVENEGAR_TEMPLATE,  # نام template در پنل کاوه‌نگار
         }
-        response = requests.post(url, params=params, timeout=10)
+        response = requests.post(url, data=params, timeout=10)
         data = response.json()
         if data.get("return", {}).get("status") == 200:
             return True
