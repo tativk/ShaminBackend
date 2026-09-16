@@ -1,0 +1,752 @@
+/* ── صفحه سبد خرید ─ متغیرها فقط در اسکوپ صفحه ─────────────── */
+
+.cart-page {
+  --cart-green-900: #123c2b;
+  --cart-green-800: #1b4d38;
+  --cart-green-700: #23624a;
+  --cart-green-100: #e8f1ec;
+  --cart-green-50: #f0f6f2;
+  --cart-bg: #f4f6f4;
+  --cart-surface: #ffffff;
+  --cart-card-bg: #fbfcfb;
+  --cart-border: #e3e9e4;
+  --cart-text: #253530;
+  --cart-text-muted: #7d8b84;
+  --cart-radius-lg: 18px;
+  --cart-radius-md: 12px;
+  --cart-radius-sm: 8px;
+
+  background: var(--cart-bg);
+  color: var(--cart-text);
+  min-height: 100vh;
+  padding-bottom: 72px;
+}
+
+/* ── بنر بالای صفحه ─────────────────────────────────────────── */
+
+.cart-hero {
+  position: relative;
+  height: 340px;
+  overflow: hidden;
+}
+
+.cart-hero__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.cart-hero__content {
+  position: relative;
+  z-index: 1;
+  max-width: 1280px;
+  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0 120px;
+}
+
+.cart-hero__icon {
+  color: var(--cart-green-700);
+  margin-bottom: 4px;
+  margin-right: 96px;
+}
+
+.cart-hero__title {
+  margin: 0 0 14px;
+  font-size: 56px;
+  font-weight: 700;
+  letter-spacing: 6px;
+  color: var(--cart-green-800);
+}
+
+.cart-hero__subtitle {
+  margin: 0;
+  font-size: 20px;
+  color: #4c6156;
+}
+
+/* ── قاب کلی صفحه ───────────────────────────────────────────── */
+
+.cart-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 40px 32px 0;
+}
+
+.cart-feedback {
+  margin-bottom: 18px;
+  padding: 12px 16px;
+  border-radius: var(--cart-radius-sm);
+  font-size: 13px;
+}
+
+.cart-feedback--error {
+  background: #fff0f0;
+  border: 1px solid #efcaca;
+  color: #9b3333;
+}
+
+.cart-feedback--success {
+  background: #edf8f0;
+  border: 1px solid #c8e4ce;
+  color: #2e7442;
+}
+
+.cart-state {
+  display: grid;
+  min-height: 50vh;
+  place-items: center;
+  color: var(--cart-green-800);
+  font-size: 18px;
+}
+
+.cart-layout {
+  display: grid;
+  grid-template-columns: 1fr 384px;
+  gap: 28px;
+  align-items: start;
+  direction: ltr;
+}
+
+.cart-layout > * {
+  direction: rtl;
+}
+
+/* ── ستون اصلی (لیست آیتم‌ها) ───────────────────────────────── */
+
+.cart-main {
+  background: var(--cart-surface);
+  border: 1px solid var(--cart-border);
+  border-radius: var(--cart-radius-lg);
+  padding: 28px;
+}
+
+.cart-main__head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.cart-main__title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--cart-green-800);
+  order: 2;
+}
+
+.cart-main__title-icon {
+  display: inline-flex;
+  color: var(--cart-green-700);
+  order: 1;
+}
+
+.cart-items {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.cart-empty {
+  margin: 20px 0;
+  padding: 36px 20px;
+  border: 1px dashed var(--cart-border);
+  border-radius: var(--cart-radius-md);
+  color: var(--cart-text-muted);
+  text-align: center;
+}
+
+/* ── کارت هر آیتم ───────────────────────────────────────────── */
+
+.cart-item {
+  position: relative;
+  display: flex;
+  gap: 22px;
+  background: var(--cart-card-bg);
+  border: 1px solid var(--cart-border);
+  border-radius: var(--cart-radius-lg);
+  padding: 20px 22px;
+}
+
+.cart-item__media {
+  flex: 0 0 148px;
+  height: 148px;
+  background: #fff;
+  border: 1px solid var(--cart-border);
+  border-radius: var(--cart-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.cart-item__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cart-item__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-item__name {
+  margin: 4px 0 10px;
+  font-size: 16.5px;
+  font-weight: 700;
+  color: var(--cart-text);
+}
+
+.cart-item__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--cart-text-muted);
+  margin-bottom: 14px;
+}
+
+.cart-item__meta-divider {
+  color: #cdd6d0;
+}
+
+.cart-item__price {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--cart-green-800);
+  margin-bottom: 16px;
+}
+
+.cart-item__price span {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.cart-item__qty {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  background: #fff;
+  border: 1px solid var(--cart-border);
+  border-radius: 999px;
+  padding: 4px 6px;
+}
+
+.cart-item__qty-btn {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--cart-border);
+  border-radius: 999px;
+  background: var(--cart-green-50);
+  color: var(--cart-green-800);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 130ms;
+}
+
+.cart-item__qty-btn:hover {
+  background: var(--cart-green-100);
+}
+
+.cart-item__qty-value {
+  min-width: 34px;
+  text-align: center;
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+.cart-item__actions {
+  position: absolute;
+  top: 20px;
+  left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cart-item__action {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--cart-border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--cart-text-muted);
+  cursor: pointer;
+  transition: color 130ms, border-color 130ms;
+}
+
+.cart-item__action:hover {
+  color: var(--cart-green-700);
+  border-color: var(--cart-green-700);
+}
+
+.cart-item__action:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* ── نوار کد تخفیف / حذف همه ────────────────────────────────── */
+
+.cart-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid var(--cart-border);
+}
+
+.cart-coupon {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.cart-coupon__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--cart-green-800);
+  white-space: nowrap;
+}
+
+.cart-coupon__label svg {
+  color: var(--cart-green-700);
+}
+
+.cart-shipping-form {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+
+.cart-shipping-form label {
+  margin-top: 5px;
+  color: var(--cart-text-muted);
+  font-size: 12px;
+}
+
+.cart-shipping-form select,
+.cart-shipping-form input,
+.cart-shipping-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--cart-border);
+  border-radius: var(--cart-radius-sm);
+  background: #fff;
+  color: var(--cart-text);
+  font: inherit;
+  font-size: 13px;
+  resize: vertical;
+}
+
+.cart-shipping-form select:focus,
+.cart-shipping-form input:focus,
+.cart-shipping-form textarea:focus {
+  outline: none;
+  border-color: var(--cart-green-700);
+}
+
+.cart-coupon__input {
+  flex: 1;
+  max-width: 320px;
+  height: 44px;
+  padding: 0 16px;
+  background: #fff;
+  border: 1px solid var(--cart-border);
+  border-radius: var(--cart-radius-sm);
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--cart-text);
+  transition: border-color 130ms;
+}
+
+.cart-coupon__input:focus {
+  outline: none;
+  border-color: var(--cart-green-700);
+}
+
+.cart-coupon__btn {
+  height: 44px;
+  padding: 0 26px;
+  background: var(--cart-green-800);
+  color: #fff;
+  border: none;
+  border-radius: var(--cart-radius-sm);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 130ms;
+}
+
+.cart-coupon__btn:hover {
+  background: var(--cart-green-900);
+}
+
+.cart-summary__checkout:disabled {
+  background: #aab8b0;
+  cursor: not-allowed;
+}
+
+.cart-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 8px 4px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--cart-text-muted);
+  cursor: pointer;
+  transition: color 130ms;
+}
+
+.cart-clear:hover {
+  color: #b03a3a;
+}
+
+/* ── ستون کناری ─────────────────────────────────────────────── */
+
+.cart-side {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.cart-summary {
+  background: var(--cart-surface);
+  border: 1px solid var(--cart-border);
+  border-radius: var(--cart-radius-lg);
+  padding: 26px 24px;
+}
+
+.cart-summary__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  color: var(--cart-green-700);
+}
+
+.cart-summary__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--cart-green-800);
+}
+
+.cart-summary__rows {
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 0 0 18px;
+  border-bottom: 1px dashed var(--cart-border);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cart-summary__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: var(--cart-text-muted);
+}
+
+.cart-summary__row span:last-child {
+  color: var(--cart-text);
+  font-weight: 700;
+}
+
+.cart-summary__free {
+  color: #2e8b57 !important;
+}
+
+.cart-summary__payable {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--cart-text);
+  margin-bottom: 20px;
+}
+
+.cart-summary__payable strong {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--cart-green-800);
+}
+
+.cart-summary__checkout {
+  width: 100%;
+  height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--cart-green-800);
+  color: #fff;
+  border: none;
+  border-radius: var(--cart-radius-md);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 130ms;
+}
+
+.cart-summary__checkout:hover {
+  background: var(--cart-green-900);
+}
+
+.cart-summary__secure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px 0 0;
+  font-size: 12.5px;
+  color: var(--cart-text-muted);
+}
+
+.cart-summary__secure svg {
+  color: var(--cart-green-700);
+}
+
+/* ── کارت مزایا ─────────────────────────────────────────────── */
+
+.cart-benefits {
+  background: var(--cart-green-50);
+  border: 1px solid var(--cart-border);
+  border-radius: var(--cart-radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.cart-benefit {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.cart-benefit__icon {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid var(--cart-border);
+  border-radius: 999px;
+  color: var(--cart-green-700);
+}
+
+.cart-benefit__text h3 {
+  margin: 2px 0 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cart-green-800);
+}
+
+.cart-benefit__text p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--cart-text-muted);
+}
+
+/* ── سکشن پیشنهادها ─────────────────────────────────────────── */
+
+.cart-suggest {
+  margin-top: 40px;
+  background: var(--cart-green-50);
+  border: 1px solid var(--cart-border);
+  border-radius: var(--cart-radius-lg);
+  padding: 30px 28px 34px;
+}
+
+.cart-suggest__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 26px;
+}
+
+.cart-suggest__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--cart-green-800);
+  order: 2;
+}
+
+.cart-suggest__title-icon {
+  display: inline-flex;
+  color: var(--cart-green-700);
+  order: 1;
+}
+
+.cart-suggest__slider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cart-suggest__nav {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid var(--cart-border);
+  border-radius: 999px;
+  color: var(--cart-green-800);
+  cursor: pointer;
+  transition: background 130ms;
+}
+
+.cart-suggest__nav:hover {
+  background: var(--cart-green-100);
+}
+
+.cart-suggest__track {
+  flex: 1;
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.cart-suggest__track::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── کارت محصول پیشنهادی ────────────────────────────────────── */
+
+.suggest-card {
+  flex: 0 0 196px;
+  background: var(--cart-surface);
+  border: 1px solid var(--cart-border);
+  border-radius: var(--cart-radius-md);
+  padding: 14px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.suggest-card__media {
+  width: 100%;
+  height: 150px;
+  border-radius: var(--cart-radius-sm);
+  overflow: hidden;
+  margin-bottom: 12px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.suggest-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.suggest-card__name {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cart-text);
+}
+
+.suggest-card__model {
+  margin: 0 0 4px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--cart-text);
+}
+
+.suggest-card__brand {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--cart-text-muted);
+}
+
+.suggest-card__stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 12px;
+}
+
+.suggest-card__foot {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--cart-border);
+}
+
+.suggest-card__price {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--cart-green-800);
+}
+
+.suggest-card__price span {
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.suggest-card__cart {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cart-green-800);
+  color: #fff;
+  border: none;
+  border-radius: var(--cart-radius-sm);
+  cursor: pointer;
+  transition: background 130ms;
+}
+
+.suggest-card__cart:hover {
+  background: var(--cart-green-900);
+}
