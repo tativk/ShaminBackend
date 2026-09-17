@@ -30,13 +30,44 @@ class VerifyOtpSerializer(serializers.Serializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    role = serializers.SerializerMethodField()
+    is_profile_complete = serializers.ReadOnlyField()
+
     class Meta:
         model = User
-        fields = ["id", "phone", "first_name", "last_name", "email"]
+        fields = [
+            "id", "phone", "first_name", "last_name", "email",
+            "role", "is_profile_complete",
+        ]
         read_only_fields = ["id", "phone"]
+
+    def get_role(self, obj):
+        return "admin" if obj.is_staff or obj.is_superuser else "customer"
 
 
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
         fields = ["id", "province", "city", "street", "postal_code", "detail"]
+
+
+class CompleteRegistrationSerializer(serializers.Serializer):
+    first_name = serializers.CharField(max_length=50)
+    last_name = serializers.CharField(max_length=50)
+    email = serializers.EmailField(required=False, allow_blank=True)
+    province = serializers.CharField(max_length=100)
+    city = serializers.CharField(max_length=100)
+    street = serializers.CharField(max_length=255)
+    postal_code = serializers.CharField(min_length=10, max_length=10)
+    detail = serializers.CharField(required=False, allow_blank=True)
+
+    def validate_postal_code(self, value):
+        if not value.isdigit():
+            raise serializers.ValidationError("کد پستی باید فقط عدد باشد")
+        return value
+
+    def validate(self, attrs):
+        for field in ("first_name", "last_name", "province", "city", "street"):
+            if not attrs[field].strip():
+                raise serializers.ValidationError({field: "این فیلد الزامی است"})
+        return attrs
