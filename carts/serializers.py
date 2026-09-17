@@ -11,22 +11,12 @@ class ShippingRateSerializer(serializers.ModelSerializer):
 
 class CartItemSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='product.name', read_only=True)
-    brand = serializers.StringRelatedField(source='product.brand', read_only=True)
-    category = serializers.CharField(source='product.category', read_only=True)
-    main_image = serializers.SerializerMethodField()
     unit_price = serializers.DecimalField(source='product.final_price', max_digits=14, decimal_places=2, read_only=True)
     line_total = serializers.DecimalField(max_digits=24, decimal_places=2, read_only=True)
 
     class Meta:
         model = CartItem
-        fields = ['id', 'product', 'name', 'brand', 'category', 'main_image', 'quantity', 'unit_price', 'line_total']
-
-    def get_main_image(self, obj):
-        image = obj.product.images.filter(is_main=True).first()
-        if not image:
-            return None
-        request = self.context.get('request')
-        return request.build_absolute_uri(image.image.url) if request else image.image.url
+        fields = ['id', 'product', 'name', 'quantity', 'unit_price', 'line_total']
 
 
 class CartSerializer(serializers.ModelSerializer):
