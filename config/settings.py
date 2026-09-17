@@ -1,6 +1,9 @@
 import os
 from datetime import timedelta
 from pathlib import Path
+import environ
+env = environ.Env()
+environ.Env.read_env()  # یا read_env(BASE_DIR / '.env')
 
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
@@ -20,6 +23,7 @@ ALLOWED_HOSTS = [
 ]
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -140,4 +144,33 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 
 MEDIA_ROOT = BASE_DIR / 'media'
+
+
+
+
+PAYMENT_SERVICE = env('PAYMENT_SERVICE', default='mock')
+BACKEND_BASE_URL = env('BACKEND_BASE_URL', default='http://localhost:8000')
+
+# mobin
+JAZZMIN_SETTINGS = {
+    "site_title": "شامین",
+    "site_header": "پنل مدیریت شامین",
+    "site_brand": "ShaminBackend",
+    "site_icon": None,
+    "welcome_sign": "خوش آمدید به پنل مدیریت",
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "order_with_respect_to": ["accounts", "products"],
+    "icons": {
+        "accounts.User": "fas fa-user",
+        "accounts.Address": "fas fa-map-marker",
+        "products.Product": "fas fa-box",
+        "products.Brand": "fas fa-tag",
+    },
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+    "related_modal_active": False,
+    "language_chooser": False,
+}
 

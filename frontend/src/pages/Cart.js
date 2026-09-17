@@ -1,102 +1,42 @@
-import React, { useMemo, useRef, useState } from 'react';
+// Cart.jsx — نسخه یکپارچه (بر اساس شاخه main)
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './Cart.css';
 
 /* ── ابزارها ─────────────────────────────────────────────── */
-
 const FA_DIGITS = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-
 const toFa = (value) => String(value).replace(/\d/g, (d) => FA_DIGITS[Number(d)]);
-
 const formatPrice = (value) =>
   toFa(new Intl.NumberFormat('en-US').format(Math.round(value)).replace(/,/g, ','));
 
-/* ── داده نمونه ──────────────────────────────────────────── */
+/* ── تابع کمکی URL تصویر ─────────────────────────────────── */
+const getAssetUrl = (path) =>
+  path ? (path.startsWith('http') ? path : `${import.meta.env.VITE_API_BASE ?? ''}${path}`) : '/placeholder.png';
 
-const SEED_ITEMS = [
-  {
-    id: 1,
-    name: 'عطر زنانه دیور مدل Miss Dior',
-    brand: 'Dior',
-    volume: '100 میل',
-    price: 4790000,
-    quantity: 1,
-    image: '/عکس عطر1.png',
-  },
-  {
-    id: 2,
-    name: 'ادکلن مردانه شنل مدل Bleu de Chanel',
-    brand: 'Chanel',
-    volume: '100 میل',
-    price: 3990000,
-    quantity: 1,
-    image: '/عکس عطر2.png',
-  },
-  {
-    id: 3,
-    name: 'عطر مردانه ایو سن لورن مدل Y',
-    brand: 'YSL',
-    volume: '100 میل',
-    price: 2800000,
-    quantity: 1,
-    image: '/عکس عطر3.png',
-  },
-];
-
-const SUGGESTED_PRODUCTS = [
-  {
-    id: 101,
-    name: 'عطر زنانه ورساچه مدل',
-    model: 'Bright Crystal',
-    brand: 'Versace',
-    price: 3490000,
-    image: '/عکس عطر1.png',
-  },
-  {
-    id: 102,
-    name: 'ادکلن مردانه دیور مدل',
-    model: 'Sauvage',
-    brand: 'Dior',
-    price: 4990000,
-    image: '/عکس عطر2.png',
-  },
-  {
-    id: 103,
-    name: 'عطر زنانه گوچی مدل',
-    model: 'Bloom',
-    brand: 'Gucci',
-    price: 3990000,
-    image: '/عکس عطر3.png',
-  },
-  {
-    id: 104,
-    name: 'ادکلن مردانه دولچه گابانا',
-    model: 'مدل Light Blue',
-    brand: 'Dolce & Gabbana',
-    price: 3290000,
-    image: '/عکس عطر2.png',
-  },
-  {
-    id: 105,
-    name: 'عطر زنانه لانکوم مدل',
-    model: 'La Vie Est Belle',
-    brand: 'Lancôme',
-    price: 4590000,
-    image: '/عکس عطر1.png',
-  },
-];
+/* ── تابع درخواست API ────────────────────────────────────── */
+const apiRequest = async (path, options = {}) => {
+  const base = import.meta.env.VITE_API_BASE ?? '';
+  const res = await fetch(`${base}/api/v1${path}`, {
+    headers: { 'Content-Type': 'application/json', ...options.headers },
+    credentials: 'include',
+    ...options,
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.detail ?? `خطای سرور (${res.status})`);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+};
 
 /* ── آیکون‌ها ─────────────────────────────────────────────── */
-
 function CartIcon({ size = 24 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="9" cy="21" r="1.4" />
-      <circle cx="19" cy="21" r="1.4" />
+      <circle cx="9" cy="21" r="1.4" /><circle cx="19" cy="21" r="1.4" />
       <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
     </svg>
   );
 }
-
 function HeartIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -104,7 +44,6 @@ function HeartIcon() {
     </svg>
   );
 }
-
 function TrashIcon({ size = 18 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -115,7 +54,6 @@ function TrashIcon({ size = 18 }) {
     </svg>
   );
 }
-
 function TagIcon({ size = 20 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -124,7 +62,6 @@ function TagIcon({ size = 20 }) {
     </svg>
   );
 }
-
 function LockIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -133,7 +70,13 @@ function LockIcon() {
     </svg>
   );
 }
-
+function CheckCircleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" /><polyline points="8 12 11 15 16 9" />
+    </svg>
+  );
+}
 function ShieldCheckIcon({ size = 22 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -142,27 +85,15 @@ function ShieldCheckIcon({ size = 22 }) {
     </svg>
   );
 }
-
-function CheckCircleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="8 12 11 15 16 9" />
-    </svg>
-  );
-}
-
 function TruckIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <rect x="1" y="3" width="15" height="13" rx="1" />
       <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-      <circle cx="5.5" cy="18.5" r="2.5" />
-      <circle cx="18.5" cy="18.5" r="2.5" />
+      <circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" />
     </svg>
   );
 }
-
 function HeadsetIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -171,36 +102,29 @@ function HeadsetIcon() {
     </svg>
   );
 }
-
 function ReceiptIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z" />
-      <line x1="8" y1="8" x2="16" y2="8" />
-      <line x1="8" y1="12" x2="16" y2="12" />
+      <path d="M4 2v20l22-1 2 1 1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z" />
+      <line x1="8" y1="8" x2="16" y2="8" /><line x1="8" y1="12" x2="16" y2="12" />
     </svg>
   );
 }
-
 function LeafIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M11 20A7 7 0 0 1 4 13c0-4 3-8 8-10 5 2 8 6 8 10a7 7 0 0 1-7 7z" />
+      <path d="M11 20A7 3-8 13c0-4 3-8 8-10 5 2 8 6 8 10a7 7 0 0 1-7 7z" />
       <path d="M12 21V11" />
     </svg>
   );
 }
-
 function ChevronIcon({ direction = 'left' }) {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      {direction === 'left'
-        ? <polyline points="15 18 9 12 15 6" />
-        : <polyline points="9 18 15 12 9 6" />}
+      {direction === 'left' ? <polyline points="15 18 9 12 15 6" /> : <polyline points="9 18 15 12 9 6" />}
     </svg>
   );
 }
-
 function StarIcon({ filled = true, half = false }) {
   if (half) {
     return (
@@ -211,10 +135,7 @@ function StarIcon({ filled = true, half = false }) {
             <stop offset="50%" stopColor="#dcdcdc" />
           </linearGradient>
         </defs>
-        <path
-          fill="url(#half-star)"
-          d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-        />
+        <path fill="url(#half-star)" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
       </svg>
     );
   }
@@ -224,84 +145,216 @@ function StarIcon({ filled = true, half = false }) {
     </svg>
   );
 }
-
+function BasketIcon() {
+  return (
+    <svg width="18" height="18" viewBox=" 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+    </svg>
+  );
+}
 function BasketIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="9" cy="21" r="1.4" />
-      <circle cx="19" cy="21" r="1.4" />
-      <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+      <circl7.43H5.12" />
     </svg>
   );
 }
 
-/* ── کامپوننت صفحه سبد خرید ──────────────────────────────── */
-
+/* ── کامپوننت اصلی ───────────────────────────────────────── */
 export default function Cart() {
-  const [items, setItems] = useState(SEED_ITEMS);
+  const [cart, setCart] = useState(null);
+  const [cities, setCities] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [address, setAddress] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [couponCode, setCouponCode] = useState('');
   const sliderRef = useRef(null);
 
+  const items = cart?.items ?? [];
+
   const totals = useMemo(() => {
     const count = items.reduce((sum, item) => sum + item.quantity, 0);
-    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    return { count, subtotal, discount: 0, payable: subtotal };
-  }, [items]);
+    const subtotal = items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
+    const shipping = cart?.shipping_cost ?? 0;
+    return { count, subtotal, shipping, discount: 0, payable: subtotal + shipping };
+  }, [items, cart]);
 
-  const changeQuantity = (id, delta) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item
-      )
-    );
-  };
+  /* ── بارگذاری اولیه ─────────────────────────────────────── */
+  useEffect(() => {
+    const loadPage = async () => {
+      try {
+        const [cartData, cityData, productData, addressData] = await Promise.all([
+          apiRequest('/cart/'),
+          apiRequest('/shipping/cities/'),
+          apiRequest('/products/?page_size=20'),
+          apiRequest('/auth/address/'),
+        ]);
+        setCart(cartData);
+        setCities(cityData.results ?? cityData);
+        setProducts(productData.results ?? productData);
+        if (addressData) {
+          setAddress([addressData.street, addressData.detail].filter(Boolean).join('، '));
+          setPostalCode(addressData.postal_code ?? '');
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadPage();
+  }, []);
 
-  const removeItem = (id) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const clearAll = () => setItems([]);
-
-  const scrollSlider = (dir) => {
-    if (sliderRef.current) {
-      sliderRef.current.scrollBy({ left: dir * 220, behavior: 'smooth' });
+  const refreshCart = async () => {
+    try {
+      setCart(await apiRequest('/cart/'));
+    } catch (err) {
+      setError(err.message);
     }
   };
 
+  const changeQuantity = async (itemId, delta) => {
+    setError('');
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+    try {
+      setCart(
+        await apiRequest(`/cart/items/${itemId}/`, {
+          method: 'PATCH',
+          body: JSON.stringify({ quantity: Math.max(1, item.quantity + delta) }),
+        }),
+      );
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const removeItem = async (itemId) => {
+    setError('');
+    try {
+      await apiRequest(`/cart/items/${itemId}/`, { method: 'DELETE' });
+      await refreshCart();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const clearAll = async () => {
+    setError('');
+    try {
+      await Promise.all(items.map((item) => apiRequest(`/cart/items/${item.id}/`, { method: 'DELETE' })));
+      await refreshCart();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const changeCity = async (e) => {
+    const city = e.target.value;
+    if (!city) return;
+    setError('');
+    try {
+      setCart(await apiRequest('/cart/', { method: 'PATCH', body: JSON.stringify({ city }) }));
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const checkout = async () => {
+    if (!cart?.city) return setError('لطفاً ابتدا شهر ارسال را انتخاب کنید.');
+    if (!address.trim() || !/^\d{10}$/.test(postalCode))
+      return setError('آدرس و کد پستی ده رقمی را وارد کنید.');
+    setBusy(true);
+    setError('');
+    try {
+      const order = await apiRequest('/orders/', {
+        method: 'POST',
+        body: JSON.stringify({
+          city: cart.city,
+          address: address.trim(),
+          postal_code: postalCode,
+          shipping_cost: cart.shipping_cost,
+        }),
+      });
+      if (order.payment_url) {
+        window.location.assign(order.payment_url);
+      } else {
+        setNotice(`سفارش شماره ${toFa(order.order_id)} ایجاد شد.`);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const addSuggestedProduct = async (product) => {
+    setError('');
+    try {
+      setCart(
+        await apiRequest('/cart/items/', {
+          method: 'POST',
+          body: JSON.stringify({ product: product.id, quantity: 1 }),
+        }),
+      );
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const suggestedProducts = products
+    .filter((p) => !items.some((item) => item.product === p.id))
+    .slice(0, 5);
+
+  const scrollSlider = (dir) => {
+    sliderRef.current?.scrollBy({ left: dir * 220, behavior: 'smooth' });
+  };
+
+  /* ── حالت بارگذاری ─────────────────────────────────────── */
+  if (loading) {
+    return (
+      <div className="cart-page cart-state" dir="rtl">
+        در حال دریافت سبد خرید...
+      </div>
+    );
+  }
+
+  /* ── رندر اصلی ─────────────────────────────────────────── */
   return (
     <div className="cart-page" dir="rtl">
-      {/* ── بنر ─────────────────────────────────────────── */}
+      {/* بنر */}
       <section className="cart-hero">
         <img className="cart-hero__bg" src="/banner-cart.png" alt="" />
         <div className="cart-hero__content">
-          <div className="cart-hero__icon">
-            <CartIcon size={40} />
-          </div>
-          <h1 className="cart-hero__title">سبـد خریـد</h1>
+          <div className="cart-hero__icon"><CartIcon sizبـد خریـدبـد خریـد</h1>
           <p className="cart-hero__subtitle">محصولات منتخب شما در سبد خرید...</p>
         </div>
       </section>
 
       <div className="cart-container">
+        {/* پیام‌ها */}
+        {error && <div className="cart-feedback cart-feedback--error">{error}</div>}
+        {notice && <div className="cart-feedback cart-feedback--success">{notice}</div>}
+
         <div className="cart-layout">
-          {/* ── ستون اصلی: آیتم‌های سبد ─────────────────── */}
+          {/* ستون اصلی */}
           <section className="cart-main">
             <div className="cart-main__head">
               <h2 className="cart-main__title">سبد خرید ({toFa(totals.count)} کالا)</h2>
-              <span className="cart-main__title-icon">
-                <CartIcon size={26} />
-              </span>
+              <span className="cart-main__title-icon"><CartIcon size={26} /></span>
             </div>
 
             <div className="cart-items">
+              {!items.length && <p className="cart-empty">سبد خرید شما خالی است.</p>}
+
               {items.map((item) => (
                 <article className="cart-item" key={item.id}>
                   <div className="cart-item__media">
-                    <img src={item.image} alt={item.name} />
+                    <img src={getAssetUrl(item.main_image)} alt={item.name} />
                   </div>
-
                   <div className="cart-item__body">
                     <h3 className="cart-item__name">{item.name}</h3>
                     <div className="cart-item__meta">
@@ -310,39 +363,19 @@ export default function Cart() {
                       <span>برند : {item.brand}</span>
                     </div>
                     <div className="cart-item__price">
-                      {formatPrice(item.price)} <span>تومان</span>
+                      {formatPrice(item.unit_price)} <span>تومان</span>
                     </div>
                     <div className="cart-item__qty">
-                      <button
-                        type="button"
-                        className="cart-item__qty-btn"
-                        onClick={() => changeQuantity(item.id, -1)}
-                        aria-label="کاهش تعداد"
-                      >
-                        −
-                      </button>
+                      <button type="button" className="cart-item__qty-btn" onClick={() => changeQuantity(item.id, -1)} aria-label="کاهش تعداد">−</button>
                       <span className="cart-item__qty-value">{toFa(item.quantity)}</span>
-                      <button
-                        type="button"
-                        className="cart-item__qty-btn"
-                        onClick={() => changeQuantity(item.id, 1)}
-                        aria-label="افزایش تعداد"
-                      >
-                        +
-                      </button>
+                      <button type="button" className="cart-item__qty-btn" onClick={() => changeQuantity(item.id, 1)} aria-label="افزایش تعداد">+</button>
                     </div>
                   </div>
-
                   <div className="cart-item__actions">
-                    <button type="button" className="cart-item__action" aria-label="افزودن به علاقه‌مندی‌ها">
+                    <button type="button" className="cart-item__action" aria-label="افزودن به علاقه‌مندی‌ها" disabled title="به‌زودی">
                       <HeartIcon />
                     </button>
-                    <button
-                      type="button"
-                      className="cart-item__action"
-                      onClick={() => removeItem(item.id)}
-                      aria-label="حذف از سبد"
-                    >
+                    <button type="button" className="cart-item__action" onClick={() => removeItem(item.id)} aria-label="حذف از سبد">
                       <TrashIcon />
                     </button>
                   </div>
@@ -350,157 +383,145 @@ export default function Cart() {
               ))}
             </div>
 
-            {/* ── نوار کد تخفیف / حذف همه ─────────────────── */}
+            {/* نوار ابزار */}
             <div className="cart-toolbar">
               <div className="cart-coupon">
-                <span className="cart-coupon__label">
-                  کد تخفیف دارید؟
-                  <TagIcon size={18} />
-                </span>
+                <span className="cart-coupon__label">کد تخفیف دارید؟ <TagIcon size={18} /></span>
                 <input
                   type="text"
                   className="cart-coupon__input"
                   value={couponCode}
-                  onChange={(event) => setCouponCode(event.target.value)}
+                  onChange={(e) => setCouponCode(e.target.value)}
                   placeholder="ــــــــــــــ"
                 />
                 <button type="button" className="cart-coupon__btn">اعمال کد</button>
               </div>
               <button type="button" className="cart-clear" onClick={clearAll}>
-                حذف همه موارد
-                <TrashIcon size={16} />
+                حذف همه موارد <TrashIcon size={16} />
               </button>
             </div>
           </section>
 
-          {/* ── ستون کناری: خلاصه سفارش ─────────────────── */}
+          {/* ستون کناری */}
           <aside className="cart-side">
             <div className="cart-summary">
               <div className="cart-summary__head">
                 <h2 className="cart-summary__title">خلاصه سفارش</h2>
                 <ReceiptIcon />
               </div>
-
               <ul className="cart-summary__rows">
-                <li className="cart-summary__row">
-                  <span>تعداد کالاها</span>
-                  <span>{toFa(totals.count)}</span>
-                </li>
-                <li className="cart-summary__row">
-                  <span>جمع کل محصولات</span>
-                  <span>{formatPrice(totals.subtotal)} تومان</span>
-                </li>
+                <li className="cart-summary__row"><span>تعداد کالاها</span><span>{toFa(totals.count)}</span></li>
+                <li className="cart-summary__row"><span>جمع کل محصولات</span><span>{formatPrice(totals.subtotal)} تومان</span></li>
                 <li className="cart-summary__row">
                   <span>هزینه ارسال</span>
-                  <span className="cart-summary__free">رایگان</span>
+                  <span className={cart?.shipping_cost == null ? '' : 'cart-summary__free'}>
+                    {cart?.shipping_cost == null ? 'انتخاب شهر' : `${formatPrice(totals.shipping)} تومان`}
+                  </span>
                 </li>
-                <li className="cart-summary__row">
-                  <span>تخفیف</span>
-                  <span>{toFa(0)} تومان</span>
-                </li>
+                <li className="cart-summary__row"><span>تخفیف</span><span>{toFa(0)} تومان</span></li>
               </ul>
-
               <div className="cart-summary__payable">
                 <span>مبلغ قابل پرداخت</span>
-                <strong>{formatPrice(totals.payable)} تومان</strong>
+                <strong>
+                  {cart?.total == null ? 'پس از انتخاب شهر' : `${formatPrice(totals.payable)} تومان`}
+                </strong>
               </div>
 
-              <button type="button" className="cart-summary__checkout">
+              {/* فرم ارسال */}
+              <div className="cart-shipping-form">
+                <label htmlFor="shipping-city">شهر ارسال</label>
+                <select id="shipping-city" value={cart?.city ?? ''} onChange={changeCity}>
+                  <option value="">انتخاب شهر</option>
+                  {cities.map((city) => (
+                    <option key={city.id} value={city.city}>
+                      {city.city} - {formatPrice(city.cost)} تومان
+                    </option>
+                  ))}
+                </select>
+
+                <label htmlFor="shipping-address">آدرس</label>
+                <textarea
+                  id="shipping-address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="آدرس کامل تحویل"
+                  rows="3"
+                />
+
+                <label htmlFor="shipping-postal-code">کد پستی</label>
+                <input
+                  id="shipping-postal-code"
+                  value={postalCode}
+                  onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  inputMode="numeric"
+                  placeholder="کد پستی ده رقمی"
+                />
+              </div>
+
+              <button
+                type="button"
+                className="cart-summary__checkout"
+                onClick={checkout}
+                disabled={busy || !items.length}
+              >
                 <LockIcon />
                 ادامه فرآیند پرداخت
               </button>
-
-              <p className="cart-summary__secure">
-                <CheckCircleIcon />
-                پرداخت امن و مطمئن
-              </p>
+              <p className="cart-summary__secure"><CheckCircleIcon /> پرداخت امن و مطمئن</p>
             </div>
 
+            {/* مزایا */}
             <div className="cart-benefits">
               <div className="cart-benefit">
-                <span className="cart-benefit__icon">
-                  <ShieldCheckIcon />
-                </span>
-                <div className="cart-benefit__text">
-                  <h3>تضمین اصالت کالا</h3>
-                  <p>همه محصولات اصل و اورجینال هستند.</p>
-                </div>
+                <span className="cart-benefit__icon"><ShieldCheckIcon /></span>
+                <div className="cart-benefit__text"><h3>تضمین اصالت کالا</h3><p>همه محصولات اصل و اورجینال هستند.</p></div>
               </div>
               <div className="cart-benefit">
-                <span className="cart-benefit__icon">
-                  <TruckIcon />
-                </span>
-                <div className="cart-benefit__text">
-                  <h3>ارسال سریع</h3>
-                  <p>در کمترین زمان ممکن به دستتان می‌رسد.</p>
-                </div>
+                <span className="cart-benefit__icon"><TruckIcon /></span>
+                <div className="cart-benefit__text"><h3>ارسال سریع</h3><p>در کمترین زمان ممکن به دستتان می‌رسد.</p></div>
               </div>
               <div className="cart-benefit">
-                <span className="cart-benefit__icon">
-                  <HeadsetIcon />
-                </span>
-                <div className="cart-benefit__text">
-                  <h3>پشتیبانی ۲۴ ساعته</h3>
-                  <p>پاسخگوی سوالات و مشکلات شما هستیم.</p>
-                </div>
+                <span className="cart-benefit__icon"><HeadsetIcon /></span>
+                <div className="cart-benefit__text"><h3>پشتیبانی ۲۴ ساعته</h3><p>پاسخگوی سوالات و مشکلات شما هستیم.</p></div>
               </div>
             </div>
           </aside>
         </div>
 
-        {/* ── پیشنهادها ─────────────────────────────────── */}
+        {/* پیشنهادات */}
         <section className="cart-suggest">
           <div className="cart-suggest__head">
             <h2 className="cart-suggest__title">شاید این محصولات را هم دوست داشته باشید</h2>
-            <span className="cart-suggest__title-icon">
-              <LeafIcon />
-            </span>
+            <span className="cart-suggest__title-icon"><LeafIcon /></span>
           </div>
-
           <div className="cart-suggest__slider">
-            <button
-              type="button"
-              className="cart-suggest__nav"
-              onClick={() => scrollSlider(1)}
-              aria-label="قبلی"
-            >
+            <button type="button" className="cart-suggest__nav" onClick={() => scrollSlider(1)} aria-label="قبلی">
               <ChevronIcon direction="right" />
             </button>
-
             <div className="cart-suggest__track" ref={sliderRef}>
-              {SUGGESTED_PRODUCTS.map((product) => (
+              {suggestedProducts.map((product) => (
                 <article className="suggest-card" key={product.id}>
                   <div className="suggest-card__media">
-                    <img src={product.image} alt={`${product.name} ${product.model}`} />
+                    <img src={getAssetUrl(product.main_image)} alt={product.name} />
                   </div>
                   <h3 className="suggest-card__name">{product.name}</h3>
-                  <p className="suggest-card__model">{product.model}</p>
-                  <p className="suggest-card__brand">{product.brand}</p>
+                  <p className="suggest-card__model">{product.category}</p>
+                  <p className="suggest-card__brand">{product.brand ?? 'بدون برند'}</p>
                   <div className="suggest-card__stars">
-                    <StarIcon />
-                    <StarIcon />
-                    <StarIcon />
-                    <StarIcon />
-                    <StarIcon half />
+                    <StarIcon /><StarIcon /><StarIcon /><StarIcon /><StarIcon half />
                   </div>
                   <div className="suggest-card__foot">
                     <span className="suggest-card__price">
-                      {formatPrice(product.price)} <span>تومان</span>
+                      {formatPrice(product.final_price)} <span>تومان</span>
                     </span>
-                    <button type="button" className="suggest-card__cart" aria-label="افزودن به سبد">
+                    <button type="button" className="suggest-card__cart" onClick={() => addSuggestedProduct(product)} aria-label="افزودن به سبد">
                       <BasketIcon />
                     </button>
                   </div>
                 </article>
               ))}
             </div>
-
-            <button
-              type="button"
-              className="cart-suggest__nav"
-              onClick={() => scrollSlider(-1)}
-              aria-label="بعدی"
-            >
+            <button type="button" className="cart-suggest__nav" onClick={() => scrollSlider(-1)} aria-label="بعدی">
               <ChevronIcon direction="left" />
             </button>
           </div>
