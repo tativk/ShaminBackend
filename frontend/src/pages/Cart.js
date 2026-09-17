@@ -165,6 +165,8 @@ export default function Cart() {
   const [cart, setCart] = useState(null);
   const [cities, setCities] = useState([]);
   const [products, setProducts] = useState([]);
+  const [province, setProvince] = useState('');
+  const [manualCity, setManualCity] = useState('');
   const [address, setAddress] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [loading, setLoading] = useState(true);
@@ -197,6 +199,8 @@ export default function Cart() {
         setCities(cityData.results ?? cityData);
         setProducts(productData.results ?? productData);
         if (addressData) {
+          setProvince(addressData.province ?? '');
+          setManualCity(addressData.city ?? '');
           setAddress([addressData.street, addressData.detail].filter(Boolean).join('، '));
           setPostalCode(addressData.postal_code ?? '');
         }
@@ -265,7 +269,8 @@ export default function Cart() {
   };
 
   const checkout = async () => {
-    if (!cart?.city) return setError('لطفاً ابتدا شهر ارسال را انتخاب کنید.');
+    if (!cart?.city && !manualCity.trim()) return setError('لطفاً ابتدا استان و شهر ارسال را انتخاب یا وارد کنید.');
+    if (!province.trim() || !manualCity.trim()) return setError('لطفاً استان و شهر خود را وارد کنید.');
     if (!address.trim() || !/^\d{10}$/.test(postalCode))
       return setError('آدرس و کد پستی ده رقمی را وارد کنید.');
     setBusy(true);
@@ -274,10 +279,11 @@ export default function Cart() {
       const order = await apiRequest('/orders/', {
         method: 'POST',
         body: JSON.stringify({
-          city: cart.city,
+          city: cart?.city || manualCity.trim(),
+          province: province.trim(),
           address: address.trim(),
           postal_code: postalCode,
-          shipping_cost: cart.shipping_cost,
+          shipping_cost: cart?.shipping_cost ?? 0,
         }),
       });
       if (order.payment_url) {
@@ -431,9 +437,32 @@ export default function Cart() {
 
               {/* فرم ارسال */}
               <div className="cart-shipping-form">
-                <label htmlFor="shipping-city">شهر ارسال</label>
-                <select id="shipping-city" value={cart?.city ?? ''} onChange={changeCity}>
-                  <option value="">انتخاب شهر</option>
+                <label htmlFor="shipping-province">استان</label>
+                <input
+                  id="shipping-province"
+                  value={province}
+                  onChange={(e) => setProvince(e.target.value)}
+                  placeholder="مثلاً تهران"
+                />
+
+                <label htmlFor="shipping-city">شهر</label>
+                <input
+                  id="shipping-city"
+                  value={manualCity}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setManualCity(value);
+                    const matchedCity = cities.find((item) => item.city.toLowerCase() === value.trim().toLowerCase());
+                    if (matchedCity) {
+                      setCart((prev) => prev ? { ...prev, city: matchedCity.city, shipping_cost: matchedCity.cost } : prev);
+                    }
+                  }}
+                  placeholder="مثلاً تهران یا شیراز"
+                />
+
+                <label htmlFor="shipping-city-select">انتخاب شهر ارسال</label>
+                <select id="shipping-city-select" value={cart?.city ?? ''} onChange={changeCity}>
+                  <option value="">انتخاب شهر ارسال</option>
                   {cities.map((city) => (
                     <option key={city.id} value={city.city}>
                       {city.city} - {formatPrice(city.cost)} تومان
