@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import './Cart.css';
-import { apiRequest, getAssetUrl } from '../api';
 
 /* ── ابزارها ─────────────────────────────────────────────── */
 
@@ -10,6 +9,81 @@ const toFa = (value) => String(value).replace(/\d/g, (d) => FA_DIGITS[Number(d)]
 
 const formatPrice = (value) =>
   toFa(new Intl.NumberFormat('en-US').format(Math.round(value)).replace(/,/g, ','));
+
+/* ── داده نمونه ──────────────────────────────────────────── */
+
+const SEED_ITEMS = [
+  {
+    id: 1,
+    name: 'عطر زنانه دیور مدل Miss Dior',
+    brand: 'Dior',
+    volume: '100 میل',
+    price: 4790000,
+    quantity: 1,
+    image: '/عکس عطر1.png',
+  },
+  {
+    id: 2,
+    name: 'ادکلن مردانه شنل مدل Bleu de Chanel',
+    brand: 'Chanel',
+    volume: '100 میل',
+    price: 3990000,
+    quantity: 1,
+    image: '/عکس عطر2.png',
+  },
+  {
+    id: 3,
+    name: 'عطر مردانه ایو سن لورن مدل Y',
+    brand: 'YSL',
+    volume: '100 میل',
+    price: 2800000,
+    quantity: 1,
+    image: '/عکس عطر3.png',
+  },
+];
+
+const SUGGESTED_PRODUCTS = [
+  {
+    id: 101,
+    name: 'عطر زنانه ورساچه مدل',
+    model: 'Bright Crystal',
+    brand: 'Versace',
+    price: 3490000,
+    image: '/عکس عطر1.png',
+  },
+  {
+    id: 102,
+    name: 'ادکلن مردانه دیور مدل',
+    model: 'Sauvage',
+    brand: 'Dior',
+    price: 4990000,
+    image: '/عکس عطر2.png',
+  },
+  {
+    id: 103,
+    name: 'عطر زنانه گوچی مدل',
+    model: 'Bloom',
+    brand: 'Gucci',
+    price: 3990000,
+    image: '/عکس عطر3.png',
+  },
+  {
+    id: 104,
+    name: 'ادکلن مردانه دولچه گابانا',
+    model: 'مدل Light Blue',
+    brand: 'Dolce & Gabbana',
+    price: 3290000,
+    image: '/عکس عطر2.png',
+  },
+  {
+    id: 105,
+    name: 'عطر زنانه لانکوم مدل',
+    model: 'La Vie Est Belle',
+    brand: 'Lancôme',
+    price: 4590000,
+    image: '/عکس عطر1.png',
+  },
+];
 
 /* ── آیکون‌ها ─────────────────────────────────────────────── */
 
@@ -164,149 +238,37 @@ function BasketIcon() {
 /* ── کامپوننت صفحه سبد خرید ──────────────────────────────── */
 
 export default function Cart() {
-  const [cart, setCart] = useState(null);
-  const [cities, setCities] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [address, setAddress] = useState('');
-  const [postalCode, setPostalCode] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [notice, setNotice] = useState('');
+  const [items, setItems] = useState(SEED_ITEMS);
+  const [couponCode, setCouponCode] = useState('');
   const sliderRef = useRef(null);
 
-  const items = cart?.items || [];
-  const totals = {
-    count: items.reduce((sum, item) => sum + item.quantity, 0),
-    subtotal: Number(cart?.subtotal || 0),
-    shipping: Number(cart?.shipping_cost || 0),
-    discount: 0,
-    payable: Number(cart?.total || 0),
+  const totals = useMemo(() => {
+    const count = items.reduce((sum, item) => sum + item.quantity, 0);
+    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    return { count, subtotal, discount: 0, payable: subtotal };
+  }, [items]);
+
+  const changeQuantity = (id, delta) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
+          : item
+      )
+    );
   };
 
-  useEffect(() => {
-    const loadPage = async () => {
-      try {
-        const [cartData, cityData, productData, addressData] = await Promise.all([
-          apiRequest('/cart/'),
-          apiRequest('/shipping/cities/'),
-          apiRequest('/products/?page_size=20'),
-          apiRequest('/auth/address/'),
-        ]);
-        setCart(cartData);
-        setCities(cityData.results || cityData);
-        setProducts(productData.results || productData);
-        if (addressData) {
-          setAddress([addressData.street, addressData.detail].filter(Boolean).join('، '));
-          setPostalCode(addressData.postal_code || '');
-        }
-      } catch (requestError) {
-        setError(requestError.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadPage();
-  }, []);
-
-  const refreshCart = async () => setCart(await apiRequest('/cart/'));
-
-  const changeQuantity = async (item, delta) => {
-    setError('');
-    try {
-      const data = await apiRequest(`/cart/items/${item.id}/`, {
-        method: 'PATCH',
-        body: JSON.stringify({ quantity: Math.max(1, item.quantity + delta) }),
-      });
-      setCart(data);
-    } catch (requestError) {
-      setError(requestError.message);
-    }
+  const removeItem = (id) => {
+    setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const removeItem = async (id) => {
-    setError('');
-    try {
-      await apiRequest(`/cart/items/${id}/`, { method: 'DELETE' });
-      await refreshCart();
-    } catch (requestError) {
-      setError(requestError.message);
-    }
-  };
-
-  const clearAll = async () => {
-    setError('');
-    try {
-      await Promise.all(items.map((item) => apiRequest(`/cart/items/${item.id}/`, { method: 'DELETE' })));
-      await refreshCart();
-    } catch (requestError) {
-      setError(requestError.message);
-    }
-  };
-
-  const changeCity = async (event) => {
-    const city = event.target.value;
-    if (!city) return;
-    setError('');
-    try {
-      setCart(await apiRequest('/cart/', {
-        method: 'PATCH',
-        body: JSON.stringify({ city }),
-      }));
-    } catch (requestError) {
-      setError(requestError.message);
-    }
-  };
-
-  const checkout = async () => {
-    if (!cart?.city) return setError('لطفاً ابتدا شهر ارسال را انتخاب کنید.');
-    if (!address.trim() || !/^\d{10}$/.test(postalCode)) {
-      return setError('آدرس و کد پستی ده رقمی را وارد کنید.');
-    }
-    setBusy(true);
-    setError('');
-    try {
-      const order = await apiRequest('/orders/', {
-        method: 'POST',
-        body: JSON.stringify({
-          city: cart.city,
-          address: address.trim(),
-          postal_code: postalCode,
-          shipping_cost: cart.shipping_cost,
-        }),
-      });
-      if (order.payment_url) window.location.assign(order.payment_url);
-      else setNotice(`سفارش شماره ${toFa(order.order_id)} ایجاد شد.`);
-    } catch (requestError) {
-      setError(requestError.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const suggestedProducts = products
-    .filter((product) => !items.some((item) => item.product === product.id))
-    .slice(0, 5);
-
-  const addSuggestedProduct = async (product) => {
-    setError('');
-    try {
-      setCart(await apiRequest('/cart/items/', {
-        method: 'POST',
-        body: JSON.stringify({ product: product.id, quantity: 1 }),
-      }));
-    } catch (requestError) {
-      setError(requestError.message);
-    }
-  };
+  const clearAll = () => setItems([]);
 
   const scrollSlider = (dir) => {
     if (sliderRef.current) {
       sliderRef.current.scrollBy({ left: dir * 220, behavior: 'smooth' });
     }
   };
-
-  if (loading) return <div className="cart-page cart-state" dir="rtl">در حال دریافت سبد خرید...</div>;
 
   return (
     <div className="cart-page" dir="rtl">
@@ -323,8 +285,6 @@ export default function Cart() {
       </section>
 
       <div className="cart-container">
-        {error && <div className="cart-feedback cart-feedback--error">{error}</div>}
-        {notice && <div className="cart-feedback cart-feedback--success">{notice}</div>}
         <div className="cart-layout">
           {/* ── ستون اصلی: آیتم‌های سبد ─────────────────── */}
           <section className="cart-main">
@@ -336,28 +296,27 @@ export default function Cart() {
             </div>
 
             <div className="cart-items">
-              {!items.length && <p className="cart-empty">سبد خرید شما خالی است.</p>}
               {items.map((item) => (
                 <article className="cart-item" key={item.id}>
                   <div className="cart-item__media">
-                    <img src={getAssetUrl(item.main_image)} alt={item.name} />
+                    <img src={item.image} alt={item.name} />
                   </div>
 
                   <div className="cart-item__body">
                     <h3 className="cart-item__name">{item.name}</h3>
                     <div className="cart-item__meta">
-                      <span>دسته‌بندی : {item.category || 'محصول'}</span>
+                      <span>حجم : {toFa(item.volume)}</span>
                       <span className="cart-item__meta-divider">|</span>
-                      <span>برند : {item.brand || 'بدون برند'}</span>
+                      <span>برند : {item.brand}</span>
                     </div>
                     <div className="cart-item__price">
-                      {formatPrice(item.unit_price)} <span>تومان</span>
+                      {formatPrice(item.price)} <span>تومان</span>
                     </div>
                     <div className="cart-item__qty">
                       <button
                         type="button"
                         className="cart-item__qty-btn"
-                        onClick={() => changeQuantity(item, -1)}
+                        onClick={() => changeQuantity(item.id, -1)}
                         aria-label="کاهش تعداد"
                       >
                         −
@@ -366,7 +325,7 @@ export default function Cart() {
                       <button
                         type="button"
                         className="cart-item__qty-btn"
-                        onClick={() => changeQuantity(item, 1)}
+                        onClick={() => changeQuantity(item.id, 1)}
                         aria-label="افزایش تعداد"
                       >
                         +
@@ -375,7 +334,7 @@ export default function Cart() {
                   </div>
 
                   <div className="cart-item__actions">
-                    <button type="button" className="cart-item__action" aria-label="افزودن به علاقه‌مندی‌ها" disabled title="به‌زودی">
+                    <button type="button" className="cart-item__action" aria-label="افزودن به علاقه‌مندی‌ها">
                       <HeartIcon />
                     </button>
                     <button
@@ -391,13 +350,21 @@ export default function Cart() {
               ))}
             </div>
 
-            {/* ── نوار عملیات سبد ─────────────────────────── */}
+            {/* ── نوار کد تخفیف / حذف همه ─────────────────── */}
             <div className="cart-toolbar">
               <div className="cart-coupon">
                 <span className="cart-coupon__label">
-                  کد تخفیف در نسخه بعدی فعال می‌شود
+                  کد تخفیف دارید؟
                   <TagIcon size={18} />
                 </span>
+                <input
+                  type="text"
+                  className="cart-coupon__input"
+                  value={couponCode}
+                  onChange={(event) => setCouponCode(event.target.value)}
+                  placeholder="ــــــــــــــ"
+                />
+                <button type="button" className="cart-coupon__btn">اعمال کد</button>
               </div>
               <button type="button" className="cart-clear" onClick={clearAll}>
                 حذف همه موارد
@@ -425,9 +392,7 @@ export default function Cart() {
                 </li>
                 <li className="cart-summary__row">
                   <span>هزینه ارسال</span>
-                  <span className={cart?.shipping_cost == null ? '' : 'cart-summary__free'}>
-                    {cart?.shipping_cost == null ? 'انتخاب شهر' : `${formatPrice(totals.shipping)} تومان`}
-                  </span>
+                  <span className="cart-summary__free">رایگان</span>
                 </li>
                 <li className="cart-summary__row">
                   <span>تخفیف</span>
@@ -437,40 +402,12 @@ export default function Cart() {
 
               <div className="cart-summary__payable">
                 <span>مبلغ قابل پرداخت</span>
-                <strong>{cart?.total == null ? 'پس از انتخاب شهر' : `${formatPrice(totals.payable)} تومان`}</strong>
+                <strong>{formatPrice(totals.payable)} تومان</strong>
               </div>
 
-              <div className="cart-shipping-form">
-                <label htmlFor="shipping-city">شهر ارسال</label>
-                <select id="shipping-city" value={cart?.city || ''} onChange={changeCity}>
-                  <option value="">انتخاب شهر</option>
-                  {cities.map((city) => (
-                    <option key={city.id} value={city.city}>
-                      {city.city} - {formatPrice(city.cost)} تومان
-                    </option>
-                  ))}
-                </select>
-                <label htmlFor="shipping-address">آدرس</label>
-                <textarea
-                  id="shipping-address"
-                  value={address}
-                  onChange={(event) => setAddress(event.target.value)}
-                  placeholder="آدرس کامل تحویل"
-                  rows="3"
-                />
-                <label htmlFor="shipping-postal-code">کد پستی</label>
-                <input
-                  id="shipping-postal-code"
-                  value={postalCode}
-                  onChange={(event) => setPostalCode(event.target.value.replace(/\D/g, '').slice(0, 10))}
-                  inputMode="numeric"
-                  placeholder="کد پستی ده رقمی"
-                />
-              </div>
-
-              <button type="button" className="cart-summary__checkout" onClick={checkout} disabled={busy || !items.length}>
+              <button type="button" className="cart-summary__checkout">
                 <LockIcon />
-                {busy ? 'در حال آماده‌سازی سفارش...' : 'ادامه فرآیند پرداخت'}
+                ادامه فرآیند پرداخت
               </button>
 
               <p className="cart-summary__secure">
@@ -531,14 +468,14 @@ export default function Cart() {
             </button>
 
             <div className="cart-suggest__track" ref={sliderRef}>
-              {suggestedProducts.map((product) => (
+              {SUGGESTED_PRODUCTS.map((product) => (
                 <article className="suggest-card" key={product.id}>
                   <div className="suggest-card__media">
-                    <img src={getAssetUrl(product.main_image)} alt={product.name} />
+                    <img src={product.image} alt={`${product.name} ${product.model}`} />
                   </div>
                   <h3 className="suggest-card__name">{product.name}</h3>
-                  <p className="suggest-card__model">{product.category}</p>
-                  <p className="suggest-card__brand">{product.brand || 'بدون برند'}</p>
+                  <p className="suggest-card__model">{product.model}</p>
+                  <p className="suggest-card__brand">{product.brand}</p>
                   <div className="suggest-card__stars">
                     <StarIcon />
                     <StarIcon />
@@ -548,9 +485,9 @@ export default function Cart() {
                   </div>
                   <div className="suggest-card__foot">
                     <span className="suggest-card__price">
-                      {formatPrice(product.final_price)} <span>تومان</span>
+                      {formatPrice(product.price)} <span>تومان</span>
                     </span>
-                    <button type="button" className="suggest-card__cart" onClick={() => addSuggestedProduct(product)} aria-label="افزودن به سبد">
+                    <button type="button" className="suggest-card__cart" aria-label="افزودن به سبد">
                       <BasketIcon />
                     </button>
                   </div>
