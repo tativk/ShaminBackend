@@ -1,4 +1,4 @@
-// Cart.jsx — نسخه یکپارچه (بر اساس شاخه main)
+// Cart.jsx — نسخه یکپارچه (بر اساس شاخه main) — اصلاح‌شده
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './Cart.css';
 
@@ -6,7 +6,7 @@ import './Cart.css';
 const FA_DIGITS = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
 const toFa = (value) => String(value).replace(/\d/g, (d) => FA_DIGITS[Number(d)]);
 const formatPrice = (value) =>
-  toFa(new Intl.NumberFormat('en-US').format(Math.round(value)).replace(/,/g, ','));
+  toFa(new Intl.NumberFormat('en-US').format(Math.round(value)).replace(/,/g, '٬'));
 
 /* ── تابع کمکی URL تصویر ─────────────────────────────────── */
 const getAssetUrl = (path) =>
@@ -105,16 +105,18 @@ function HeadsetIcon() {
 function ReceiptIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 2v20l22-1 2 1 1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z" />
-      <line x1="8" y1="8" x2="16" y2="8" /><line x1="8" y1="12" x2="16" y2="12" />
+      <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" />
+      <path d="M14 8H8" />
+      <path d="M16 12H8" />
+      <path d="M13 16H8" />
     </svg>
   );
 }
 function LeafIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M11 20A7 3-8 13c0-4 3-8 8-10 5 2 8 6 8 10a7 7 0 0 1-7 7z" />
-      <path d="M12 21V11" />
+      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+      <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
     </svg>
   );
 }
@@ -147,14 +149,9 @@ function StarIcon({ filled = true, half = false }) {
 }
 function BasketIcon() {
   return (
-    <svg width="18" height="18" viewBox=" 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-    </svg>
-  );
-}
-function BasketIcon() {
-  return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circl7.43H5.12" />
+      <path d="M3 9h18l-1.5 10.5a2 2 0 0 1-2 1.5h-11a2 2 0 0 1-2-1.5L3 9Z" />
+      <path d="M8 9V6a4 4 0 0 1 8 0v3" />
     </svg>
   );
 }
@@ -329,7 +326,8 @@ export default function Cart() {
       <section className="cart-hero">
         <img className="cart-hero__bg" src="/banner-cart.png" alt="" />
         <div className="cart-hero__content">
-          <div className="cart-hero__icon"><CartIcon sizبـد خریـدبـد خریـد</h1>
+          <div className="cart-hero__icon"><CartIcon size={30} /></div>
+          <h1 className="cart-hero__title">سبد خرید</h1>
           <p className="cart-hero__subtitle">محصولات منتخب شما در سبد خرید...</p>
         </div>
       </section>
@@ -423,7 +421,7 @@ export default function Cart() {
               <div className="cart-summary__payable">
                 <span>مبلغ قابل پرداخت</span>
                 <strong>
-                  {cart?.total == null ? 'پس از انتخاب شهر' : `${formatPrice(totals.payable)} تومان`}
+                  {cart?.city == null ? 'پس از انتخاب شهر' : `${formatPrice(totals.payable)} تومان`}
                 </strong>
               </div>
 
