@@ -9,20 +9,24 @@ const formatPrice = (value) =>
   toFa(new Intl.NumberFormat('en-US').format(Math.round(value)).replace(/,/g, '٬'));
 
 /* ── تابع کمکی URL تصویر ─────────────────────────────────── */
-const getAssetUrl = (path) =>
-  path ? (path.startsWith('http') ? path : `${import.meta.env.VITE_API_BASE ?? ''}${path}`) : '/placeholder.png';
+const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:8000/api').replace(/\/$/, '');
+const getAssetUrl = (path) => {
+  if (!path) return '/placeholder.png';
+  if (path.startsWith('http')) return path;
+  const base = API_BASE_URL.replace(/\/$/, '').replace(/\/api$/, '');
+  return path.startsWith('/') ? `${base}${path}` : `${base}/${path}`;
+};
 
 /* ── تابع درخواست API ────────────────────────────────────── */
 const apiRequest = async (path, options = {}) => {
-  const base = import.meta.env.VITE_API_BASE ?? '';
-  const res = await fetch(`${base}/api/v1${path}`, {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
     headers: { 'Content-Type': 'application/json', ...options.headers },
     credentials: 'include',
     ...options,
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.detail ?? `خطای سرور (${res.status})`);
+    throw new Error(data.detail ?? data.message ?? `خطای سرور (${res.status})`);
   }
   if (res.status === 204) return null;
   return res.json();
@@ -170,14 +174,14 @@ export default function Cart() {
   const [couponCode, setCouponCode] = useState('');
   const sliderRef = useRef(null);
 
-  const items = cart?.items ?? [];
+  const items = useMemo(() => cart?.items ?? [], [cart?.items]);
 
   const totals = useMemo(() => {
     const count = items.reduce((sum, item) => sum + item.quantity, 0);
     const subtotal = items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
     const shipping = cart?.shipping_cost ?? 0;
     return { count, subtotal, shipping, discount: 0, payable: subtotal + shipping };
-  }, [items, cart]);
+  }, [items, cart?.shipping_cost]);
 
   /* ── بارگذاری اولیه ─────────────────────────────────────── */
   useEffect(() => {
@@ -351,14 +355,14 @@ export default function Cart() {
               {items.map((item) => (
                 <article className="cart-item" key={item.id}>
                   <div className="cart-item__media">
-                    <img src={getAssetUrl(item.main_image)} alt={item.name} />
+                    <img src={getAssetUrl(item.main_image || item.image || null)} alt={item.name} />
                   </div>
                   <div className="cart-item__body">
                     <h3 className="cart-item__name">{item.name}</h3>
                     <div className="cart-item__meta">
-                      <span>حجم : {toFa(item.volume)}</span>
+                      <span>تعداد : {toFa(item.quantity)}</span>
                       <span className="cart-item__meta-divider">|</span>
-                      <span>برند : {item.brand}</span>
+                      <span>محصول : {item.product ?? '—'}</span>
                     </div>
                     <div className="cart-item__price">
                       {formatPrice(item.unit_price)} <span>تومان</span>
