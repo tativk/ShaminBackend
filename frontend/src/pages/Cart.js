@@ -257,19 +257,27 @@ export default function Cart() {
     }
   };
 
-  const changeCity = async (e) => {
-    const city = e.target.value;
-    if (!city) return;
+  const handleCityInput = (value) => {
+    const normalized = value.trim();
+    setManualCity(normalized);
     setError('');
-    try {
-      setCart(await apiRequest('/cart/', { method: 'PATCH', body: JSON.stringify({ city }) }));
-    } catch (err) {
-      setError(err.message);
+
+    if (!normalized) {
+      setCart((prev) => (prev ? { ...prev, city: null, shipping_cost: null } : prev));
+      return;
     }
+
+    const matchedCity = cities.find((item) => item.city.toLowerCase() === normalized.toLowerCase());
+    if (!matchedCity) {
+      setCart((prev) => (prev ? { ...prev, city: null, shipping_cost: null } : prev));
+      return;
+    }
+
+    setCart((prev) => (prev ? { ...prev, city: matchedCity.city, shipping_cost: matchedCity.cost } : prev));
   };
 
   const checkout = async () => {
-    if (!cart?.city && !manualCity.trim()) return setError('لطفاً ابتدا استان و شهر ارسال را انتخاب یا وارد کنید.');
+    if (!cart?.city && !manualCity.trim()) return setError('لطفاً استان و شهر ارسال را وارد کنید.');
     if (!province.trim() || !manualCity.trim()) return setError('لطفاً استان و شهر خود را وارد کنید.');
     if (!address.trim() || !/^\d{10}$/.test(postalCode))
       return setError('آدرس و کد پستی ده رقمی را وارد کنید.');
@@ -449,26 +457,9 @@ export default function Cart() {
                 <input
                   id="shipping-city"
                   value={manualCity}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setManualCity(value);
-                    const matchedCity = cities.find((item) => item.city.toLowerCase() === value.trim().toLowerCase());
-                    if (matchedCity) {
-                      setCart((prev) => prev ? { ...prev, city: matchedCity.city, shipping_cost: matchedCity.cost } : prev);
-                    }
-                  }}
+                  onChange={(e) => handleCityInput(e.target.value)}
                   placeholder="مثلاً تهران یا شیراز"
                 />
-
-                <label htmlFor="shipping-city-select">انتخاب شهر ارسال</label>
-                <select id="shipping-city-select" value={cart?.city ?? ''} onChange={changeCity}>
-                  <option value="">انتخاب شهر ارسال</option>
-                  {cities.map((city) => (
-                    <option key={city.id} value={city.city}>
-                      {city.city} - {formatPrice(city.cost)} تومان
-                    </option>
-                  ))}
-                </select>
 
                 <label htmlFor="shipping-address">آدرس</label>
                 <textarea

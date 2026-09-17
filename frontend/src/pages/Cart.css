@@ -112,7 +112,7 @@
 
 .cart-layout {
   display: grid;
-  grid-template-columns: 1fr 384px;
+  grid-template-columns: minmax(0, 1fr) 384px;
   gap: 28px;
   align-items: start;
   direction: ltr;
@@ -761,4 +761,129 @@
 
 .suggest-card__cart:hover {
   background: var(--cart-green-900);
+}
+
+@media (max-width: 767px) {
+  .cart-hero {
+    height: 220px;
+  }
+
+  .cart-hero__content {
+    padding: 0 20px;
+    justify-content: center;
+  }
+
+  .cart-hero__icon {
+    margin: 0 0 8px;
+  }
+
+  .cart-hero__title {
+    font-size: 30px;
+    letter-spacing: 2px;
+  }
+
+  .cart-hero__subtitle {
+    font-size: 15px;
+  }
+
+  .cart-container {
+    padding: 22px 14px 0;
+  }
+
+  .cart-layout {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .cart-main,
+  .cart-summary,
+  .cart-benefits,
+  .cart-suggest {
+    padding: 18px 16px;
+  }
+
+  .cart-item {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .cart-item__media {
+    width: 100%;
+    flex-basis: auto;
+    height: 220px;
+  }
+
+  .cart-item__body {
+    width: 100%;
+  }
+
+  .cart-item__meta {
+    flex-wrap: wrap;
+  }
+
+  .cart-item__actions {
+    position: static;
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-top: 4px;
+  }
+
+  .cart-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cart-coupon {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cart-coupon__label {
+    white-space: normal;
+  }
+
+  .cart-coupon__input {
+    max-width: none;
+    width: 100%;
+  }
+
+  .cart-summary__head,
+  .cart-summary__payable,
+  .cart-summary__row {
+    gap: 12px;
+  }
+
+  .cart-suggest__slider {
+    gap: 10px;
+  }
+
+  .suggest-card {
+    flex-basis: 170px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .cart-container {
+    padding: 28px 18px 0;
+  }
+
+  .cart-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .cart-item {
+    gap: 18px;
+  }
+
+  .cart-summary__payable,
+  .cart-summary__row {
+    gap: 12px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .cart-layout {
+    grid-template-columns: minmax(0, 1fr) 384px;
+  }
 }
