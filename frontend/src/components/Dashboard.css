@@ -1,0 +1,2790 @@
+@import url("https://fonts.googleapis.com/css2?family=Estedad:wght@400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700;800&display=swap");
+
+.shamin-overview {
+  --shamin-overview-green: #17483f;
+  --shamin-overview-green-dark: #103a33;
+  --shamin-overview-green-deep: #0c302b;
+  --shamin-overview-green-soft: #edf4f1;
+
+  --shamin-overview-gold: #b99a5b;
+  --shamin-overview-gold-light: #d8c28f;
+  --shamin-overview-gold-soft: #f7f2e7;
+
+  --shamin-overview-bg: #f6f7f5;
+  --shamin-overview-white: #ffffff;
+
+  --shamin-overview-text: #19332e;
+  --shamin-overview-text-soft: #64756f;
+  --shamin-overview-text-muted: #94a19d;
+
+  --shamin-overview-border: #e5eae7;
+
+  width: 100%;
+  min-width: 0;
+
+  padding-bottom: 30px;
+
+  color: var(--shamin-overview-text);
+
+  font-family:
+    "Estedad",
+    "Vazirmatn",
+    "Noto Sans Arabic",
+    sans-serif;
+
+  direction: rtl;
+}
+
+.shamin-overview__hero {
+  position: relative;
+
+  width: 100%;
+  height: 218px;
+
+  margin-bottom: 22px;
+
+  overflow: hidden;
+
+  border: 1px solid rgba(23, 72, 63, 0.08);
+  border-radius: 18px;
+
+  background: #e9eeeb;
+
+  box-shadow: 0 8px 28px rgba(25, 51, 46, 0.06);
+}
+
+.shamin-overview__hero-image {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+  object-position: center center;
+}
+
+.shamin-overview__stats {
+  display: grid;
+
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  gap: 16px;
+
+  margin-bottom: 24px;
+}
+
+.shamin-overview__stat-card {
+  position: relative;
+
+  min-width: 0;
+  min-height: 168px;
+
+  padding: 19px 20px 21px;
+
+  border: 1px solid #e4e9e6;
+  border-radius: 17px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 4px 18px rgba(25, 51, 46, 0.035),
+    0 1px 2px rgba(25, 51, 46, 0.025);
+
+  overflow: visible;
+
+  isolation: isolate;
+
+  transition:
+    transform 0.28s ease,
+    border-color 0.28s ease,
+    box-shadow 0.28s ease;
+}
+
+.shamin-overview__stat-card::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  right: 20px;
+  left: 20px;
+
+  height: 2px;
+
+  border-radius: 0 0 10px 10px;
+
+  background: linear-gradient(90deg, #17483f, #b99a5b);
+
+  opacity: 0;
+
+  transform: scaleX(0.5);
+
+  transition:
+    opacity 0.28s ease,
+    transform 0.28s ease;
+}
+
+.shamin-overview__stat-card::after {
+  content: "";
+
+  position: absolute;
+
+  left: -35px;
+  bottom: -45px;
+
+  width: 120px;
+  height: 120px;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle,
+    rgba(185, 154, 91, 0.09),
+    transparent 68%
+  );
+
+  pointer-events: none;
+
+  z-index: -1;
+}
+
+.shamin-overview__stat-card:hover {
+  transform: translateY(-4px);
+
+  border-color: rgba(23, 72, 63, 0.16);
+
+  box-shadow:
+    0 16px 35px rgba(25, 51, 46, 0.075),
+    0 3px 8px rgba(25, 51, 46, 0.035);
+}
+
+.shamin-overview__stat-card:hover::before,
+.shamin-overview__stat-card--menu-open::before {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.shamin-overview__stat-card--menu-open {
+  z-index: 20;
+}
+
+.shamin-overview__stat-top {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.shamin-overview__stat-icon {
+  width: 45px;
+  height: 45px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(23, 72, 63, 0.09);
+  border-radius: 13px;
+
+  background: linear-gradient(145deg, #f3f7f5, #e8f0ec);
+
+  color: #17483f;
+
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+  transition:
+    transform 0.28s ease,
+    background 0.28s ease,
+    color 0.28s ease;
+}
+
+.shamin-overview__stat-card:hover .shamin-overview__stat-icon {
+  transform: translateY(-1px) scale(1.04);
+
+  background: linear-gradient(145deg, #f8f4eb, #f2ead9);
+
+  color: #a88950;
+}
+
+.shamin-overview__stat-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.shamin-overview__stat-actions {
+  position: relative;
+}
+
+.shamin-overview__stat-more {
+  width: 31px;
+  height: 31px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid transparent;
+  border-radius: 9px;
+
+  background: transparent;
+
+  color: #98a49f;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.shamin-overview__stat-more:hover,
+.shamin-overview__stat-more--active {
+  border-color: #e4eae7;
+
+  background: #f5f7f6;
+
+  color: #17483f;
+
+  transform: scale(1.04);
+}
+
+.shamin-overview__stat-more svg {
+  width: 16px;
+  height: 16px;
+}
+
+.shamin-overview__stat-menu {
+  position: absolute;
+
+  top: calc(100% + 8px);
+  left: 0;
+
+  width: 155px;
+
+  padding: 6px;
+
+  border: 1px solid #e2e8e5;
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 16px 35px rgba(25, 51, 46, 0.12),
+    0 3px 8px rgba(25, 51, 46, 0.05);
+
+  z-index: 100;
+
+  animation: shaminStatMenuIn 0.18s ease both;
+}
+
+.shamin-overview__stat-menu button {
+  width: 100%;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  padding: 0 9px;
+
+  border: 0;
+  border-radius: 8px;
+
+  background: transparent;
+
+  color: #5f706a;
+
+  cursor: pointer;
+
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 500;
+
+  text-align: right;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.shamin-overview__stat-menu button:hover {
+  background: #f1f5f3;
+  color: #17483f;
+}
+
+.shamin-overview__stat-menu button svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+@keyframes shaminStatMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.shamin-overview__stat-info {
+  margin-top: 17px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.shamin-overview__stat-info > span {
+  color: var(--shamin-overview-text-soft);
+
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.shamin-overview__stat-info strong {
+  display: flex;
+  align-items: baseline;
+
+  gap: 6px;
+
+  margin-top: 7px;
+
+  color: var(--shamin-overview-text);
+
+  font-size: 22px;
+  font-weight: 800;
+
+  letter-spacing: -0.5px;
+}
+
+.shamin-overview__stat-info strong small {
+  color: var(--shamin-overview-text-muted);
+
+  font-size: 9px;
+  font-weight: 400;
+}
+
+.shamin-overview__stat-change {
+  position: absolute;
+
+  right: 18px;
+  bottom: 22px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 3px;
+
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.shamin-overview__stat-change svg {
+  width: 12px;
+  height: 12px;
+}
+
+.shamin-overview__stat-change small {
+  margin-right: 4px;
+
+  color: var(--shamin-overview-text-muted);
+
+  font-size: 8px;
+  font-weight: 400;
+}
+
+.shamin-overview__stat-change--up {
+  color: #31816c;
+}
+
+.shamin-overview__stat-change--down {
+  color: #b26d64;
+}
+
+.shamin-overview__stat-progress {
+  position: absolute;
+
+  right: 20px;
+  left: 20px;
+  bottom: 12px;
+
+  height: 3px;
+
+  overflow: hidden;
+  border-radius: 10px;
+
+  background: #edf1ef;
+}
+
+.shamin-overview__stat-progress span {
+  display: block;
+  height: 100%;
+
+  border-radius: inherit;
+
+  background: linear-gradient(90deg, #17483f, #b99a5b);
+}
+
+.shamin-overview__mini-stats {
+  display: grid;
+
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  gap: 14px;
+
+  margin-bottom: 22px;
+}
+
+.shamin-overview__mini-card {
+  position: relative;
+
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 15px 16px;
+
+  border: 1px solid #e5eae7;
+  border-radius: 14px;
+
+  background: #ffffff;
+
+  box-shadow: 0 4px 18px rgba(25, 51, 46, 0.025);
+
+  overflow: hidden;
+
+  cursor: default;
+
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.shamin-overview__mini-card::after {
+  content: "";
+
+  position: absolute;
+
+  right: -25px;
+  bottom: -35px;
+
+  width: 90px;
+  height: 90px;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle,
+    rgba(185, 154, 91, 0.08),
+    transparent 70%
+  );
+
+  pointer-events: none;
+}
+
+.shamin-overview__mini-card:hover {
+  transform: translateY(-2px);
+
+  border-color: rgba(23, 72, 63, 0.14);
+
+  box-shadow: 0 11px 25px rgba(25, 51, 46, 0.055);
+}
+
+.shamin-overview__mini-icon {
+  position: relative;
+  z-index: 1;
+
+  width: 39px;
+  height: 39px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(23, 72, 63, 0.07);
+  border-radius: 11px;
+
+  background: #f0f5f2;
+
+  color: #17483f;
+
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.shamin-overview__mini-card:hover .shamin-overview__mini-icon {
+  background: #f7f2e7;
+  color: #a88950;
+
+  transform: scale(1.04);
+}
+
+.shamin-overview__mini-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.shamin-overview__mini-content {
+  position: relative;
+  z-index: 1;
+
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.shamin-overview__mini-content > span {
+  color: #899691;
+
+  font-size: 9px;
+  font-weight: 500;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shamin-overview__mini-content strong {
+  display: flex;
+  align-items: baseline;
+
+  gap: 5px;
+
+  margin-top: 4px;
+
+  color: #19332e;
+
+  font-size: 15px;
+  font-weight: 800;
+
+  letter-spacing: -0.3px;
+}
+
+.shamin-overview__mini-content strong small {
+  color: #9aa5a1;
+
+  font-size: 8px;
+  font-weight: 400;
+}
+
+.shamin-overview__main-grid {
+  display: grid;
+
+  grid-template-columns: minmax(0, 1.65fr) minmax(290px, 0.8fr);
+
+  gap: 18px;
+
+  margin-bottom: 22px;
+}
+
+.shamin-overview__bottom-grid {
+  display: grid;
+
+  grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.9fr);
+
+  gap: 18px;
+
+  margin-bottom: 22px;
+}
+
+.shamin-overview__sales-card,
+.shamin-overview__orders-status,
+.shamin-overview__orders-card,
+.shamin-overview__products-card,
+.shamin-overview__activity-card {
+  min-width: 0;
+
+  border: 1px solid var(--shamin-overview-border);
+  border-radius: 18px;
+
+  background: var(--shamin-overview-white);
+
+  box-shadow: 0 7px 26px rgba(25, 51, 46, 0.038);
+
+  overflow: hidden;
+}
+
+.shamin-overview__section-head {
+  min-height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+}
+
+.shamin-overview__section-head > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+
+  min-width: 0;
+}
+
+.shamin-overview__section-head > div > span {
+  color: #a0aaa5;
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.shamin-overview__section-head h3 {
+  margin: 0;
+
+  color: #26322d;
+
+  font-size: 15px;
+  font-weight: 800;
+
+  letter-spacing: -0.2px;
+}
+
+.shamin-overview__sales-card {
+  padding: 22px 22px 20px;
+}
+
+.shamin-overview__period-wrapper {
+  position: relative;
+  z-index: 30;
+}
+
+.shamin-overview__period-button {
+  min-width: 126px;
+  height: 40px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  padding: 0 11px;
+
+  border: 1px solid #e1e7e4;
+  border-radius: 999px;
+
+  background: #ffffff;
+  color: #31534c;
+
+  box-shadow:
+    0 3px 12px rgba(25, 51, 46, 0.045),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+  cursor: pointer;
+
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+
+  transition:
+    border-color 0.22s ease,
+    box-shadow 0.22s ease,
+    background 0.22s ease,
+    transform 0.22s ease;
+}
+
+.shamin-overview__period-button:hover,
+.shamin-overview__period-button[aria-expanded="true"] {
+  border-color: rgba(23, 72, 63, 0.22);
+
+  background: #f8faf9;
+
+  box-shadow:
+    0 7px 18px rgba(25, 51, 46, 0.075),
+    inset 0 1px 0 #ffffff;
+
+  transform: translateY(-1px);
+}
+
+.shamin-overview__period-icon {
+  width: 24px;
+  height: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #edf4f1;
+  color: #17483f;
+}
+
+.shamin-overview__period-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.shamin-overview__period-arrow {
+  width: 14px;
+  height: 14px;
+
+  color: #8a9994;
+
+  transition: transform 0.22s ease;
+}
+
+.shamin-overview__period-arrow--open {
+  transform: rotate(180deg);
+}
+
+.shamin-overview__period-menu {
+  position: absolute;
+
+  top: calc(100% + 8px);
+  left: 0;
+
+  width: 150px;
+
+  padding: 6px;
+
+  border: 1px solid #e1e7e4;
+  border-radius: 14px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 18px 40px rgba(25, 51, 46, 0.12),
+    0 3px 10px rgba(25, 51, 46, 0.04);
+
+  animation: shaminPeriodMenuIn 0.18s ease both;
+}
+
+.shamin-overview__period-menu button {
+  width: 100%;
+  height: 37px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 10px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: transparent;
+
+  color: #71807b;
+
+  cursor: pointer;
+
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 500;
+
+  text-align: right;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.shamin-overview__period-menu button:hover,
+.shamin-overview__period-option--active {
+  background: #f1f5f3;
+  color: #17483f;
+}
+
+.shamin-overview__period-check {
+  color: #b18e4d;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+@keyframes shaminPeriodMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.shamin-overview__sales-summary {
+  display: flex;
+  align-items: center;
+
+  gap: 15px;
+
+  margin-top: 20px;
+}
+
+.shamin-overview__sales-summary > div:first-child {
+  display: flex;
+  align-items: baseline;
+
+  gap: 7px;
+}
+
+.shamin-overview__sales-summary strong {
+  color: var(--shamin-overview-text);
+
+  font-size: 22px;
+  font-weight: 800;
+
+  letter-spacing: -0.4px;
+}
+
+.shamin-overview__sales-summary > div:first-child span {
+  color: var(--shamin-overview-text-muted);
+
+  font-size: 9px;
+}
+
+.shamin-overview__sales-growth {
+  height: 26px;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 3px;
+
+  padding: 0 8px;
+
+  border-radius: 8px;
+
+  background: #edf6f1;
+
+  color: #31816c;
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.shamin-overview__sales-growth svg {
+  width: 11px;
+  height: 11px;
+}
+
+.shamin-overview__chart-legend {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  margin-top: 9px;
+}
+
+.shamin-overview__chart-legend span {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 5px;
+
+  color: #788681;
+
+  font-size: 8px;
+}
+
+.shamin-overview__legend-dot {
+  width: 7px;
+  height: 7px;
+
+  display: block;
+
+  border-radius: 50%;
+}
+
+.shamin-overview__legend-dot--sales {
+  background: #17483f;
+}
+
+.shamin-overview__legend-dot--visits {
+  background: #8ca69e;
+}
+
+.shamin-overview__chart {
+  position: relative;
+
+  height: 275px;
+
+  margin-top: 18px;
+  padding-top: 5px;
+}
+
+.shamin-overview__chart-grid {
+  position: absolute;
+
+  top: 5px;
+  right: 0;
+  bottom: 38px;
+  left: 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  pointer-events: none;
+}
+
+.shamin-overview__chart-grid-row {
+  position: relative;
+
+  width: 100%;
+  height: 1px;
+
+  display: flex;
+  align-items: center;
+}
+
+.shamin-overview__chart-grid-row i {
+  width: 100%;
+  height: 1px;
+
+  display: block;
+
+  background: #edf1ef;
+}
+
+.shamin-overview__chart-grid-row span {
+  position: absolute;
+
+  right: 0;
+  top: -7px;
+
+  min-width: 28px;
+
+  padding-left: 6px;
+
+  background: #ffffff;
+
+  color: #a0aaa6;
+
+  font-size: 7px;
+  font-weight: 500;
+
+  z-index: 2;
+}
+
+.shamin-overview__line-chart {
+  position: absolute;
+
+  top: 5px;
+  right: 0;
+
+  width: 100%;
+  height: 225px;
+
+  overflow: visible;
+
+  animation: shaminChartAppear 0.8s ease both;
+}
+
+.shamin-overview__chart-area {
+  fill: url(#shaminSalesGradient);
+
+  opacity: 0;
+
+  animation: shaminChartAreaIn 0.9s ease 0.2s forwards;
+}
+
+.shamin-overview__chart-line {
+  fill: none;
+
+  stroke: #17483f;
+  stroke-width: 4;
+
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  stroke-dasharray: 1200;
+  stroke-dashoffset: 1200;
+
+  filter: url(#shaminChartShadow);
+
+  animation: shaminChartDraw 1.4s ease 0.1s forwards;
+}
+
+.shamin-overview__chart-line-secondary {
+  fill: none;
+
+  stroke: #8ca69e;
+  stroke-width: 3;
+
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  stroke-dasharray: 1200;
+  stroke-dashoffset: 1200;
+
+  opacity: 0.95;
+
+  animation: shaminChartDraw 1.5s ease 0.3s forwards;
+}
+
+.shamin-overview__chart-point-hit {
+  fill: transparent;
+
+  cursor: crosshair;
+}
+
+.shamin-overview__chart-point {
+  fill: #ffffff;
+
+  stroke: #17483f;
+  stroke-width: 3;
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  transition:
+    r 0.18s ease,
+    fill 0.18s ease;
+
+  animation: shaminChartPointIn 0.35s ease forwards;
+}
+
+.shamin-overview__chart-point--active {
+  fill: #17483f;
+  stroke: #ffffff;
+}
+
+.shamin-overview__chart-visit-point {
+  fill: #ffffff;
+
+  stroke: #8ca69e;
+  stroke-width: 2.5;
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  transition: r 0.18s ease;
+
+  animation: shaminVisitPointIn 0.35s ease forwards;
+}
+
+.shamin-overview__chart-visit-point--active {
+  fill: #8ca69e;
+  stroke: #ffffff;
+}
+
+.shamin-overview__chart-tooltip {
+  position: absolute;
+
+  top: 18px;
+  left: 50%;
+
+  min-width: 155px;
+
+  padding: 11px 12px;
+
+  border: 1px solid #e0e7e4;
+  border-radius: 13px;
+
+  background: rgba(255, 255, 255, 0.97);
+
+  box-shadow:
+    0 14px 30px rgba(25, 51, 46, 0.12),
+    0 3px 8px rgba(25, 51, 46, 0.04);
+
+  transform: translateX(-50%);
+
+  z-index: 20;
+
+  pointer-events: none;
+
+  animation: shaminTooltipIn 0.16s ease both;
+}
+
+.shamin-overview__chart-tooltip-day {
+  margin-bottom: 8px;
+  padding-bottom: 7px;
+
+  border-bottom: 1px solid #edf1ef;
+
+  color: #19332e;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.shamin-overview__chart-tooltip-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-top: 7px;
+}
+
+.shamin-overview__chart-tooltip-row span {
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+
+  color: #7c8985;
+
+  font-size: 8px;
+  font-weight: 500;
+}
+
+.shamin-overview__chart-tooltip-row strong {
+  color: #31534c;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  direction: rtl;
+}
+
+.shamin-overview__tooltip-dot {
+  width: 7px;
+  height: 7px;
+
+  flex-shrink: 0;
+
+  display: block;
+
+  border-radius: 50%;
+}
+
+.shamin-overview__tooltip-dot--sales {
+  background: #17483f;
+}
+
+.shamin-overview__tooltip-dot--visits {
+  background: #8ca69e;
+}
+
+@keyframes shaminTooltipIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes shaminChartDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes shaminChartAreaIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shaminChartPointIn {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shaminVisitPointIn {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shaminChartAppear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.shamin-overview__chart-labels {
+  position: absolute;
+
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  display: grid;
+
+  grid-template-columns: repeat(
+    var(--shamin-chart-columns, 7),
+    minmax(0, 1fr)
+  );
+
+  text-align: center;
+}
+
+.shamin-overview__chart-labels span {
+  overflow: hidden;
+
+  color: #8d9a95;
+
+  font-size: 8px;
+  font-weight: 500;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.shamin-overview__orders-status {
+  padding: 22px 20px;
+}
+
+.shamin-overview__round-button {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid var(--shamin-overview-border);
+  border-radius: 10px;
+
+  background: #fbfcfb;
+
+  color: var(--shamin-overview-text-soft);
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.shamin-overview__round-button svg {
+  width: 14px;
+  height: 14px;
+}
+
+.shamin-overview__round-button:hover {
+  background: var(--shamin-overview-green-soft);
+
+  color: var(--shamin-overview-green);
+
+  transform: translateX(-2px);
+}
+
+.shamin-overview__status-ring-wrap {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px 0 18px;
+}
+
+.shamin-overview__status-ring {
+  position: relative;
+
+  width: 205px;
+  height: 205px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shamin-overview__status-ring-svg {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: visible;
+
+  transform: rotate(-90deg);
+}
+
+.shamin-overview__status-ring-base {
+  fill: none;
+
+  stroke: #edf2ef;
+  stroke-width: 27;
+}
+
+.shamin-overview__status-ring-segment {
+  fill: none;
+
+  stroke-width: 27;
+  stroke-linecap: round;
+
+  cursor: pointer;
+
+  transition:
+    stroke-width 0.22s ease,
+    filter 0.22s ease,
+    opacity 0.22s ease;
+
+  animation: shaminStatusRingDraw 1.2s ease both;
+}
+
+.shamin-overview__status-ring-segment--completed {
+  stroke: #17483f;
+}
+
+.shamin-overview__status-ring-segment--shipping {
+  stroke: #78958d;
+
+  animation-delay: 0.08s;
+}
+
+.shamin-overview__status-ring-segment--pending {
+  stroke: #b99a5b;
+
+  animation-delay: 0.16s;
+}
+
+.shamin-overview__status-ring-segment--cancelled {
+  stroke: #c8d0cc;
+
+  animation-delay: 0.24s;
+}
+
+.shamin-overview__status-ring-segment:hover {
+  stroke-width: 34;
+
+  filter: drop-shadow(0 5px 9px rgba(23, 72, 63, 0.22));
+}
+
+.shamin-overview__status-ring-inner {
+  position: relative;
+  z-index: 5;
+
+  width: 142px;
+  height: 142px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #edf1ef;
+  border-radius: 50%;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 5px 20px rgba(25, 51, 46, 0.045),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+  transition:
+    transform 0.28s ease,
+    box-shadow 0.28s ease;
+}
+
+.shamin-overview__status-ring:hover
+  .shamin-overview__status-ring-inner {
+  transform: scale(1.025);
+
+  box-shadow:
+    0 9px 26px rgba(25, 51, 46, 0.075),
+    inset 0 1px 0 #ffffff;
+}
+
+.shamin-overview__status-total-label,
+.shamin-overview__status-hover-label {
+  color: #8a9893;
+
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.shamin-overview__status-ring-inner strong {
+  margin: 5px 0 2px;
+
+  color: #19332e;
+
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 800;
+
+  letter-spacing: -1px;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.shamin-overview__status-total-unit {
+  color: #a0aaa6;
+
+  font-size: 8px;
+  font-weight: 400;
+}
+
+.shamin-overview__status-ring-inner--hover strong {
+  transform: scale(1.08);
+}
+
+.shamin-overview__status-hover-label--completed {
+  color: #17483f;
+}
+
+.shamin-overview__status-hover-label--shipping {
+  color: #66857c;
+}
+
+.shamin-overview__status-hover-label--pending {
+  color: #a88950;
+}
+
+.shamin-overview__status-hover-label--cancelled {
+  color: #8e9995;
+}
+
+@keyframes shaminStatusRingDraw {
+  from {
+    opacity: 0;
+    stroke-dashoffset: 100;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.shamin-overview__status-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.shamin-overview__status-item {
+  position: relative;
+
+  min-height: 46px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 10px 11px;
+
+  border: 1px solid transparent;
+  border-radius: 12px;
+
+  opacity: 0;
+
+  animation: shaminStatusItemIn 0.45s
+    cubic-bezier(0.22, 1, 0.36, 1)
+    var(--shamin-status-delay)
+    forwards;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.shamin-overview__status-item:hover {
+  background: #f7f9f8;
+
+  border-color: #e8eeeb;
+
+  transform: translateX(-2px);
+}
+
+@keyframes shaminStatusItemIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.shamin-overview__status-icon {
+  width: 32px;
+  height: 32px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.shamin-overview__status-item:hover
+  .shamin-overview__status-icon {
+  transform: scale(1.06);
+}
+
+.shamin-overview__status-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.shamin-overview__status-item--completed
+  .shamin-overview__status-icon {
+  background: #edf6f1;
+  color: #31816c;
+}
+
+.shamin-overview__status-item--shipping
+  .shamin-overview__status-icon {
+  background: #f7f2e7;
+  color: #a88950;
+}
+
+.shamin-overview__status-item--pending
+  .shamin-overview__status-icon {
+  background: #f1f3f2;
+  color: #7b8984;
+}
+
+.shamin-overview__status-item--cancelled
+  .shamin-overview__status-icon {
+  background: #f8eeee;
+  color: #a34b4b;
+}
+
+.shamin-overview__status-name {
+  min-width: 0;
+
+  margin-right: 10px;
+
+  display: flex;
+  flex-direction: column;
+
+  flex: 1;
+}
+
+.shamin-overview__status-name strong {
+  color: var(--shamin-overview-text);
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.shamin-overview__status-name span {
+  margin-top: 2px;
+
+  color: var(--shamin-overview-text-muted);
+
+  font-size: 8px;
+}
+
+.shamin-overview__status-item > b {
+  min-width: 32px;
+
+  color: var(--shamin-overview-text);
+
+  font-size: 10px;
+  font-weight: 800;
+
+  text-align: left;
+
+  transition: transform 0.2s ease;
+}
+
+.shamin-overview__status-item:hover b {
+  transform: scale(1.06);
+}
+
+.shamin-overview__orders-card {
+  overflow: hidden;
+}
+
+.shamin-overview__orders-card .shamin-overview__section-head {
+  padding-bottom: 20px;
+  margin-bottom: 0;
+}
+
+.shamin-overview__view-all {
+  height: 34px;
+
+  padding: 0 10px 0 12px;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 5px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: transparent;
+
+  color: #17483f;
+
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    gap 0.2s ease;
+}
+
+.shamin-overview__view-all:hover {
+  background: #edf5f2;
+  gap: 8px;
+}
+
+.shamin-overview__view-all svg {
+  width: 14px;
+  height: 14px;
+}
+
+.shamin-overview__table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.shamin-overview__table-head,
+.shamin-overview__table-row {
+  min-width: 820px;
+
+  display: grid;
+
+  grid-template-columns:
+    125px
+    175px
+    minmax(190px, 1fr)
+    145px
+    125px
+    105px;
+
+  align-items: center;
+
+  column-gap: 16px;
+}
+
+.shamin-overview__table-head {
+  padding: 13px 18px;
+
+  border-top: 1px solid #edf1ef;
+  border-bottom: 1px solid #edf1ef;
+
+  background: #fafcfb;
+}
+
+.shamin-overview__table-head span {
+  font-size: 11px;
+  font-weight: 600;
+  color: #91a09a;
+}
+
+.shamin-overview__table-row {
+  min-height: 76px;
+
+  padding: 10px 18px;
+
+  border-bottom: 1px solid #f0f3f1;
+
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+
+  cursor: pointer;
+}
+
+.shamin-overview__table-row:last-child {
+  border-bottom: 0;
+}
+
+.shamin-overview__table-row:hover {
+  background: #fbfdfc;
+  box-shadow: inset 3px 0 0 #17483f;
+}
+
+.shamin-overview__table-row:focus-visible {
+  outline: 2px solid rgba(23, 72, 63, 0.2);
+  outline-offset: -2px;
+}
+
+.shamin-overview__order-id {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.shamin-overview__order-id strong {
+  color: #17483f;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  direction: ltr;
+  text-align: right;
+}
+
+.shamin-overview__order-id span {
+  color: #a0aba6;
+  font-size: 10px;
+}
+
+.shamin-overview__customer-cell {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  min-width: 0;
+}
+
+.shamin-overview__customer-avatar {
+  width: 34px;
+  height: 34px;
+
+  flex: 0 0 34px;
+
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #eef5f2;
+  color: #17483f;
+}
+
+.shamin-overview__customer-avatar svg {
+  width: 16px;
+  height: 16px;
+}
+
+.shamin-overview__customer-cell > div {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.shamin-overview__customer-cell strong {
+  color: #26312d;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shamin-overview__customer-cell small {
+  color: #a2ada8;
+  font-size: 10px;
+}
+
+.shamin-overview__product-cell {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+
+  overflow: hidden;
+}
+
+.shamin-overview__product-name {
+  color: #303b36;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shamin-overview__product-cell small {
+  color: #9aa6a1;
+  font-size: 10px;
+}
+
+.shamin-overview__amount-cell {
+  display: flex;
+  align-items: baseline;
+
+  gap: 5px;
+
+  direction: rtl;
+  white-space: nowrap;
+}
+
+.shamin-overview__amount-cell strong {
+  color: #26312d;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.shamin-overview__amount-cell small {
+  color: #9ba6a1;
+  font-size: 9px;
+}
+
+.shamin-overview__order-status {
+  width: fit-content;
+
+  min-height: 29px;
+
+  padding: 0 9px;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 6px;
+
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+.shamin-overview__order-status i {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  display: block;
+}
+
+.shamin-overview__order-status--completed {
+  color: #17604f;
+  background: #edf7f3;
+}
+
+.shamin-overview__order-status--completed i {
+  background: #2c9b7c;
+}
+
+.shamin-overview__order-status--shipping {
+  color: #8b651e;
+  background: #fff7e7;
+}
+
+.shamin-overview__order-status--shipping i {
+  background: #d6a33b;
+}
+
+.shamin-overview__order-status--pending {
+  color: #82612b;
+  background: #fdf6e8;
+}
+
+.shamin-overview__order-status--pending i {
+  background: #c89b45;
+}
+
+.shamin-overview__order-status--cancelled {
+  color: #8a4242;
+  background: #fbecec;
+}
+
+.shamin-overview__order-status--cancelled i {
+  background: #c56a6a;
+}
+
+.shamin-overview__table-row > small {
+  color: #9ca7a2;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.shamin-overview__products-card {
+  padding: 22px 20px 14px;
+
+  overflow: hidden;
+}
+
+.shamin-overview__products-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+
+  margin-top: 12px;
+}
+
+.shamin-overview__product-item {
+  position: relative;
+
+  min-height: 76px;
+
+  padding: 10px 8px;
+
+  display: grid;
+
+  grid-template-columns:
+    30px
+    48px
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 11px;
+
+  border-radius: 14px;
+
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.shamin-overview__product-item:hover {
+  background: #f8fbf9;
+  transform: translateX(-2px);
+}
+
+.shamin-overview__product-rank {
+  color: #9ca8a3;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  font-variant-numeric: tabular-nums;
+
+  direction: ltr;
+}
+
+.shamin-overview__product-item:first-child
+  .shamin-overview__product-rank {
+  color: #17483f;
+}
+
+.shamin-overview__product-image {
+  width: 48px;
+  height: 48px;
+
+  border-radius: 13px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: linear-gradient(145deg, #f2f6f4, #e7efeb);
+
+  color: #17483f;
+
+  border: 1px solid #e2ebe7;
+
+  overflow: hidden;
+}
+
+.shamin-overview__product-image svg {
+  width: 21px;
+  height: 21px;
+
+  stroke-width: 1.7;
+}
+
+.shamin-overview__product-image img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: contain;
+}
+
+.shamin-overview__product-info {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+.shamin-overview__product-info strong {
+  color: #26322d;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shamin-overview__product-info span {
+  color: #9aa6a1;
+  font-size: 10px;
+}
+
+.shamin-overview__product-sales {
+  min-width: 130px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+
+  gap: 5px;
+}
+
+.shamin-overview__product-sales-count {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  color: #8d9994;
+
+  font-size: 10px;
+}
+
+.shamin-overview__product-sales-count svg {
+  width: 12px;
+  height: 12px;
+
+  color: #c89b45;
+}
+
+.shamin-overview__product-sales > strong {
+  color: #27332e;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  white-space: nowrap;
+}
+
+.shamin-overview__stock {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  font-size: 9px;
+}
+
+.shamin-overview__stock span {
+  color: #a1aca7;
+}
+
+.shamin-overview__stock b {
+  color: #5d6b65;
+  font-weight: 700;
+}
+
+.shamin-overview__stock--low b {
+  color: #b77b29;
+}
+
+.shamin-overview__stock--low::before {
+  content: "";
+
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  background: #d6a33b;
+}
+
+.shamin-overview__activity-card {
+  padding: 22px;
+}
+
+.shamin-overview__activity-list {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  margin-top: 12px;
+}
+
+.shamin-overview__activity-item {
+  position: relative;
+
+  min-height: 76px;
+
+  padding: 9px 4px;
+
+  display: grid;
+
+  grid-template-columns:
+    42px
+    minmax(0, 1fr);
+
+  gap: 12px;
+
+  border-radius: 13px;
+
+  transition: background-color 0.2s ease;
+}
+
+.shamin-overview__activity-item:hover {
+  background: #fafcfb;
+}
+
+.shamin-overview__activity-track {
+  position: relative;
+
+  display: flex;
+  justify-content: center;
+}
+
+.shamin-overview__activity-track::after {
+  content: "";
+
+  position: absolute;
+
+  top: 44px;
+  bottom: -18px;
+
+  width: 1px;
+
+  background: #e9efec;
+}
+
+.shamin-overview__activity-item:last-child
+  .shamin-overview__activity-track::after {
+  display: none;
+}
+
+.shamin-overview__activity-icon {
+  position: relative;
+  z-index: 2;
+
+  width: 36px;
+  height: 36px;
+
+  border-radius: 11px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid transparent;
+}
+
+.shamin-overview__activity-icon svg {
+  width: 16px;
+  height: 16px;
+
+  stroke-width: 1.8;
+}
+
+.shamin-overview__activity-icon--order {
+  color: #17483f;
+  background: #edf6f3;
+  border-color: #dcece7;
+}
+
+.shamin-overview__activity-icon--stock {
+  color: #a67520;
+  background: #fff7e8;
+  border-color: #f5e7c8;
+}
+
+.shamin-overview__activity-icon--payment {
+  color: #34715f;
+  background: #edf7f2;
+  border-color: #dcece6;
+}
+
+.shamin-overview__activity-icon--product {
+  color: #68756f;
+  background: #f1f4f2;
+  border-color: #e4e9e6;
+}
+
+.shamin-overview__activity-content {
+  min-width: 0;
+
+  padding-top: 1px;
+}
+
+.shamin-overview__activity-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+}
+
+.shamin-overview__activity-title strong {
+  min-width: 0;
+
+  color: #2a3631;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shamin-overview__activity-title span {
+  flex: 0 0 auto;
+
+  color: #a0aaa5;
+
+  font-size: 9px;
+
+  white-space: nowrap;
+}
+
+.shamin-overview__activity-content p {
+  margin: 7px 0 0;
+
+  color: #8d9994;
+
+  font-size: 10px;
+
+  line-height: 1.8;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shamin-dashboard--dark .shamin-overview {
+  --shamin-overview-bg: #0d1513;
+  --shamin-overview-white: #141d1a;
+
+  --shamin-overview-text: #edf2ef;
+  --shamin-overview-text-soft: #aebbb5;
+  --shamin-overview-text-muted: #75837d;
+
+  --shamin-overview-border: #26332e;
+
+  --shamin-overview-green-soft: rgba(23, 72, 63, 0.32);
+  --shamin-overview-gold-soft: rgba(185, 154, 91, 0.12);
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__stat-card,
+.shamin-dashboard--dark
+  .shamin-overview__mini-card,
+.shamin-dashboard--dark
+  .shamin-overview__sales-card,
+.shamin-dashboard--dark
+  .shamin-overview__orders-status,
+.shamin-dashboard--dark
+  .shamin-overview__orders-card,
+.shamin-dashboard--dark
+  .shamin-overview__products-card,
+.shamin-dashboard--dark
+  .shamin-overview__activity-card {
+  background: #141d1a;
+
+  box-shadow: 0 7px 25px rgba(0, 0, 0, 0.14);
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__stat-menu {
+  border-color: #2a3833;
+  background: #17211e;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__stat-menu button {
+  color: #aebbb5;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__stat-menu button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #d8c28f;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__stat-more:hover,
+.shamin-dashboard--dark
+  .shamin-overview__stat-more--active {
+  border-color: #2a3833;
+  background: #1c2723;
+  color: #d8c28f;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__period-button {
+  border-color: #2a3833;
+  background: #19231f;
+  color: #aebbb5;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__period-icon {
+  background: #1f2a26;
+  color: #d8c28f;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__period-menu {
+  border-color: #2a3833;
+  background: #17211e;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__period-menu button {
+  color: #aebbb5;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__period-menu button:hover,
+.shamin-dashboard--dark
+  .shamin-overview__period-option--active {
+  background: rgba(255, 255, 255, 0.05);
+  color: #d8c28f;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__round-button {
+  background: #19231f;
+  color: #aebbb5;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__chart-grid-row i {
+  background: #26332e;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__chart-grid-row span {
+  background: #141d1a;
+  color: #75837d;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__chart-tooltip {
+  border-color: #2a3833;
+  background: rgba(20, 29, 26, 0.97);
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__chart-tooltip-day {
+  border-bottom-color: #26332e;
+  color: #edf2ef;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__chart-tooltip-row strong {
+  color: #d8c28f;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__chart-tooltip-row span {
+  color: #aebbb5;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__table-head {
+  background: #17211e;
+  border-color: #26332e;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__table-head span {
+  color: #75837d;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__table-row {
+  border-color: #202c27;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__table-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: inset 3px 0 0 #b99a5b;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__order-id strong {
+  color: #d8c28f;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__order-id span {
+  color: #75837d;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__customer-avatar {
+  background: #1c2723;
+  color: #d8c28f;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__customer-cell strong {
+  color: #edf2ef;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__customer-cell small {
+  color: #75837d;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__product-name {
+  color: #edf2ef;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__amount-cell strong {
+  color: #edf2ef;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__amount-cell small {
+  color: #75837d;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__table-row > small {
+  color: #75837d;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__product-item:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__product-rank {
+  color: #75837d;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__product-item:first-child
+  .shamin-overview__product-rank {
+  color: #d8c28f;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__product-image {
+  background: linear-gradient(145deg, #1b2622, #141d1a);
+  border-color: #26332e;
+  color: #d8c28f;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__product-info strong {
+  color: #edf2ef;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__product-info span {
+  color: #75837d;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__product-sales-count {
+  color: #aebbb5;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__product-sales > strong {
+  color: #edf2ef;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__stock span {
+  color: #75837d;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__stock b {
+  color: #aebbb5;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__stock--low b {
+  color: #d6a33b;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__activity-item:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__activity-track::after {
+  background: #202c27;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__activity-title strong {
+  color: #edf2ef;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__activity-title span {
+  color: #75837d;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__activity-content p {
+  color: #aebbb5;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__status-ring-base {
+  stroke: #1f2c27;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__status-ring-inner {
+  border-color: #1f2c27;
+  background: #141d1a;
+  box-shadow:
+    inset 0 0 0 1px #1f2c27,
+    0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__status-total-label,
+.shamin-dashboard--dark
+  .shamin-overview__status-total-unit {
+  color: #75837d;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__status-ring-inner strong {
+  color: #edf2ef;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__status-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: #202c27;
+}
+
+.shamin-dashboard--dark
+  .shamin-overview__stat-progress {
+  background: #202c27;
+}
+
+@media (max-width: 1200px) {
+  .shamin-overview__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .shamin-overview__mini-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .shamin-overview__main-grid {
+    grid-template-columns: minmax(0, 1.45fr) minmax(270px, 0.85fr);
+  }
+
+  .shamin-overview__bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .shamin-overview__main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .shamin-overview__orders-status {
+    min-height: auto;
+  }
+
+  .shamin-overview__status-ring {
+    width: 175px;
+    height: 175px;
+  }
+
+  .shamin-overview__status-ring-inner {
+    width: 120px;
+    height: 120px;
+  }
+
+  .shamin-overview__status-ring-inner strong {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 700px) {
+  .shamin-overview__hero {
+    height: 175px;
+  }
+
+  .shamin-overview__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .shamin-overview__mini-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .shamin-overview__table-head,
+  .shamin-overview__table-row {
+    min-width: 780px;
+
+    grid-template-columns:
+      115px
+      160px
+      180px
+      135px
+      120px
+      95px;
+
+    column-gap: 12px;
+  }
+
+  .shamin-overview__table-head {
+    padding-inline: 14px;
+  }
+
+  .shamin-overview__table-row {
+    padding-inline: 14px;
+  }
+
+  .shamin-overview__product-item {
+    grid-template-columns:
+      26px
+      44px
+      minmax(0, 1fr)
+      auto;
+
+    gap: 9px;
+  }
+
+  .shamin-overview__product-image {
+    width: 44px;
+    height: 44px;
+  }
+
+  .shamin-overview__product-sales {
+    min-width: 112px;
+  }
+
+  .shamin-overview__activity-item {
+    grid-template-columns:
+      38px
+      minmax(0, 1fr);
+
+    gap: 10px;
+  }
+
+  .shamin-overview__activity-title {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .shamin-overview__chart-tooltip {
+    top: 4px;
+    left: 12px;
+
+    transform: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .shamin-overview__hero {
+    height: 150px;
+    border-radius: 14px;
+  }
+
+  .shamin-overview__sales-card,
+  .shamin-overview__orders-status,
+  .shamin-overview__orders-card,
+  .shamin-overview__products-card,
+  .shamin-overview__activity-card {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .shamin-overview__sales-summary strong {
+    font-size: 18px;
+  }
+
+  .shamin-overview__product-item {
+    grid-template-columns:
+      24px
+      42px
+      minmax(0, 1fr);
+  }
+
+  .shamin-overview__product-sales {
+    grid-column: 3;
+
+    align-items: flex-start;
+
+    min-width: 0;
+
+    margin-top: -3px;
+  }
+
+  .shamin-overview__product-sales-count {
+    order: 1;
+  }
+
+  .shamin-overview__product-sales > strong {
+    order: 2;
+  }
+
+  .shamin-overview__stock {
+    order: 3;
+  }
+}
