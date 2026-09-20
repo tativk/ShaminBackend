@@ -3,12 +3,18 @@ from decimal import Decimal
 from django.conf import settings
 from django.db import transaction
 from django.db.models import F
+from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Order, OrderItem
-from .serializers import CreateOrderSerializer, OrderSerializer
+from .serializers import (
+    AdminOrderSerializer,
+    CreateOrderSerializer,
+    OrderSerializer,
+    OrderStatusUpdateSerializer,
+)
 from .services.base import PaymentRequest, VerifyRequest
 from .services.factory import get_payment_service
 
@@ -183,4 +189,38 @@ class PaymentCallbackView(APIView):
             {'detail': result.error_message or 'پرداخت ناموفق بود.', 'order_id': order.id},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+class AdminOrdersView(APIView):
+    """لیست سفارش‌ها برای پنل ادمین."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        if not (request.user.is_staff or request.user.is_superuser):
+            return Response({'detail': 'Only staff can access admin orders.'}, status=status.HTTP_403_FORBIDDEN)
+
+        orders = (
+            Order.objects
+            .select_related('user')
+            .prefetch_related('items__product')
+            .all()
+            .order_by('-created_at')
+        )
+        serializer = AdminOrderSerializer(orders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AdminOrderStatusView(APIView):
+    """به‌روزرسانی وضعیت سفارش از پنل ادمین."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def patch(self, request, pk):
+        if not (request.user.is_staff or request.user.is_superuser):
+            return Response({'detail': 'Only staff can update order statuses.'}, status=status.HTTP_403_FORBIDDEN)
+
+        order = get_object_or_404(Order, pk=pk)
+        serializer = OrderStatusUpdateSerializer(order, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+        return Response(AdminOrderSerializer(order).data, status=status.HTTP_200_OK)
 

@@ -3,9 +3,9 @@ import{FiHome,FiShoppingBag,FiBox,FiUsers,FiGrid,FiTag,FiBarChart2,FiSettings,Fi
 import DashboardOverview from"../components/Dashboard";
 import Orders from"../components/Orders";
 import Products from"../components/Products";
-import"./Dashboard.css";
+import"./AdminPanel.css";
 const shaminDashboardMenu=[
-{id:"dashboard",title:"داشبورد",icon:FiHome},
+{id:"dashboard",title:"پنل ادمین",icon:FiHome},
 {id:"orders",title:"سفارشات",icon:FiShoppingBag},
 {id:"products",title:"محصولات",icon:FiBox},
 {id:"customers",title:"مشتریان",icon:FiUsers},
@@ -16,7 +16,7 @@ const shaminDashboardMenu=[
 {id:"content",title:"مدیریت محتوا",icon:FiFileText},
 {id:"support",title:"پشتیبانی",icon:FiHeadphones}
 ];
-function Dashboard({children}){
+function AdminPanel({children}){
 const[activeSection,setActiveSection]=useState("dashboard");
 const[mobileSidebarOpen,setMobileSidebarOpen]=useState(false);
 const[adminMenuOpen,setAdminMenuOpen]=useState(false);
@@ -62,6 +62,10 @@ return(
 <div className="shamin-dashboard__brand-logo">
 <img src="/Asets/Shamin gallery.png" alt="Shamin Gallery" className="shamin-dashboard__brand-image"/>
 </div>
+<div className="shamin-dashboard__brand-text">
+<strong>پنل ادمین</strong>
+<span>Shamin Gallery</span>
+</div>
 <button type="button" className="shamin-dashboard__mobile-close" onClick={()=>setMobileSidebarOpen(false)} aria-label="بستن منو"><FiX/></button>
 </div>
 <div className="shamin-dashboard__sidebar-scroll">
@@ -72,10 +76,10 @@ return(
 <div className="shamin-dashboard__support-icon"><FiHeadphones/></div>
 <div className="shamin-dashboard__support-text">
 <strong>پشتیبانی آنلاین</strong>
-<span>در خدمت شما هستیم</span>
+<span>در خدمت مدیران فروشگاه هستیم</span>
 </div>
 </div>
-<button type="button" className="shamin-dashboard__logout"><FiLogOut/><span>خروج از پنل</span></button>
+<button type="button" className="shamin-dashboard__logout"><FiLogOut/><span>خروج از پنل ادمین</span></button>
 </div>
 </aside>
 <main className="shamin-dashboard__main">
@@ -141,4 +145,4 @@ return(
 </div>
 );
 }
-export default Dashboard;
+export default AdminPanel;

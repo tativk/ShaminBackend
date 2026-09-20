@@ -1,5 +1,6 @@
 import React,{useEffect,useMemo,useRef,useState}from"react";
 import{FiPlus,FiSearch,FiFilter,FiChevronDown,FiChevronLeft,FiChevronRight,FiPackage,FiCheckCircle,FiAlertTriangle,FiTag,FiEdit3,FiMoreHorizontal,FiTrash2,FiEye,FiX,FiImage,FiSave,FiBox,FiUpload}from"react-icons/fi";
+import { apiRequest } from "../api";
 import"./Products.css";
 const SP_PRODUCTS=[
 {id:1,name:"عطر مردانه ساواج",brand:"Dior",category:"مردانه",price:4850000,stock:18,status:"active",image:"https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=700&q=85"},
@@ -18,6 +19,35 @@ const SP_NORMALIZE=value=>String(value||"").replace(/ي/g,"ی").replace(/ى/g,"�
 export default function Products(){
 const[products,setProducts]=useState(SP_PRODUCTS);
 const[search,setSearch]=useState("");
+
+useEffect(() => {
+  let ignore = false;
+
+  apiRequest('/products/')
+    .then((data) => {
+      if (ignore) return;
+
+      const mapped = (Array.isArray(data) ? data : data?.results || []).map((product) => ({
+        id: product.id,
+        name: product.name,
+        brand: product.brand || 'Shamin',
+        category: product.category || 'محصول',
+        price: Number(product.price || 0),
+        stock: Number(product.stock || 0),
+        status: Number(product.stock || 0) <= 0 ? 'out' : Number(product.stock || 0) <= 5 ? 'low' : 'active',
+        image: product.main_image || SP_PRODUCTS[0].image,
+      }));
+
+      if (mapped.length) setProducts(mapped);
+    })
+    .catch(() => {
+      if (!ignore) setProducts(SP_PRODUCTS);
+    });
+
+  return () => {
+    ignore = true;
+  };
+}, []);
 const[category,setCategory]=useState("all");
 const[status,setStatus]=useState("all");
 const[sort,setSort]=useState("newest");

@@ -25,6 +25,36 @@ class OrderSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class AdminOrderSerializer(serializers.ModelSerializer):
+    customer = serializers.SerializerMethodField()
+    customer_phone = serializers.CharField(source='user.phone', read_only=True)
+    items = OrderItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Order
+        fields = [
+            'id', 'status', 'total_price', 'address', 'customer', 'customer_phone',
+            'payment_ref_id', 'created_at', 'items',
+        ]
+        read_only_fields = fields
+
+    def get_customer(self, obj):
+        full_name = ' '.join(part for part in [obj.user.first_name, obj.user.last_name] if part).strip()
+        return full_name or obj.user.phone
+
+
+class OrderStatusUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['status']
+
+    def validate_status(self, value):
+        valid_statuses = {choice.value for choice in Order.Status}
+        if value not in valid_statuses:
+            raise serializers.ValidationError('وضعیت سفارش نامعتبر است.')
+        return value
+
+
 class CreateOrderSerializer(serializers.Serializer):
     """اطلاعات تحویل سفارش و مبلغ ارسالِ انتخاب‌شده در سبد."""
     city = serializers.CharField(max_length=100)

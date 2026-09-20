@@ -2,12 +2,8 @@ import React from "react";
 import { Route, Routes } from "react-router-dom";
 
 import Home from "../pages/Home";
-
-import Dashboard from "../pages/Dashboard";
-
-
+import AdminPanel from "../pages/AdminPanel";
 import Cart from "../pages/Cart";
-
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 
@@ -16,16 +12,12 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<Home />} />
 
-      <Route path="/dashboard" element={<Dashboard />} />
-
+      <Route path="/admin" element={<AdminPanel />} />
+      <Route path="/dashboard" element={<AdminPanel />} />
 
       <Route path="/Cart" element={<Cart />} />
-
       <Route path="/Login" element={<Login />} />
       <Route path="/Register" element={<Register />} />
-
-
-
     </Routes>
   );
 };

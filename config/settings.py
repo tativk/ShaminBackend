@@ -11,6 +11,8 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
 
+USE_SQLITE = os.getenv('USE_SQLITE', '1').strip().lower() in {'1', 'true', 'yes', 'on'}
+
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'dev-secret-key-change-me')
 if not os.getenv('DJANGO_SECRET_KEY'):
     SECRET_KEY = 'dev-secret-key-change-me'
@@ -68,8 +70,6 @@ TEMPLATES = [{
     },
 }]
 WSGI_APPLICATION = 'config.wsgi.application'
-
-USE_SQLITE = os.getenv('USE_SQLITE', 'true').lower() in {'1', 'true', 'yes', 'on'}
 
 if USE_SQLITE:
     DATABASES = {
