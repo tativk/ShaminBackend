@@ -6,11 +6,14 @@ import AdminPanel from "../pages/AdminPanel";
 import Cart from "../pages/Cart";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
+import ProductList from "../pages/ProductList";
 
 const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/products" element={<ProductList />} />
+      <Route path="/ProductList" element={<ProductList />} />
 
       <Route path="/admin" element={<AdminPanel />} />
       <Route path="/dashboard" element={<AdminPanel />} />
