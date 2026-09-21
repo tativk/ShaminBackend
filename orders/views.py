@@ -1,12 +1,18 @@
 from decimal import Decimal
+from datetime import datetime, time, timedelta
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import F
+from django.db.models import Avg, Count, F, Sum
+from django.db.models.functions import TruncDate, TruncHour, TruncMonth
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from accounts.models import User
+from products.models import Product
 
 from .models import Order, OrderItem
 from .serializers import (
@@ -17,6 +23,9 @@ from .serializers import (
 )
 from .services.base import PaymentRequest, VerifyRequest
 from .services.factory import get_payment_service
+
+# سفارش‌هایی که در آمار فروش حساب می‌شوند
+REVENUE_STATUSES = (Order.Status.PAID, Order.Status.SHIPPING, Order.Status.COMPLETED)
 
 
 class CreateOrderView(APIView):
@@ -223,4 +232,164 @@ class AdminOrderStatusView(APIView):
         serializer.is_valid(raise_exception=True)
         order = serializer.save()
         return Response(AdminOrderSerializer(order).data, status=status.HTTP_200_OK)
+
+
+class AdminDashboardStatsView(APIView):
+    """
+    آمار کلی پنل ادمین: GET /api/orders/admin/stats/?period=today|week|month|quarter
+    شامل کارت‌های آماری، نمودار فروش، وضعیت سفارش‌ها، آخرین سفارش‌ها و پرفروش‌ترین‌ها.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        if not (request.user.is_staff or request.user.is_superuser):
+            return Response({'detail': 'Only staff can access dashboard stats.'}, status=status.HTTP_403_FORBIDDEN)
+
+        period = request.query_params.get('period', 'week')
+        if period not in {'today', 'week', 'month', 'quarter'}:
+            period = 'week'
+
+        now = timezone.now()
+        today_start = timezone.make_aware(datetime.combine(timezone.localdate(now), time.min))
+        tomorrow_start = today_start + timedelta(days=1)
+
+        orders_today = Order.objects.filter(created_at__gte=today_start, created_at__lt=tomorrow_start)
+        sales_today = orders_today.filter(status__in=REVENUE_STATUSES).aggregate(
+            total=Sum('total_price')
+        )['total'] or Decimal('0')
+
+        status_counts = {choice.value: 0 for choice in Order.Status}
+        for row in orders_today.values('status').annotate(count=Count('id')):
+            status_counts[row['status']] = row['count']
+
+        customers_count = User.objects.filter(is_staff=False, is_superuser=False).count()
+        active_products = Product.objects.filter(is_active=True).count()
+        low_stock_count = Product.objects.filter(is_active=True, stock__gt=0, stock__lte=5).count()
+        pending_orders = Order.objects.filter(status=Order.Status.PENDING).count()
+
+        month_ago = today_start - timedelta(days=30)
+        avg_order_value = Order.objects.filter(
+            created_at__gte=month_ago, status__in=REVENUE_STATUSES
+        ).aggregate(avg=Avg('total_price'))['avg'] or Decimal('0')
+        orders_last_month = Order.objects.filter(created_at__gte=month_ago).count()
+        completed_last_month = Order.objects.filter(
+            created_at__gte=month_ago, status=Order.Status.COMPLETED
+        ).count()
+        completion_rate = round(completed_last_month * 100 / orders_last_month) if orders_last_month else None
+
+        chart_points, growth_percent, period_total = self._build_chart(period, today_start)
+
+        recent_orders = (
+            Order.objects
+            .select_related('user')
+            .prefetch_related('items__product')
+            .order_by('-created_at')[:5]
+        )
+        recent_data = AdminOrderSerializer(recent_orders, many=True, context={'request': request}).data
+
+        top_products = list(
+            OrderItem.objects
+            .values('product_id', 'product__name', 'product__category', 'product__stock')
+            .annotate(sold=Sum('quantity'), revenue=Sum(F('price') * F('quantity')))
+            .order_by('-revenue')[:4]
+        )
+        top_products_data = [
+            {
+                'id': row['product_id'],
+                'name': row['product__name'],
+                'category': row['product__category'],
+                'sold': row['sold'],
+                'stock': row['product__stock'] or 0,
+                'revenue': int(row['revenue'] or 0),
+            }
+            for row in top_products
+        ]
+
+        return Response(
+            {
+                'period': period,
+                'cards': {
+                    'sales_today': float(sales_today),
+                    'orders_today': orders_today.count(),
+                    'customers': customers_count,
+                    'active_products': active_products,
+                },
+                'quick': {
+                    'avg_order_value': float(avg_order_value),
+                    'completion_rate': completion_rate,
+                    'low_stock_count': low_stock_count,
+                    'pending_orders': pending_orders,
+                },
+                'status_counts': status_counts,
+                'chart': {
+                    'points': chart_points,
+                    'period_total': period_total,
+                    'sales_growth_percent': growth_percent,
+                },
+                'recent_orders': recent_data,
+                'top_products': top_products_data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def _build_chart(self, period, today_start):
+        """نقاط نمودار فروش بازه انتخابی + درصد رشد نسبت به بازه قبلی مشابه."""
+        spans = {
+            'today': (
+                today_start, today_start + timedelta(days=1),
+                today_start - timedelta(days=1), today_start,
+            ),
+            'week': (
+                today_start - timedelta(days=6), today_start + timedelta(days=1),
+                today_start - timedelta(days=13), today_start - timedelta(days=6),
+            ),
+            'month': (
+                today_start - timedelta(days=29), today_start + timedelta(days=1),
+                today_start - timedelta(days=59), today_start - timedelta(days=29),
+            ),
+            'quarter': (
+                today_start - timedelta(days=89), today_start + timedelta(days=1),
+                today_start - timedelta(days=179), today_start - timedelta(days=89),
+            ),
+        }
+        start, end, prev_start, prev_end = spans[period]
+
+        def revenue(a, b):
+            return Order.objects.filter(
+                created_at__gte=a, created_at__lt=b, status__in=REVENUE_STATUSES
+            )
+
+        points = []
+        if period == 'today':
+            # بازه‌های ۲ساعته برای خوانایی نمودار
+            rows = revenue(start, end).annotate(bucket=TruncHour('created_at')).values('bucket').annotate(
+                total=Sum('total_price')
+            )
+            sums = {row['bucket'].hour: row['total'] for row in rows}
+            for hour in range(0, 24, 2):
+                total = sum(sums.get(h, Decimal('0')) for h in (hour, hour + 1))
+                points.append({'date': start.date().isoformat(), 'hour': hour, 'total': float(total)})
+        elif period == 'quarter':
+            rows = revenue(start, end).annotate(bucket=TruncMonth('created_at')).values('bucket').annotate(
+                total=Sum('total_price')
+            )
+            sums = {row['bucket'].date(): row['total'] for row in rows}
+            month_cursor = start.date().replace(day=1)
+            while month_cursor < end.date():
+                points.append({'date': month_cursor.isoformat(), 'hour': None, 'total': float(sums.get(month_cursor, Decimal('0')))})
+                month_cursor = (month_cursor + timedelta(days=32)).replace(day=1)
+        else:
+            rows = revenue(start, end).annotate(bucket=TruncDate('created_at')).values('bucket').annotate(
+                total=Sum('total_price')
+            )
+            sums = {row['bucket']: row['total'] for row in rows}
+            day = start.date()
+            while day < end.date():
+                points.append({'date': day.isoformat(), 'hour': None, 'total': float(sums.get(day, Decimal('0')))})
+                day += timedelta(days=1)
+
+        current_total = revenue(start, end).aggregate(total=Sum('total_price'))['total'] or Decimal('0')
+        previous_total = revenue(prev_start, prev_end).aggregate(total=Sum('total_price'))['total'] or Decimal('0')
+        growth = round((current_total - previous_total) / previous_total * 100, 1) if previous_total else None
+        return points, growth, float(current_total)
 

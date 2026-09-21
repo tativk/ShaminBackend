@@ -1,13 +1,11 @@
 import React,{useEffect,useRef,useState}from"react";
-import{useNavigate}from"react-router-dom";
 import{FiHome,FiShoppingBag,FiBox,FiUsers,FiGrid,FiTag,FiBarChart2,FiSettings,FiFileText,FiHeadphones,FiLogOut,FiBell,FiSearch,FiMenu,FiX,FiSun,FiMoon,FiCalendar,FiChevronLeft,FiChevronDown,FiUser}from"react-icons/fi";
 import DashboardOverview from"../components/Dashboard";
 import Orders from"../components/Orders";
 import Products from"../components/Products";
-import{apiRequest}from"../api";
-import"./AdminPanel.css";
+import"./Dashboard.css";
 const shaminDashboardMenu=[
-{id:"dashboard",title:"پنل ادمین",icon:FiHome},
+{id:"dashboard",title:"داشبورد",icon:FiHome},
 {id:"orders",title:"سفارشات",icon:FiShoppingBag},
 {id:"products",title:"محصولات",icon:FiBox},
 {id:"customers",title:"مشتریان",icon:FiUsers},
@@ -18,28 +16,15 @@ const shaminDashboardMenu=[
 {id:"content",title:"مدیریت محتوا",icon:FiFileText},
 {id:"support",title:"پشتیبانی",icon:FiHeadphones}
 ];
-function AdminPanel({children}){
-const navigate=useNavigate();
+function Dashboard({children}){
 const[activeSection,setActiveSection]=useState("dashboard");
 const[mobileSidebarOpen,setMobileSidebarOpen]=useState(false);
 const[adminMenuOpen,setAdminMenuOpen]=useState(false);
 const[darkMode,setDarkMode]=useState(false);
 const[searchValue,setSearchValue]=useState("");
-const[adminUser,setAdminUser]=useState(null);
 const shaminAdminRef=useRef(null);
 useEffect(()=>{const savedTheme=localStorage.getItem("shamin-dashboard-theme");if(savedTheme==="dark"){setDarkMode(true)}},[]);
 useEffect(()=>{localStorage.setItem("shamin-dashboard-theme",darkMode?"dark":"light")},[darkMode]);
-useEffect(()=>{
-let ignore=false;
-apiRequest("/auth/profile/")
-.then(user=>{
-if(ignore)return;
-if(user.role!=="admin"){navigate("/Login");return}
-setAdminUser(user);
-})
-.catch(()=>{if(!ignore)navigate("/Login")});
-return()=>{ignore=true};
-},[navigate]);
 useEffect(()=>{
 const shaminHandleOutsideClick=event=>{if(shaminAdminRef.current&&!shaminAdminRef.current.contains(event.target)){setAdminMenuOpen(false)}};
 const shaminHandleEscape=event=>{if(event.key==="Escape"){setAdminMenuOpen(false)}};
@@ -47,14 +32,6 @@ document.addEventListener("mousedown",shaminHandleOutsideClick);
 document.addEventListener("keydown",shaminHandleEscape);
 return()=>{document.removeEventListener("mousedown",shaminHandleOutsideClick);document.removeEventListener("keydown",shaminHandleEscape)}
 },[]);
-const shaminHandleLogout=()=>{
-["access","refresh","access_token","refresh_token","user"].forEach(key=>localStorage.removeItem(key));
-navigate("/Login");
-};
-const shaminAdminName=adminUser?[adminUser.first_name,adminUser.last_name].filter(Boolean).join(" ")||"مدیر سایت":"مدیر سایت";
-const shaminAdminPhone=adminUser?adminUser.phone:"";
-const shaminTodayLabel=new Intl.DateTimeFormat("fa-IR",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date());
-const shaminTimeLabel=new Intl.DateTimeFormat("fa-IR",{hour:"2-digit",minute:"2-digit"}).format(new Date());
 const shaminHandleSectionChange=id=>{setActiveSection(id);setMobileSidebarOpen(false);setAdminMenuOpen(false)};
 const shaminHandleAdminMenu=()=>{setAdminMenuOpen(previous=>!previous)};
 const shaminHandleThemeChange=()=>{setDarkMode(previous=>!previous)};
@@ -77,7 +54,6 @@ if(activeSection==="orders"){return<Orders/>}
 if(activeSection==="products"){return<Products/>}
 return null;
 };
-if(!adminUser){return null}
 return(
 <div className={`shamin-dashboard ${mobileSidebarOpen?"shamin-dashboard--sidebar-open":""} ${darkMode?"shamin-dashboard--dark":""}`} dir="rtl">
 <div className="shamin-dashboard__overlay" onClick={()=>setMobileSidebarOpen(false)}/>
@@ -85,10 +61,6 @@ return(
 <div className="shamin-dashboard__brand">
 <div className="shamin-dashboard__brand-logo">
 <img src="/Asets/Shamin gallery.png" alt="Shamin Gallery" className="shamin-dashboard__brand-image"/>
-</div>
-<div className="shamin-dashboard__brand-text">
-<strong>پنل ادمین</strong>
-<span>Shamin Gallery</span>
 </div>
 <button type="button" className="shamin-dashboard__mobile-close" onClick={()=>setMobileSidebarOpen(false)} aria-label="بستن منو"><FiX/></button>
 </div>
@@ -100,10 +72,10 @@ return(
 <div className="shamin-dashboard__support-icon"><FiHeadphones/></div>
 <div className="shamin-dashboard__support-text">
 <strong>پشتیبانی آنلاین</strong>
-<span>در خدمت مدیران فروشگاه هستیم</span>
+<span>در خدمت شما هستیم</span>
 </div>
 </div>
-<button type="button" className="shamin-dashboard__logout" onClick={shaminHandleLogout}><FiLogOut/><span>خروج از پنل ادمین</span></button>
+<button type="button" className="shamin-dashboard__logout"><FiLogOut/><span>خروج از پنل</span></button>
 </div>
 </aside>
 <main className="shamin-dashboard__main">
@@ -120,8 +92,8 @@ return(
 <div className="shamin-dashboard__date">
 <FiCalendar/>
 <div>
-<strong>{shaminTodayLabel}</strong>
-<span>ساعت {shaminTimeLabel}</span>
+<strong>دوشنبه، ۲۳ شهریور ۱۴۰۴</strong>
+<span>ساعت ۱۴:۲۵</span>
 </div>
 </div>
 <button type="button" className="shamin-dashboard__topbar-button" onClick={shaminHandleThemeChange} aria-label={darkMode?"فعال کردن حالت روشن":"فعال کردن حالت تاریک"}>{darkMode?<FiSun/>:<FiMoon/>}</button>
@@ -131,18 +103,18 @@ return(
 </button>
 <div className="shamin-dashboard__admin-wrapper" ref={shaminAdminRef}>
 <button type="button" className={`shamin-dashboard__admin ${adminMenuOpen?"shamin-dashboard__admin--open":""}`} onClick={shaminHandleAdminMenu} aria-expanded={adminMenuOpen} aria-haspopup="true">
-<div className="shamin-dashboard__admin-avatar"><span>{shaminAdminName.charAt(0)}</span></div>
+<div className="shamin-dashboard__admin-avatar"><span>م</span></div>
 <div className="shamin-dashboard__admin-info">
-<strong>{shaminAdminName}</strong>
-<span>{shaminAdminPhone||"admin"}</span>
+<strong>مدیر سایت</strong>
+<span>admin</span>
 </div>
 <span className="shamin-dashboard__admin-arrow"><FiChevronDown/></span>
 </button>
 <div className={`shamin-dashboard__admin-dropdown ${adminMenuOpen?"shamin-dashboard__admin-dropdown--open":""}`}>
 <div className="shamin-dashboard__admin-dropdown-head">
-<div className="shamin-dashboard__admin-dropdown-avatar">{shaminAdminName.charAt(0)}</div>
+<div className="shamin-dashboard__admin-dropdown-avatar">م</div>
 <div>
-<strong>{shaminAdminName}</strong>
+<strong>مدیر سایت</strong>
 <span>حساب مدیریت فروشگاه</span>
 </div>
 </div>
@@ -156,7 +128,7 @@ return(
 <span>تنظیمات حساب</span>
 </button>
 <div className="shamin-dashboard__admin-dropdown-divider"/>
-<button type="button" className="shamin-dashboard__admin-dropdown-item shamin-dashboard__admin-dropdown-item--logout" onClick={shaminHandleLogout}>
+<button type="button" className="shamin-dashboard__admin-dropdown-item shamin-dashboard__admin-dropdown-item--logout" onClick={()=>setAdminMenuOpen(false)}>
 <span className="shamin-dashboard__admin-dropdown-icon"><FiLogOut/></span>
 <span>خروج از پنل</span>
 </button>
@@ -169,4 +141,4 @@ return(
 </div>
 );
 }
-export default AdminPanel;
+export default Dashboard;

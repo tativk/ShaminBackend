@@ -9,6 +9,7 @@ class Order(models.Model):
         PENDING   = 'pending',   _('در انتظار پرداخت')
         PAID      = 'paid',      _('پرداخت شده')
         SHIPPING  = 'shipping',  _('در حال ارسال')
+        COMPLETED = 'completed', _('تحویل شده')
         FAILED    = 'failed',    _('ناموفق')
         CANCELLED = 'cancelled', _('لغو شده')
 
