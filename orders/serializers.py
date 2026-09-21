@@ -4,13 +4,26 @@ from .models import Order, OrderItem
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
+    product_category = serializers.CharField(source='product.category', read_only=True)
+    product_gender = serializers.CharField(source='product.gender', read_only=True)
+    product_main_image = serializers.SerializerMethodField()
     unit_price = serializers.DecimalField(source='price', max_digits=12, decimal_places=2, read_only=True)
     total_price = serializers.DecimalField(source='subtotal', max_digits=14, decimal_places=2, read_only=True)
 
     class Meta:
         model = OrderItem
-        fields = ['id', 'product', 'product_name', 'quantity', 'unit_price', 'total_price']
+        fields = [
+            'id', 'product', 'product_name', 'product_category', 'product_gender',
+            'product_main_image', 'quantity', 'unit_price', 'total_price',
+        ]
         read_only_fields = fields
+
+    def get_product_main_image(self, obj):
+        main = obj.product.images.filter(is_main=True).first() or obj.product.images.first()
+        if not main:
+            return None
+        request = self.context.get('request')
+        return request.build_absolute_uri(main.image.url) if request else main.image.url
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -23,6 +36,43 @@ class OrderSerializer(serializers.ModelSerializer):
             'created_at', 'items',
         ]
         read_only_fields = fields
+
+
+class AdminOrderSerializer(serializers.ModelSerializer):
+    customer = serializers.SerializerMethodField()
+    customer_phone = serializers.CharField(source='user.phone', read_only=True)
+    items = OrderItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Order
+        fields = [
+            'id', 'status', 'total_price', 'address', 'customer', 'customer_phone',
+            'payment_ref_id', 'created_at', 'items',
+        ]
+        read_only_fields = fields
+
+    def get_customer(self, obj):
+        full_name = ' '.join(part for part in [obj.user.first_name, obj.user.last_name] if part).strip()
+        return full_name or obj.user.phone
+
+
+class OrderStatusUpdateSerializer(serializers.ModelSerializer):
+    """ویرایش وضعیت و آدرس سفارش از پنل ادمین."""
+
+    class Meta:
+        model = Order
+        fields = ['status', 'address']
+
+    def validate_status(self, value):
+        valid_statuses = {choice.value for choice in Order.Status}
+        if value not in valid_statuses:
+            raise serializers.ValidationError('وضعیت سفارش نامعتبر است.')
+        return value
+
+    def validate_address(self, value):
+        if not value.strip():
+            raise serializers.ValidationError('آدرس نمی‌تواند خالی باشد.')
+        return value.strip()
 
 
 class CreateOrderSerializer(serializers.Serializer):

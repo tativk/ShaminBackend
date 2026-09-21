@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FiArrowLeft,
   FiArrowUp,
@@ -17,376 +17,240 @@ import {
   FiBarChart2,
   FiCalendar,
   FiChevronDown,
+  FiRefreshCw,
+  FiXCircle,
 } from "react-icons/fi";
 
+import { apiRequest } from "../api";
 import "./Dashboard.css";
+
+const fa = (value) => Number(value || 0).toLocaleString("fa-IR");
+
+const PERIOD_API = { "امروز": "today", "این هفته": "week", "این ماه": "month", "این فصل": "quarter" };
+const PERIOD_OPTIONS = ["امروز", "این هفته", "این ماه", "این فصل"];
+
+const STATUS_META = {
+  completed: { label: "تکمیل شده", icon: FiCheckCircle, ring: "completed", item: "completed" },
+  shipping: { label: "در حال ارسال", icon: FiTruck, ring: "shipping", item: "shipping" },
+  paid: { label: "پرداخت شده", icon: FiDollarSign, ring: "paid", item: "paid" },
+  pending: { label: "در انتظار", icon: FiClock, ring: "pending", item: "pending" },
+  failed: { label: "ناموفق", icon: FiAlertCircle, ring: "failed", item: "failed" },
+  cancelled: { label: "لغو شده", icon: FiXCircle, ring: "cancelled", item: "cancelled" },
+};
+const RING_ORDER = ["completed", "shipping", "paid", "pending", "cancelled", "failed"];
+
+const CATEGORY_LABEL = { perfume: "عطر", cosmetic: "لوازم آرایشی", accessory: "اکسسوری" };
+
+const faRel = (iso) => {
+  if (!iso) return "—";
+  const diff = Date.now() - new Date(iso).getTime();
+  if (diff < 60000) return "همین الان";
+  const m = Math.floor(diff / 60000);
+  if (m < 60) return `${fa(m)} دقیقه پیش`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${fa(h)} ساعت پیش`;
+  const d = Math.floor(h / 24);
+  if (d === 1) return "دیروز";
+  if (d < 30) return `${fa(d)} روز پیش`;
+  return new Intl.DateTimeFormat("fa-IR", { year: "numeric", month: "short", day: "numeric" }).format(new Date(iso));
+};
+
+const hourLabel = (hour) => {
+  if (hour === 0) return "۱۲ شب";
+  if (hour === 12) return "۱۲ ظهر";
+  return hour < 12 ? `${fa(hour)} صبح` : `${fa(hour - 12)} بعدازظهر`;
+};
+
+const pointLabel = (point, index) => {
+  if (point.hour != null) return hourLabel(point.hour);
+  const date = new Date(point.date);
+  if (PERIOD_CURRENT === "این هفته") return new Intl.DateTimeFormat("fa-IR", { weekday: "long" }).format(date);
+  if (PERIOD_CURRENT === "این فصل") return new Intl.DateTimeFormat("fa-IR", { month: "long" }).format(date);
+  return new Intl.DateTimeFormat("fa-IR", { month: "short", day: "numeric" }).format(date);
+};
+
+// برچسب بازه جاری برای ساخت لیبل نقاط نمودار — قبل از رندر ست می‌شود
+let PERIOD_CURRENT = "این هفته";
 
 function Dashboard() {
   const [shaminOpenStatMenu, setShaminOpenStatMenu] = useState(null);
   const [shaminChartHover, setShaminChartHover] = useState(null);
   const [shaminPeriodOpen, setShaminPeriodOpen] = useState(false);
-  const [shaminSelectedPeriod, setShaminSelectedPeriod] =
-    useState("این هفته");
+  const [shaminSelectedPeriod, setShaminSelectedPeriod] = useState("این هفته");
   const [shaminStatusHover, setShaminStatusHover] = useState(null);
+
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let ignore = false;
+    setLoading(true);
+    setError("");
+    apiRequest(`/orders/admin/stats/?period=${PERIOD_API[shaminSelectedPeriod]}`)
+      .then((data) => { if (!ignore) setStats(data); })
+      .catch((err) => { if (!ignore) setError(err?.message || "خطا در دریافت آمار"); })
+      .finally(() => { if (!ignore) setLoading(false); });
+    return () => { ignore = true; };
+  }, [shaminSelectedPeriod]);
+
+  PERIOD_CURRENT = shaminSelectedPeriod;
+
+  const cards = stats?.cards || {};
+  const quick = stats?.quick || {};
+  const chartData = stats?.chart || {};
+  const statusCounts = stats?.status_counts || {};
 
   const shaminOverviewStats = [
     {
       id: "sales",
       title: "فروش امروز",
-      value: "۱۲,۸۵۰,۰۰۰",
+      value: fa(cards.sales_today),
       unit: "تومان",
-      change: "۱۸.۴٪",
-      trend: "up",
+      change: chartData.sales_growth_percent != null ? `${fa(Math.abs(chartData.sales_growth_percent))}٪` : null,
+      trend: (chartData.sales_growth_percent || 0) >= 0 ? "up" : "down",
       icon: FiDollarSign,
-      caption: "نسبت به هفته قبل",
-      progress: 78,
+      caption: chartData.sales_growth_percent != null ? "نسبت به بازه قبل" : "مجموع فروش امروز",
     },
     {
       id: "orders",
       title: "سفارش‌های امروز",
-      value: "۳۸",
+      value: fa(cards.orders_today),
       unit: "سفارش",
-      change: "۱۲.۸٪",
+      change: null,
       trend: "up",
       icon: FiShoppingBag,
-      caption: "نسبت به هفته قبل",
-      progress: 64,
+      caption: "سفارش ثبت‌شده امروز",
     },
     {
       id: "customers",
-      title: "مشتریان فعال",
-      value: "۱,۲۴۸",
+      title: "مشتریان",
+      value: fa(cards.customers),
       unit: "نفر",
-      change: "۸.۲٪",
+      change: null,
       trend: "up",
       icon: FiUsers,
-      caption: "افزایش نسبت به هفته قبل",
-      progress: 82,
+      caption: "کاربران ثبت‌نام‌شده",
     },
     {
       id: "products",
       title: "محصولات فعال",
-      value: "۲۸۶",
+      value: fa(cards.active_products),
       unit: "محصول",
-      change: "۱۲ محصول",
+      change: quick.low_stock_count ? `${fa(quick.low_stock_count)} محصول` : null,
       trend: "down",
       icon: FiBox,
-      caption: "نیازمند بررسی موجودی",
-      progress: 58,
+      caption: quick.low_stock_count ? "نیازمند بررسی موجودی" : "محصولات فعال فروشگاه",
     },
   ];
 
   const shaminQuickMetrics = [
-    {
-      id: "avg",
-      label: "میانگین ارزش سفارش",
-      value: "۱,۹۸۰,۰۰۰",
-      unit: "تومان",
-      icon: FiDollarSign,
-    },
-    {
-      id: "rate",
-      label: "نرخ تکمیل سفارش",
-      value: "۸۷٪",
-      unit: "",
-      icon: FiCheckCircle,
-    },
-    {
-      id: "stock",
-      label: "محصولات کم‌موجودی",
-      value: "۱۲",
-      unit: "محصول",
-      icon: FiAlertCircle,
-    },
-    {
-      id: "pending",
-      label: "سفارش‌های در انتظار",
-      value: "۳",
-      unit: "سفارش",
-      icon: FiClock,
-    },
+    { id: "avg", label: "میانگین ارزش سفارش", value: fa(Math.round(quick.avg_order_value || 0)), unit: "تومان", icon: FiDollarSign },
+    { id: "rate", label: "نرخ تکمیل سفارش", value: quick.completion_rate != null ? `${fa(quick.completion_rate)}٪` : "—", unit: "", icon: FiCheckCircle },
+    { id: "stock", label: "محصولات کم‌موجودی", value: fa(quick.low_stock_count || 0), unit: "محصول", icon: FiAlertCircle },
+    { id: "pending", label: "سفارش‌های در انتظار", value: fa(quick.pending_orders || 0), unit: "سفارش", icon: FiClock },
   ];
 
-  const shaminSalesPeriods = {
-    "امروز": {
-      title: "روند فروش امروز",
-      total: "۱۲,۸۵۰,۰۰۰",
-      growth: "۱۸.۴٪",
-      salesMax: 15,
-      visitsMax: 800,
-      data: [
-        { label: "۸ صبح", sales: 1.2, visits: 85 },
-        { label: "۱۰ صبح", sales: 3.4, visits: 180 },
-        { label: "۱۲ ظهر", sales: 5.8, visits: 320 },
-        { label: "۲ بعدازظهر", sales: 8.2, visits: 450 },
-        { label: "۴ بعدازظهر", sales: 10.4, visits: 590 },
-        { label: "۶ عصر", sales: 11.8, visits: 680 },
-        { label: "۸ شب", sales: 12.85, visits: 720 },
-      ],
-    },
+  // نقاط نمودار — برای بازه ماه، روزها سمت کلاینت به ۶ سگمنت تقسیم می‌شوند
+  const chartPointsRaw = chartData.points || [];
+  const shaminSalesData = (() => {
+    if (PERIOD_API[shaminSelectedPeriod] !== "month") {
+      return chartPointsRaw.map((point) => ({ label: pointLabel(point), sales: point.total }));
+    }
+    const bucketSize = Math.max(1, Math.ceil(chartPointsRaw.length / 6));
+    const buckets = [];
+    for (let i = 0; i < chartPointsRaw.length; i += bucketSize) {
+      const slice = chartPointsRaw.slice(i, i + bucketSize);
+      buckets.push({
+        label: `هفته ${fa(buckets.length + 1)}`,
+        sales: slice.reduce((sum, p) => sum + p.total, 0),
+      });
+    }
+    return buckets;
+  })();
 
-    "این هفته": {
-      title: "روند فروش این هفته",
-      total: "۹۰,۰۰۰,۰۰۰",
-      growth: "۲۱.۶٪",
-      salesMax: 20,
-      visitsMax: 800,
-      data: [
-        { label: "شنبه", sales: 8.4, visits: 420 },
-        { label: "یکشنبه", sales: 11.2, visits: 510 },
-        { label: "دوشنبه", sales: 9.6, visits: 465 },
-        { label: "سه‌شنبه", sales: 14.8, visits: 620 },
-        { label: "چهارشنبه", sales: 12.7, visits: 575 },
-        { label: "پنجشنبه", sales: 17.9, visits: 710 },
-        { label: "جمعه", sales: 15.4, visits: 655 },
-      ],
-    },
-
-    "این ماه": {
-      title: "روند فروش این ماه",
-      total: "۳۸۴,۵۰۰,۰۰۰",
-      growth: "۱۷.۸٪",
-      salesMax: 80,
-      visitsMax: 3200,
-      data: [
-        { label: "هفته اول", sales: 42, visits: 1850 },
-        { label: "هفته دوم", sales: 56, visits: 2240 },
-        { label: "هفته سوم", sales: 48, visits: 1980 },
-        { label: "هفته چهارم", sales: 71, visits: 2860 },
-        { label: "هفته پنجم", sales: 64, visits: 2510 },
-      ],
-    },
-
-    "این فصل": {
-      title: "روند فروش این فصل",
-      total: "۱,۲۴۵,۰۰۰,۰۰۰",
-      growth: "۲۴.۸٪",
-      salesMax: 220,
-      visitsMax: 9000,
-      data: [
-        { label: "فروردین", sales: 150, visits: 6400 },
-        { label: "اردیبهشت", sales: 185, visits: 7800 },
-        { label: "خرداد", sales: 210, visits: 8900 },
-      ],
-    },
-  };
-
-  const shaminCurrentChart = shaminSalesPeriods[shaminSelectedPeriod];
-  const shaminSalesData = shaminCurrentChart.data;
+  const salesMax = Math.max(...shaminSalesData.map((item) => item.sales), 1) * 1.15;
 
   const shaminChartPoints = shaminSalesData.map((item, index) => {
     const chartWidth = 700;
     const chartHeight = 150;
+    const x = shaminSalesData.length === 1 ? chartWidth / 2 : (index / (shaminSalesData.length - 1)) * chartWidth;
+    const salesY = 220 - (item.sales / salesMax) * chartHeight;
+    return { x, salesY, index, label: item.label, sales: item.sales };
+  });
 
-    const x =
-      shaminSalesData.length === 1
-        ? chartWidth / 2
-        : (index / (shaminSalesData.length - 1)) * chartWidth;
+  const shaminRecentOrders = (stats?.recent_orders || []).map((order) => ({
+    id: `#SH-${order.id}`,
+    customer: order.customer || "مشتری",
+    product: order.items?.[0]?.product_name || "—",
+    items: (order.items || []).reduce((sum, item) => sum + item.quantity, 0),
+    amount: fa(order.total_price),
+    status: order.status,
+    statusLabel: (STATUS_META[order.status] || STATUS_META.pending).label,
+    time: faRel(order.created_at),
+  }));
 
-    const normalizedSales = item.sales / shaminCurrentChart.salesMax;
-    const normalizedVisits = item.visits / shaminCurrentChart.visitsMax;
+  const shaminTopProducts = (stats?.top_products || []).map((product, index) => ({
+    id: product.id,
+    name: product.name,
+    category: CATEGORY_LABEL[product.category] || product.category,
+    sales: product.sold,
+    stock: product.stock,
+    revenue: fa(product.revenue),
+    rank: String(index + 1).padStart(2, "0"),
+    stockLow: product.stock <= 5,
+  }));
 
-    const salesY = 220 - normalizedSales * chartHeight;
-    const visitsY = 220 - normalizedVisits * chartHeight;
+  const statusEntries = RING_ORDER
+    .map((key) => ({ key, ...STATUS_META[key], count: statusCounts[key] || 0 }))
+    .filter((entry) => entry.count > 0);
+  const totalToday = statusEntries.reduce((sum, entry) => sum + entry.count, 0);
+  const ringSegments = (() => {
+    let cumulative = 0;
+    return statusEntries.map((entry) => {
+      const percent = totalToday ? (entry.count / totalToday) * 100 : 0;
+      const segment = {
+        key: entry.key,
+        percent,
+        dasharray: `${percent} ${100 - percent}`,
+        offset: -cumulative,
+      };
+      cumulative += percent;
+      return segment;
+    });
+  })();
 
-    return {
-      x,
-      salesY,
-      visitsY,
-      index,
-      label: item.label,
-      sales: item.sales,
-      visits: item.visits,
+  const shaminStatusHoverData = {};
+  statusEntries.forEach((entry) => {
+    shaminStatusHoverData[entry.key] = {
+      label: entry.label,
+      count: fa(entry.count),
+      percent: `${fa(totalToday ? Math.round((entry.count / totalToday) * 100) : 0)}٪ از سفارش‌ها`,
     };
   });
 
-  const shaminSalesTooltipData = shaminSalesData.map((item) => ({
-    day: item.label,
-    sales: `${item.sales.toLocaleString("fa-IR")} میلیون`,
-    visits: item.visits.toLocaleString("fa-IR"),
-  }));
-
-  const shaminRecentOrders = [
-    {
-      id: "#SH-1048",
-      customer: "سارا محمدی",
-      product: "Chanel Coco Mademoiselle",
-      items: 2,
-      amount: "۴,۸۵۰,۰۰۰",
-      status: "completed",
-      statusLabel: "تکمیل شده",
-      time: "۱۲ دقیقه پیش",
-    },
-    {
-      id: "#SH-1047",
-      customer: "علی رضایی",
-      product: "Dior Sauvage",
-      items: 1,
-      amount: "۵,۲۵۰,۰۰۰",
-      status: "shipping",
-      statusLabel: "در حال ارسال",
-      time: "۳۵ دقیقه پیش",
-    },
-    {
-      id: "#SH-1046",
-      customer: "نگار احمدی",
-      product: "YSL Libre",
-      items: 3,
-      amount: "۴,۶۰۰,۰۰۰",
-      status: "pending",
-      statusLabel: "در انتظار",
-      time: "۵۲ دقیقه پیش",
-    },
-    {
-      id: "#SH-1045",
-      customer: "محمد کریمی",
-      product: "Tom Ford Oud Wood",
-      items: 1,
-      amount: "۷,۹۰۰,۰۰۰",
-      status: "completed",
-      statusLabel: "تکمیل شده",
-      time: "۱ ساعت پیش",
-    },
-  ];
-
-  const shaminTopProducts = [
-    {
-      id: 1,
-      name: "Dior Sauvage",
-      category: "عطر مردانه",
-      sales: 86,
-      stock: 14,
-      revenue: "۴۵۲,۰۰۰,۰۰۰",
-      rank: "01",
-      stockLow: false,
-    },
-    {
-      id: 2,
-      name: "Chanel Coco Mademoiselle",
-      category: "عطر زنانه",
-      sales: 74,
-      stock: 22,
-      revenue: "۳۵۸,۰۰۰,۰۰۰",
-      rank: "02",
-      stockLow: false,
-    },
-    {
-      id: 3,
-      name: "YSL Libre",
-      category: "عطر زنانه",
-      sales: 68,
-      stock: 9,
-      revenue: "۳۱۲,۰۰۰,۰۰۰",
-      rank: "03",
-      stockLow: false,
-    },
-    {
-      id: 4,
-      name: "Tom Ford Oud Wood",
-      category: "عطر مردانه",
-      sales: 52,
-      stock: 6,
-      revenue: "۲۸۹,۰۰۰,۰۰۰",
-      rank: "04",
-      stockLow: true,
-    },
-  ];
-
-  const shaminOrderStatus = [
-    {
-      label: "تکمیل شده",
-      value: "۶۸٪",
-      count: "۲۶ سفارش",
-      type: "completed",
-      icon: FiCheckCircle,
-    },
-    {
-      label: "در حال ارسال",
-      value: "۱۸٪",
-      count: "۷ سفارش",
-      type: "shipping",
-      icon: FiTruck,
-    },
-    {
-      label: "در انتظار",
-      value: "۹٪",
-      count: "۳ سفارش",
-      type: "pending",
-      icon: FiClock,
-    },
-    {
-      label: "لغو شده",
-      value: "۵٪",
-      count: "۲ سفارش",
-      type: "cancelled",
-      icon: FiAlertCircle,
-    },
-  ];
-
-  const shaminStatusHoverData = {
-    completed: {
-      label: "تکمیل شده",
-      count: "۲۶",
-      percent: "۶۸٪ از سفارش‌ها",
-    },
-    shipping: {
-      label: "در حال ارسال",
-      count: "۷",
-      percent: "۱۸٪ از سفارش‌ها",
-    },
-    pending: {
-      label: "در انتظار",
-      count: "۳",
-      percent: "۹٪ از سفارش‌ها",
-    },
-    cancelled: {
-      label: "لغو شده",
-      count: "۲",
-      percent: "۵٪ از سفارش‌ها",
-    },
-  };
-
   const shaminActivities = [
-    {
-      id: 1,
+    ...(quick.low_stock_count
+      ? [{
+          id: "low-stock",
+          type: "stock",
+          title: "محصولات کم‌موجودی",
+          description: `${fa(quick.low_stock_count)} محصول موجودی کم دارند`,
+          time: "بررسی شود",
+          icon: FiAlertCircle,
+        }]
+      : []),
+    ...shaminRecentOrders.slice(0, 4).map((order) => ({
+      id: `order-${order.id}`,
       type: "order",
       title: "سفارش جدید ثبت شد",
-      description: "سفارش #SH-1048 توسط سارا محمدی",
-      time: "۱۲ دقیقه پیش",
+      description: `سفارش ${order.id} توسط ${order.customer}`,
+      time: order.time,
       icon: FiShoppingBag,
-    },
-    {
-      id: 2,
-      type: "stock",
-      title: "موجودی Dior Sauvage کاهش یافت",
-      description: "موجودی این محصول به ۱۴ عدد رسید",
-      time: "۳۵ دقیقه پیش",
-      icon: FiAlertCircle,
-    },
-    {
-      id: 3,
-      type: "payment",
-      title: "پرداخت سفارش #SH-1047 تأیید شد",
-      description: "مبلغ ۵,۲۵۰,۰۰۰ تومان دریافت شد",
-      time: "۱ ساعت پیش",
-      icon: FiCheckCircle,
-    },
-    {
-      id: 4,
-      type: "product",
-      title: "محصول Chanel به‌روزرسانی شد",
-      description: "قیمت و موجودی محصول بروزرسانی شد",
-      time: "۲ ساعت پیش",
-      icon: FiBox,
-    },
-  ];
+    })),
+  ].slice(0, 4);
 
-  const shaminPeriodOptions = [
-    "امروز",
-    "این هفته",
-    "این ماه",
-    "این فصل",
-  ];
+  const shaminPeriodOptions = PERIOD_OPTIONS;
 
   return (
     <div className="shamin-overview">
@@ -398,6 +262,26 @@ function Dashboard() {
         />
       </section>
 
+      {loading ? (
+        <div className="shamin-overview__stats">
+          <article className="shamin-overview__stat-card">
+            <div className="shamin-overview__stat-info">
+              <span>در حال دریافت آمار...</span>
+              <strong><FiRefreshCw /></strong>
+            </div>
+          </article>
+        </div>
+      ) : error ? (
+        <div className="shamin-overview__stats">
+          <article className="shamin-overview__stat-card">
+            <div className="shamin-overview__stat-info">
+              <span>خطا در دریافت آمار</span>
+              <strong>{error}</strong>
+            </div>
+          </article>
+        </div>
+      ) : (
+        <>
       <section className="shamin-overview__stats">
         {shaminOverviewStats.map((item) => {
           const Icon = item.icon;
@@ -469,15 +353,11 @@ function Dashboard() {
               <div
                 className={`shamin-overview__stat-change shamin-overview__stat-change--${item.trend}`}
               >
-                {item.trend === "up" ? <FiArrowUp /> : <FiArrowDown />}
+                {item.change != null && (item.trend === "up" ? <FiArrowUp /> : <FiArrowDown />)}
 
-                <span>{item.change}</span>
+                <span>{item.change != null ? item.change : item.caption}</span>
 
-                <small>{item.caption}</small>
-              </div>
-
-              <div className="shamin-overview__stat-progress">
-                <span style={{ width: `${item.progress}%` }} />
+                <small>{item.change != null ? item.caption : ""}</small>
               </div>
             </article>
           );
@@ -515,17 +395,12 @@ function Dashboard() {
           <div className="shamin-overview__section-head">
             <div>
               <span>عملکرد فروش</span>
-              <h3>{shaminCurrentChart.title}</h3>
+              <h3>{`روند فروش ${shaminSelectedPeriod}`}</h3>
 
               <div className="shamin-overview__chart-legend">
                 <span>
                   <i className="shamin-overview__legend-dot shamin-overview__legend-dot--sales" />
                   فروش
-                </span>
-
-                <span>
-                  <i className="shamin-overview__legend-dot shamin-overview__legend-dot--visits" />
-                  بازدید
                 </span>
               </div>
             </div>
@@ -587,14 +462,16 @@ function Dashboard() {
 
           <div className="shamin-overview__sales-summary">
             <div>
-              <strong>{shaminCurrentChart.total}</strong>
+              <strong>{fa(chartData.period_total)}</strong>
               <span>تومان فروش {shaminSelectedPeriod}</span>
             </div>
 
-            <div className="shamin-overview__sales-growth">
-              <FiArrowUp />
-              <span>{shaminCurrentChart.growth}</span>
-            </div>
+            {chartData.sales_growth_percent != null && (
+              <div className="shamin-overview__sales-growth">
+                <FiArrowUp />
+                <span>{`${fa(Math.abs(chartData.sales_growth_percent))}٪`}</span>
+              </div>
+            )}
           </div>
 
           <div className="shamin-overview__chart">
@@ -679,16 +556,6 @@ function Dashboard() {
                   .join(" ")}
               />
 
-              <polyline
-                className="shamin-overview__chart-line-secondary"
-                points={shaminChartPoints
-                  .map(
-                    (point) =>
-                      `${point.x},${point.visitsY}`
-                  )
-                  .join(" ")}
-              />
-
               {shaminChartPoints.map((point) => (
                 <g key={point.index}>
                   <circle
@@ -716,27 +583,14 @@ function Dashboard() {
                       shaminChartHover === point.index ? 6 : 4
                     }
                   />
-
-                  <circle
-                    className={`shamin-overview__chart-visit-point ${
-                      shaminChartHover === point.index
-                        ? "shamin-overview__chart-visit-point--active"
-                        : ""
-                    }`}
-                    cx={point.x}
-                    cy={point.visitsY}
-                    r={
-                      shaminChartHover === point.index ? 5 : 3
-                    }
-                  />
                 </g>
               ))}
             </svg>
 
-            {shaminChartHover !== null && (
+            {shaminChartHover !== null && shaminChartPoints[shaminChartHover] && (
               <div className="shamin-overview__chart-tooltip">
                 <div className="shamin-overview__chart-tooltip-day">
-                  {shaminSalesTooltipData[shaminChartHover].day}
+                  {shaminChartPoints[shaminChartHover].label}
                 </div>
 
                 <div className="shamin-overview__chart-tooltip-row">
@@ -746,18 +600,7 @@ function Dashboard() {
                   </span>
 
                   <strong>
-                    {shaminSalesTooltipData[shaminChartHover].sales}
-                  </strong>
-                </div>
-
-                <div className="shamin-overview__chart-tooltip-row">
-                  <span>
-                    <i className="shamin-overview__tooltip-dot shamin-overview__tooltip-dot--visits" />
-                    بازدید
-                  </span>
-
-                  <strong>
-                    {shaminSalesTooltipData[shaminChartHover].visits}
+                    {fa(Math.round(shaminChartPoints[shaminChartHover].sales))} تومان
                   </strong>
                 </div>
               </div>
@@ -808,57 +651,21 @@ function Dashboard() {
                   r="120"
                 />
 
-                <circle
-                  className="shamin-overview__status-ring-segment shamin-overview__status-ring-segment--completed"
-                  cx="160"
-                  cy="160"
-                  r="120"
-                  pathLength="100"
-                  strokeDasharray="68 32"
-                  strokeDashoffset="0"
-                  onMouseEnter={() =>
-                    setShaminStatusHover("completed")
-                  }
-                />
-
-                <circle
-                  className="shamin-overview__status-ring-segment shamin-overview__status-ring-segment--shipping"
-                  cx="160"
-                  cy="160"
-                  r="120"
-                  pathLength="100"
-                  strokeDasharray="18 82"
-                  strokeDashoffset="-68"
-                  onMouseEnter={() =>
-                    setShaminStatusHover("shipping")
-                  }
-                />
-
-                <circle
-                  className="shamin-overview__status-ring-segment shamin-overview__status-ring-segment--pending"
-                  cx="160"
-                  cy="160"
-                  r="120"
-                  pathLength="100"
-                  strokeDasharray="9 91"
-                  strokeDashoffset="-86"
-                  onMouseEnter={() =>
-                    setShaminStatusHover("pending")
-                  }
-                />
-
-                <circle
-                  className="shamin-overview__status-ring-segment shamin-overview__status-ring-segment--cancelled"
-                  cx="160"
-                  cy="160"
-                  r="120"
-                  pathLength="100"
-                  strokeDasharray="5 95"
-                  strokeDashoffset="-95"
-                  onMouseEnter={() =>
-                    setShaminStatusHover("cancelled")
-                  }
-                />
+                {ringSegments.map((segment) => (
+                  <circle
+                    key={segment.key}
+                    className={`shamin-overview__status-ring-segment shamin-overview__status-ring-segment--${segment.key}`}
+                    cx="160"
+                    cy="160"
+                    r="120"
+                    pathLength="100"
+                    strokeDasharray={segment.dasharray}
+                    strokeDashoffset={String(segment.offset)}
+                    onMouseEnter={() =>
+                      setShaminStatusHover(segment.key)
+                    }
+                  />
+                ))}
               </svg>
 
               <div
@@ -874,7 +681,7 @@ function Dashboard() {
                       مجموع سفارش‌ها
                     </span>
 
-                    <strong>۳۸</strong>
+                    <strong>{fa(totalToday)}</strong>
 
                     <span className="shamin-overview__status-total-unit">
                       سفارش امروز
@@ -902,13 +709,14 @@ function Dashboard() {
           </div>
 
           <div className="shamin-overview__status-list">
-            {shaminOrderStatus.map((item, index) => {
-              const Icon = item.icon;
+            {statusEntries.map((entry, index) => {
+              const Icon = entry.icon;
+              const percent = totalToday ? Math.round((entry.count / totalToday) * 100) : 0;
 
               return (
                 <div
-                  className={`shamin-overview__status-item shamin-overview__status-item--${item.type}`}
-                  key={item.label}
+                  className={`shamin-overview__status-item shamin-overview__status-item--${entry.item}`}
+                  key={entry.key}
                   style={{
                     "--shamin-status-delay": `${
                       0.25 + index * 0.09
@@ -920,14 +728,21 @@ function Dashboard() {
                   </div>
 
                   <div className="shamin-overview__status-name">
-                    <strong>{item.label}</strong>
-                    <span>{item.count}</span>
+                    <strong>{entry.label}</strong>
+                    <span>{`${fa(entry.count)} سفارش`}</span>
                   </div>
 
-                  <b>{item.value}</b>
+                  <b>{`${fa(percent)}٪`}</b>
                 </div>
               );
             })}
+            {statusEntries.length === 0 && (
+              <div className="shamin-overview__status-item">
+                <div className="shamin-overview__status-name">
+                  <strong>سفارشی امروز ثبت نشده است</strong>
+                </div>
+              </div>
+            )}
           </div>
         </article>
       </section>
@@ -939,14 +754,6 @@ function Dashboard() {
               <span>سفارش‌ها</span>
               <h3>آخرین سفارش‌ها</h3>
             </div>
-
-            <button
-              type="button"
-              className="shamin-overview__view-all"
-            >
-              مشاهده همه
-              <FiArrowLeft />
-            </button>
           </div>
 
           <div className="shamin-overview__table">
@@ -965,7 +772,6 @@ function Dashboard() {
                 key={order.id}
                 role="button"
                 tabIndex={0}
-                onClick={() => console.log("مشاهده سفارش")}
               >
                 <div className="shamin-overview__order-id">
                   <strong>{order.id}</strong>
@@ -988,7 +794,7 @@ function Dashboard() {
                     {order.product}
                   </span>
 
-                  <small>{order.items} کالا</small>
+                  <small>{fa(order.items)} کالا</small>
                 </div>
 
                 <div className="shamin-overview__amount-cell">
@@ -1006,6 +812,15 @@ function Dashboard() {
                 <small>{order.time}</small>
               </div>
             ))}
+            {shaminRecentOrders.length === 0 && (
+              <div className="shamin-overview__table-row">
+                <div className="shamin-overview__product-cell">
+                  <span className="shamin-overview__product-name">
+                    هنوز سفارشی ثبت نشده است
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </article>
 
@@ -1047,7 +862,7 @@ function Dashboard() {
                 <div className="shamin-overview__product-sales">
                   <div className="shamin-overview__product-sales-count">
                     <FiStar />
-                    <span>{product.sales} فروش</span>
+                    <span>{`${fa(product.sales)} فروش`}</span>
                   </div>
 
                   <strong>{product.revenue}</strong>
@@ -1060,11 +875,18 @@ function Dashboard() {
                     }`}
                   >
                     <span>موجودی</span>
-                    <b>{product.stock} عدد</b>
+                    <b>{`${fa(product.stock)} عدد`}</b>
                   </div>
                 </div>
               </div>
             ))}
+            {shaminTopProducts.length === 0 && (
+              <div className="shamin-overview__product-item">
+                <div className="shamin-overview__product-info">
+                  <strong>فروشی ثبت نشده است</strong>
+                </div>
+              </div>
+            )}
           </div>
         </article>
       </section>
@@ -1075,14 +897,6 @@ function Dashboard() {
             <span>فعالیت سیستم</span>
             <h3>آخرین فعالیت‌ها</h3>
           </div>
-
-          <button
-            type="button"
-            className="shamin-overview__view-all"
-          >
-            مشاهده همه
-            <FiArrowLeft />
-          </button>
         </div>
 
         <div className="shamin-overview__activity-list">
@@ -1113,8 +927,17 @@ function Dashboard() {
               </div>
             );
           })}
+          {shaminActivities.length === 0 && (
+            <div className="shamin-overview__activity-item">
+              <div className="shamin-overview__activity-content">
+                <p>فعالیتی ثبت نشده است.</p>
+              </div>
+            </div>
+          )}
         </div>
       </section>
+      </>
+      )}
     </div>
   );
 }

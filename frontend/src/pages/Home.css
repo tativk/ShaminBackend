@@ -1,5 +1,7 @@
 /* =========================================================
-   FONT
+
+   FONTd
+
    ========================================================= */
 @import url("https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css");
 
@@ -7,7 +9,10 @@
    TOKENS
    ========================================================= */
 :root {
-  --color-green-950: #0e2700: #1f5c46a2d;
+
+  --color-green-950: #0e2700;
+  --color-green-900: #1f5c46;
+
   --color-green-800: #1a4d3b;
   --color-green-700: #1f5c46;
   --color-cream: #faf6ee;

@@ -144,6 +144,8 @@
 .so-sb-shipping{background:#edf6f4;border-color:rgba(54,116,108,.14);color:#36746c}
 .so-sb-pending{background:#fbf5e9;border-color:rgba(180,124,42,.15);color:#b47c2a}
 .so-sb-cancelled{background:#fff3f1;border-color:rgba(189,98,91,.15);color:#bd625b}
+.so-sb-paid{background:#eef7f0;border-color:rgba(46,125,90,.14);color:#2e7d5a}
+.so-sb-failed{background:#fdeeee;border-color:rgba(143,63,63,.16);color:#8f3f3f}
 .so-sb svg{width:12px;height:12px;stroke-width:2.3}
 .so-tm{display:flex;align-items:center;gap:5px;color:#8a9690;white-space:nowrap}
 .so-tm svg{width:12px;height:12px;color:#a9b3ae}

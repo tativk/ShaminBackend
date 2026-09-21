@@ -1389,6 +1389,18 @@
   animation-delay: 0.24s;
 }
 
+.shamin-overview__status-ring-segment--paid {
+  stroke: #4e8a75;
+
+  animation-delay: 0.3s;
+}
+
+.shamin-overview__status-ring-segment--failed {
+  stroke: #a34b4b;
+
+  animation-delay: 0.36s;
+}
+
 .shamin-overview__status-ring-segment:hover {
   stroke-width: 34;
 
@@ -1479,6 +1491,14 @@
 
 .shamin-overview__status-hover-label--cancelled {
   color: #8e9995;
+}
+
+.shamin-overview__status-hover-label--paid {
+  color: #4e8a75;
+}
+
+.shamin-overview__status-hover-label--failed {
+  color: #8f3f3f;
 }
 
 @keyframes shaminStatusRingDraw {
@@ -1594,6 +1614,18 @@
   .shamin-overview__status-icon {
   background: #f8eeee;
   color: #a34b4b;
+}
+
+.shamin-overview__status-item--paid
+  .shamin-overview__status-icon {
+  background: #edf6f1;
+  color: #4e8a75;
+}
+
+.shamin-overview__status-item--failed
+  .shamin-overview__status-icon {
+  background: #f8eeee;
+  color: #8f3f3f;
 }
 
 .shamin-overview__status-name {

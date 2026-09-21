@@ -7,7 +7,7 @@ from accounts.models import User
 from carts.models import Cart, CartItem, ShippingRate
 from products.models import Brand, Product
 
-from .models import Order
+from .models import Order, OrderItem
 
 
 
@@ -58,3 +58,31 @@ class OrderFlowTests(TestCase):
 		self.assertEqual(purchased.status_code, 200)
 		self.assertEqual(purchased.data[0]['product_id'], self.product.id)
 		self.assertEqual(purchased.data[0]['quantity'], 2)
+
+	def test_admin_can_list_and_update_order_status(self):
+		admin = User.objects.create_user(phone='09130000000')
+		admin.is_staff = True
+		admin.is_superuser = True
+		admin.save()
+		self.client.force_authenticate(admin)
+
+		order = Order.objects.create(
+			user=self.user,
+			status=Order.Status.PENDING,
+			total_price=Decimal('220.00'),
+			address='تهران، خیابان ولیعصر',
+		)
+		OrderItem.objects.create(order=order, product=self.product, quantity=2, price=Decimal('100.00'))
+
+		response = self.client.get('/api/orders/admin/')
+		self.assertEqual(response.status_code, 200)
+		self.assertTrue(any(item['id'] == order.id for item in response.data))
+
+		status_response = self.client.patch(
+			f'/api/orders/admin/{order.id}/status/',
+			{'status': 'shipping'},
+			format='json',
+		)
+		self.assertEqual(status_response.status_code, 200)
+		order.refresh_from_db()
+		self.assertEqual(order.status, Order.Status.SHIPPING)
