@@ -250,7 +250,7 @@ const Stars = ({ rating }) => (
    SECTION: HEADER
    ========================================================= */
 
-const Header = () => {
+export const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -334,7 +334,7 @@ const Header = () => {
    SECTION: HERO
    ========================================================= */
 
-const Hero = () => {
+export const Hero = () => {
   const [active, setActive] = useState(0);
   const timerRef = useRef(null);
 
@@ -595,7 +595,7 @@ const Newsletter = () => (
    SECTION: FOOTER
    ========================================================= */
 
-const Footer = () => (
+export const Footer = () => (
   <footer className="footer">
     <div className="container footer__grid">
       <div className="footer__col footer__col--brand">
