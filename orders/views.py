@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import Avg, Count, F, Sum
 from django.db.models.functions import TruncDate, TruncHour, TruncMonth
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import permissions, status
@@ -128,6 +129,68 @@ class CreateOrderView(APIView):
         order.save(update_fields=['payment_authority'])
 
         return order, result.payment_url
+
+
+class MockGatewayView(APIView):
+    """
+    GET /api/orders/mock-gateway/?Authority=...&order_id=...
+    درگاه پرداخت آزمایشی (فیک) برای محیط توسعه — جایگزین زرین‌پال.
+    دکمه‌ی موفق به callback با Status=OK و انصراف با Status=NOK می‌رود.
+    """
+    permission_classes = []
+
+    def get(self, request):
+        from .services.mock_payment import _pending
+
+        authority = request.query_params.get('Authority', '')
+        order_id = request.query_params.get('order_id', '')
+        if not authority:
+            return HttpResponse('Authority یافت نشد.', status=400)
+
+        amount = _pending.get(authority)
+        amount_str = f'{int(amount):,}' if amount is not None else '—'
+        ok_url = f'/api/orders/payment/callback/?Authority={authority}&Status=OK'
+        nok_url = f'/api/orders/payment/callback/?Authority={authority}&Status=NOK'
+
+        html = f"""<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>درگاه پرداخت آزمایشی</title>
+<style>
+  body {{ font-family: Tahoma, sans-serif; background: #f2f5f4; margin: 0;
+         display: flex; align-items: center; justify-content: center; min-height: 100vh; }}
+  .card {{ background: #fff; border-radius: 16px; padding: 32px; width: 340px;
+          box-shadow: 0 10px 30px rgba(0,0,0,.08); text-align: center; }}
+  .badge {{ display: inline-block; background: #fdf3e3; color: #a88950; font-size: 12px;
+           padding: 4px 14px; border-radius: 999px; margin-bottom: 14px; }}
+  h1 {{ font-size: 18px; margin: 0 0 18px; color: #17483f; }}
+  .row {{ display: flex; justify-content: space-between; font-size: 14px;
+         padding: 10px 0; border-bottom: 1px dashed #e5e9e8; color: #555; }}
+  .row b {{ color: #17483f; }}
+  .btn {{ display: block; margin-top: 14px; padding: 13px; border-radius: 10px;
+         font-size: 14px; font-weight: bold; text-decoration: none; }}
+  .ok {{ background: #17483f; color: #fff; }}
+  .ok:hover {{ background: #0f352c; }}
+  .nok {{ background: #fff; color: #a34b4b; border: 1px solid #a34b4b; }}
+  small {{ color: #999; font-size: 11px; margin-top: 14px; display: block; }}
+</style>
+</head>
+<body>
+  <div class="card">
+    <span class="badge">درگاه پرداخت آزمایشی (Mock)</span>
+    <h1>پرداخت سفارش</h1>
+    <div class="row"><span>شماره سفارش</span><b>#{order_id}</b></div>
+    <div class="row"><span>مبلغ قابل پرداخت</span><b>{amount_str} تومان</b></div>
+    <div class="row"><span>درگاه</span><b>شبیه‌ساز داخلی</b></div>
+    <a class="btn ok" href="{ok_url}">پرداخت موفق (تست)</a>
+    <a class="btn nok" href="{nok_url}">انصراف / پرداخت ناموفق</a>
+    <small>این صفحه فقط برای توسعه است؛ بعداً زرین‌پال جایگزین می‌شود.</small>
+  </div>
+</body>
+</html>"""
+        return HttpResponse(html)
 
 
 class PaymentCallbackView(APIView):
