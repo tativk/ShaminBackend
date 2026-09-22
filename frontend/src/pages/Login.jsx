@@ -63,7 +63,7 @@ const Login = () => {
         if (data.access) localStorage.setItem("access", data.access);
         if (data.refresh) localStorage.setItem("refresh", data.refresh);
         if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
-        navigate(data.user && data.user.role === "admin" ? "/admin" : "/");
+        navigate(data.user && data.user.role === "admin" ? "/admin" : "/dashboard");
       })
       .catch((err) => setError(err.message || "کد تأیید نامعتبر است."))
       .finally(() => setLoading(false));

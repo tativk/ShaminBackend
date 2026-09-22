@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import {
   FiSearch,
   FiUser,
@@ -19,6 +20,7 @@ import {
 } from "react-icons/fi";
 import { FaStar, FaInstagram, FaTelegramPlane, FaWhatsapp, FaPinterestP } from "react-icons/fa";
 import "./Home.css";
+import { isFavorite, toggleFavorite } from "../favorites";
 
 /* =========================================================
    DATA
@@ -285,16 +287,16 @@ export const Header = () => {
             <FiSearch className="header__search-icon" />
             <input type="text" placeholder="جستجو در محصولات..." />
           </div>
-          <button className="header__icon-btn" aria-label="حساب کاربری">
+          <Link to="/dashboard" className="header__icon-btn" aria-label="حساب کاربری">
             <FiUser />
-          </button>
-          <button className="header__icon-btn" aria-label="علاقه‌مندی‌ها">
+          </Link>
+          <Link to="/favorites" className="header__icon-btn" aria-label="علاقه‌مندی‌ها">
             <FiHeart />
-          </button>
-          <button className="header__icon-btn" aria-label="سبد خرید">
+          </Link>
+          <Link to="/Cart" className="header__icon-btn" aria-label="سبد خرید">
             <FiShoppingCart />
             <span className="header__badge">0</span>
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -483,7 +485,14 @@ const BrandsSection = () => {
    SECTION: PRODUCTS
    ========================================================= */
 
-const ProductCard = ({ product }) => (
+const ProductCard = ({ product }) => {
+  const [favorite, setFavorite] = useState(() => isFavorite(product.id));
+  const handleFavorite = () => {
+    toggleFavorite(product);
+    setFavorite((current) => !current);
+  };
+
+  return (
   <div className="product-card">
     <div className="product-card__media">
       {product.badge && (
@@ -497,7 +506,7 @@ const ProductCard = ({ product }) => (
           {product.badge}
         </span>
       )}
-      <button className="product-card__wishlist" aria-label="افزودن به علاقه‌مندی‌ها">
+      <button className={`product-card__wishlist ${favorite ? "is-active" : ""}`} onClick={handleFavorite} aria-label={favorite ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}>
         <FiHeart />
       </button>
       <img src={product.image} alt={product.name} />
@@ -514,7 +523,8 @@ const ProductCard = ({ product }) => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 const BestSellingProducts = () => (
   <section className="container products-section" id="products">
