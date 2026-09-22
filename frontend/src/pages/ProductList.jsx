@@ -1,22 +1,16 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { FiChevronDown, FiFilter, FiHeart, FiSearch, FiSliders, FiX } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { apiRequest, getAssetUrl } from "../api";
 import { Footer, Header, Hero } from "./Home";
 import "./Home.css";
 import "./ProductList.css";
 import { isFavorite, toggleFavorite } from "../favorites";
 
-const PRODUCTS = [
-  { id: 1, name: "رژ لب مدل YSL Rouge Pur Couture", brand: "YSL", category: "لوازم آرایشی", gender: "زنانه", price: 2450000, rating: 5, badge: "پیشنهاد ویژه", image: "/rozh.png" },
-  { id: 2, name: "عطر شنل مدل Coco Mademoiselle", brand: "CHANEL", category: "عطر و ادکلن", gender: "زنانه", price: 6490000, rating: 5, image: "/perfuame1.png" },
-  { id: 3, name: "کرم مرطوب‌کننده کلینیک Moisture Surge", brand: "CLINIQUE", category: "لوازم آرایشی", gender: "زنانه", price: 2190000, rating: 4, image: "/kerem1.png" },
-  { id: 4, name: "عطر دیور مدل Sauvage", brand: "DIOR", category: "عطر و ادکلن", gender: "مردانه", price: 6990000, rating: 5, badge: "پرفروش", image: "/perfuame2.png" },
-  { id: 5, name: "پالت سایه چشم NYX", brand: "NYX", category: "لوازم آرایشی", gender: "زنانه", price: 1890000, rating: 4, image: "/arayeshi.png" },
-  { id: 6, name: "ریمل حجم‌دهنده essence", brand: "ESSENCE", category: "لوازم آرایشی", gender: "زنانه", price: 990000, rating: 5, image: "/arayeshi2.png" },
-  { id: 7, name: "عطر مردانه بلو شنل", brand: "CHANEL", category: "عطر و ادکلن", gender: "مردانه", price: 7350000, rating: 5, image: "/عکس عطر1.png" },
-  { id: 8, name: "عطر زنانه لانکوم لاویه بل", brand: "LANCÔME", category: "عطر و ادکلن", gender: "زنانه", price: 5250000, rating: 5, image: "/عکس عطر2.png" },
-];
+const CATEGORY_LABEL = { perfume: "عطر و ادکلن", cosmetic: "لوازم آرایشی", accessory: "اکسسوری" };
+const GENDER_LABEL = { male: "مردانه", female: "زنانه", unisex: "یونیسکس" };
+const FALLBACK_IMAGE = "/logo.png";
 
 const formatPrice = (value) => `${new Intl.NumberFormat("fa-IR").format(value)} تومان`;
 
@@ -35,13 +29,15 @@ const ProductCard = ({ product }) => {
       <img src={product.image} alt={product.name} loading="lazy" />
     </div>
     <div className="product-list-card__body">
-      <span className="product-list-card__brand">{product.brand}</span>
+      {product.brand && <span className="product-list-card__brand">{product.brand}</span>}
       <h2>{product.name}</h2>
       <div className="product-list-card__meta">
         <span>{product.gender}</span>
-        <span className="product-list-card__stars" aria-label={`امتیاز ${product.rating} از ۵`}>
-          {Array.from({ length: 5 }).map((_, index) => <FaStar key={index} className={index < product.rating ? "is-filled" : ""} />)}
-        </span>
+        {product.rating != null && (
+          <span className="product-list-card__stars" aria-label={`امتیاز ${product.rating} از ۵`}>
+            {Array.from({ length: 5 }).map((_, index) => <FaStar key={index} className={index < product.rating ? "is-filled" : ""} />)}
+          </span>
+        )}
       </div>
       <div className="product-list-card__footer">
         <strong>{formatPrice(product.price)}</strong>
@@ -53,6 +49,9 @@ const ProductCard = ({ product }) => {
 };
 
 const ProductList = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [category, setCategory] = useState("همه");
   const [gender, setGender] = useState("همه");
   const [maxPrice, setMaxPrice] = useState(10000000);
@@ -60,9 +59,32 @@ const ProductList = () => {
   const [search, setSearch] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
 
+  useEffect(() => {
+    let ignore = false;
+    apiRequest("/products/")
+      .then((data) => {
+        if (ignore) return;
+        const rows = Array.isArray(data) ? data : data?.results || [];
+        setProducts(rows.map((product) => ({
+          id: product.id,
+          name: product.name,
+          brand: typeof product.brand === "string" ? product.brand : "",
+          category: CATEGORY_LABEL[product.category] || product.category,
+          gender: GENDER_LABEL[product.gender] || product.gender,
+          price: Number(product.final_price ?? product.price ?? 0),
+          rating: null,
+          badge: product.discount_percent > 0 ? `${new Intl.NumberFormat("fa-IR").format(product.discount_percent)}٪ تخفیف` : undefined,
+          image: product.main_image ? getAssetUrl(product.main_image) : FALLBACK_IMAGE,
+        })));
+      })
+      .catch((err) => { if (!ignore) setError(err?.message || "خطا در دریافت محصولات"); })
+      .finally(() => { if (!ignore) setLoading(false); });
+    return () => { ignore = true; };
+  }, []);
+
   const filteredProducts = useMemo(() => {
     const query = search.trim().toLocaleLowerCase();
-    const result = PRODUCTS.filter((product) => (
+    const result = products.filter((product) => (
       (category === "همه" || product.category === category) &&
       (gender === "همه" || product.gender === gender) &&
       product.price <= maxPrice &&
@@ -71,7 +93,7 @@ const ProductList = () => {
     if (sort === "price-low") return [...result].sort((a, b) => a.price - b.price);
     if (sort === "price-high") return [...result].sort((a, b) => b.price - a.price);
     return result;
-  }, [category, gender, maxPrice, search, sort]);
+  }, [products, category, gender, maxPrice, search, sort]);
 
   const resetFilters = () => {
     setCategory("همه");
@@ -115,7 +137,9 @@ const ProductList = () => {
               <label>مرتب‌سازی <select value={sort} onChange={(event) => setSort(event.target.value)}><option value="newest">جدیدترین</option><option value="price-low">ارزان‌ترین</option><option value="price-high">گران‌ترین</option></select><FiChevronDown /></label>
             </div>
             {filtersOpen && <button type="button" className="product-list-filter-backdrop" onClick={() => setFiltersOpen(false)} aria-label="بستن فیلترها" />}
-            {filteredProducts.length ? <div className="product-list-grid">{filteredProducts.map((product) => <ProductCard product={product} key={product.id} />)}</div> : <div className="product-list-empty"><FiSearch /><h2>محصولی با این فیلترها پیدا نشد</h2><button type="button" onClick={resetFilters}>نمایش همه محصولات</button></div>}
+            {loading ? <div className="product-list-empty"><h2>در حال دریافت محصولات...</h2></div>
+            : error ? <div className="product-list-empty"><FiSearch /><h2>خطا در دریافت محصولات</h2><p>{error}</p></div>
+            : filteredProducts.length ? <div className="product-list-grid">{filteredProducts.map((product) => <ProductCard product={product} key={product.id} />)}</div> : <div className="product-list-empty"><FiSearch /><h2>محصولی با این فیلترها پیدا نشد</h2><button type="button" onClick={resetFilters}>نمایش همه محصولات</button></div>}
           </div>
         </section>
       </main>

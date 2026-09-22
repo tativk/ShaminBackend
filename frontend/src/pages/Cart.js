@@ -1,5 +1,6 @@
 // Cart.jsx — نسخه یکپارچه (بر اساس شاخه main) — اصلاح‌شده
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { apiRequest, getAssetUrl } from '../api';
 import './Cart.css';
 
 /* ── ابزارها ─────────────────────────────────────────────── */
@@ -7,30 +8,6 @@ const FA_DIGITS = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
 const toFa = (value) => String(value).replace(/\d/g, (d) => FA_DIGITS[Number(d)]);
 const formatPrice = (value) =>
   toFa(new Intl.NumberFormat('en-US').format(Math.round(value)).replace(/,/g, '٬'));
-
-/* ── تابع کمکی URL تصویر ─────────────────────────────────── */
-const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:8000/api').replace(/\/$/, '');
-const getAssetUrl = (path) => {
-  if (!path) return '/placeholder.png';
-  if (path.startsWith('http')) return path;
-  const base = API_BASE_URL.replace(/\/$/, '').replace(/\/api$/, '');
-  return path.startsWith('/') ? `${base}${path}` : `${base}/${path}`;
-};
-
-/* ── تابع درخواست API ────────────────────────────────────── */
-const apiRequest = async (path, options = {}) => {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-    credentials: 'include',
-    ...options,
-  });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.detail ?? data.message ?? `خطای سرور (${res.status})`);
-  }
-  if (res.status === 204) return null;
-  return res.json();
-};
 
 /* ── آیکون‌ها ─────────────────────────────────────────────── */
 function CartIcon({ size = 24 }) {
@@ -189,20 +166,22 @@ export default function Cart() {
   useEffect(() => {
     const loadPage = async () => {
       try {
-        const [cartData, cityData, productData, addressData] = await Promise.all([
+        const [cartData, cityData, productData] = await Promise.all([
           apiRequest('/cart/'),
           apiRequest('/shipping/cities/'),
-          apiRequest('/products/?page_size=20'),
-          apiRequest('/auth/address/'),
+          apiRequest('/products/'),
         ]);
         setCart(cartData);
         setCities(cityData.results ?? cityData);
         setProducts(productData.results ?? productData);
-        if (addressData) {
+        try {
+          const addressData = await apiRequest('/auth/address/');
           setProvince(addressData.province ?? '');
           setManualCity(addressData.city ?? '');
           setAddress([addressData.street, addressData.detail].filter(Boolean).join('، '));
           setPostalCode(addressData.postal_code ?? '');
+        } catch {
+          // کاربر هنوز آدرس ثبت نکرده — فرم خالی می‌ماند
         }
       } catch (err) {
         setError(err.message);
@@ -274,6 +253,16 @@ export default function Cart() {
     }
 
     setCart((prev) => (prev ? { ...prev, city: matchedCity.city, shipping_cost: matchedCity.cost } : prev));
+
+    // ثبت شهر روی سرور — بدون این، ثبت سفارش با خطای «شهر انتخاب نشده» رد می‌شود
+    if (cart?.city !== matchedCity.city) {
+      apiRequest('/cart/', {
+        method: 'PATCH',
+        body: JSON.stringify({ city: matchedCity.city }),
+      })
+        .then((data) => setCart(data))
+        .catch((err) => setError(err.message));
+    }
   };
 
   const checkout = async () => {
@@ -284,14 +273,24 @@ export default function Cart() {
     setBusy(true);
     setError('');
     try {
+      // قبل از ثبت سفارش، انتخاب شهر دوباره روی سرور هماهنگ می‌شود
+      const matched = cities.find((c) => c.city.toLowerCase() === manualCity.trim().toLowerCase());
+      let current = cart;
+      if (matched) {
+        current = await apiRequest('/cart/', {
+          method: 'PATCH',
+          body: JSON.stringify({ city: matched.city }),
+        });
+        setCart(current);
+      }
       const order = await apiRequest('/orders/', {
         method: 'POST',
         body: JSON.stringify({
-          city: cart?.city || manualCity.trim(),
+          city: current?.city || manualCity.trim(),
           province: province.trim(),
           address: address.trim(),
           postal_code: postalCode,
-          shipping_cost: cart?.shipping_cost ?? 0,
+          shipping_cost: current?.shipping_cost ?? 0,
         }),
       });
       if (order.payment_url) {

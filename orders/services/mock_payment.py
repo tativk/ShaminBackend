@@ -27,7 +27,7 @@ class MockPaymentService(BasePaymentService):
         _pending[authority] = payment_req.amount
 
         payment_url = (
-            f'{self._base_url}/api/v1/orders/mock-gateway/'
+            f'{self._base_url}/api/orders/mock-gateway/'
             f'?Authority={authority}&order_id={payment_req.order_id}'
         )
         return PaymentResult(
