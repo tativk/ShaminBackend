@@ -6,6 +6,7 @@ import { apiRequest, getAssetUrl } from "../api";
 import { Footer, Header, Hero } from "./Home";
 import "./Home.css";
 import "./ProductList.css";
+import { isFavorite, toggleFavorite } from "../favorites";
 
 const CATEGORY_LABEL = { perfume: "عطر و ادکلن", cosmetic: "لوازم آرایشی", accessory: "اکسسوری" };
 const GENDER_LABEL = { male: "مردانه", female: "زنانه", unisex: "یونیسکس" };
@@ -13,11 +14,18 @@ const FALLBACK_IMAGE = "/logo.png";
 
 const formatPrice = (value) => `${new Intl.NumberFormat("fa-IR").format(value)} تومان`;
 
-const ProductCard = ({ product }) => (
+const ProductCard = ({ product }) => {
+  const [favorite, setFavorite] = useState(() => isFavorite(product.id));
+  const handleFavorite = () => {
+    toggleFavorite(product);
+    setFavorite((current) => !current);
+  };
+
+  return (
   <article className="product-list-card">
     <div className="product-list-card__media">
       {product.badge && <span className="product-list-card__badge">{product.badge}</span>}
-      <button type="button" className="product-list-card__wishlist" aria-label="افزودن به علاقه‌مندی‌ها"><FiHeart /></button>
+      <button type="button" className={`product-list-card__wishlist ${favorite ? "is-active" : ""}`} onClick={handleFavorite} aria-label={favorite ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}><FiHeart /></button>
       <img src={product.image} alt={product.name} loading="lazy" />
     </div>
     <div className="product-list-card__body">
@@ -37,7 +45,8 @@ const ProductCard = ({ product }) => (
       </div>
     </div>
   </article>
-);
+  );
+};
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
