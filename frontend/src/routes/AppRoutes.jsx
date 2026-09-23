@@ -12,6 +12,7 @@ import Favorites from "../pages/Favorites";
 
 import Product from "../pages/Product";
 import Verify from "../pages/Verify";
+import PaymentCallback from "../pages/PaymentCallback";
 
 
 const AppRoutes = () => {
@@ -31,6 +32,7 @@ const AppRoutes = () => {
       <Route path="/Login" element={<Login />} />
       <Route path="/Register" element={<Register />} />
       <Route path="/Verify" element={<Verify />} />
+      <Route path="/PaymentCallback" element={<PaymentCallback />} />
     </Routes>
   );
 };

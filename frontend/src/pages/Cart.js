@@ -2,6 +2,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { apiRequest, getAssetUrl } from '../api';
 import './Cart.css';
+import Header from "../components/Header/Header";
+import Footer from "../components/Footer/Footer";
 
 /* ── ابزارها ─────────────────────────────────────────────── */
 const FA_DIGITS = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
@@ -338,7 +340,11 @@ export default function Cart() {
 
   /* ── رندر اصلی ─────────────────────────────────────────── */
   return (
-    <div className="cart-page" dir="rtl">
+    <main>
+      <div dir="rtl">
+        <Header />
+      </div>
+      <div className="cart-page" dir="rtl">
       {/* بنر */}
       <section className="cart-hero">
         <img className="cart-hero__bg" src="/banner-cart.png" alt="" />
@@ -444,39 +450,47 @@ export default function Cart() {
 
               {/* فرم ارسال */}
               <div className="cart-shipping-form">
-                <label htmlFor="shipping-province">استان</label>
-                <input
-                  id="shipping-province"
-                  value={province}
-                  onChange={(e) => setProvince(e.target.value)}
-                  placeholder="مثلاً تهران"
-                />
+                <div className="cart-shipping-form__field">
+                  <label htmlFor="shipping-province">استان</label>
+                  <input
+                    id="shipping-province"
+                    value={province}
+                    onChange={(e) => setProvince(e.target.value)}
+                    placeholder="مثلاً تهران"
+                  />
+                </div>
 
-                <label htmlFor="shipping-city">شهر</label>
-                <input
-                  id="shipping-city"
-                  value={manualCity}
-                  onChange={(e) => handleCityInput(e.target.value)}
-                  placeholder="مثلاً تهران یا شیراز"
-                />
+                <div className="cart-shipping-form__field">
+                  <label htmlFor="shipping-city">شهر</label>
+                  <input
+                    id="shipping-city"
+                    value={manualCity}
+                    onChange={(e) => handleCityInput(e.target.value)}
+                    placeholder="مثلاً تهران یا شیراز"
+                  />
+                </div>
 
-                <label htmlFor="shipping-address">آدرس</label>
-                <textarea
-                  id="shipping-address"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="آدرس کامل تحویل"
-                  rows="3"
-                />
+                <div className="cart-shipping-form__field cart-shipping-form__field--address">
+                  <label htmlFor="shipping-address">آدرس</label>
+                  <textarea
+                    id="shipping-address"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="آدرس کامل تحویل"
+                    rows="3"
+                  />
+                </div>
 
-                <label htmlFor="shipping-postal-code">کد پستی</label>
-                <input
-                  id="shipping-postal-code"
-                  value={postalCode}
-                  onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                  inputMode="numeric"
-                  placeholder="کد پستی ده رقمی"
-                />
+                <div className="cart-shipping-form__field">
+                  <label htmlFor="shipping-postal-code">کد پستی</label>
+                  <input
+                    id="shipping-postal-code"
+                    value={postalCode}
+                    onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    inputMode="numeric"
+                    placeholder="کد پستی ده رقمی"
+                  />
+                </div>
               </div>
 
               <button
@@ -549,5 +563,9 @@ export default function Cart() {
         </section>
       </div>
     </div>
+    <div dir="rtl">
+      <Footer />
+    </div>
+    </main>
   );
 }
