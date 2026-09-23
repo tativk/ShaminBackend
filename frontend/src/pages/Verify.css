@@ -213,7 +213,6 @@
   font-weight: 700;
   transition: transform var(--transition), background var(--transition), color var(--transition);
   border: 1px solid transparent;
-  direction: ltr;
 }
 
 .auth-btn--primary {
@@ -302,5 +301,246 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
+  }
+}
+
+/* =========================================================
+   OTP VERIFICATION
+   ========================================================= */
+.verify-identifier {
+  color: var(--color-green-800);
+  font-weight: 700;
+  direction: ltr;
+  display: inline-block;
+  unicode-bidi: embed;
+}
+
+.otp-inputs {
+  display: flex;
+  direction: ltr;
+  justify-content: center;
+  gap: 10px;
+}
+
+.otp-inputs__cell {
+  width: 48px;
+  height: 56px;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-text);
+  background: var(--color-cream-soft);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+}
+
+.otp-inputs__cell:focus-visible {
+  border-color: var(--color-green-800);
+  box-shadow: 0 0 0 3px rgba(26, 77, 59, 0.1);
+  background: var(--color-white);
+}
+
+.otp-inputs--error .otp-inputs__cell {
+  border-color: #c0392b;
+  background: #fdf2f0;
+  animation: otpShake 0.4s ease;
+}
+
+@keyframes otpShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+.verify-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: -6px 0 0;
+  font-size: 0.85rem;
+}
+
+.verify-message--error {
+  color: #c0392b;
+}
+
+.auth-btn--primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.verify-resend {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--color-text-soft);
+}
+
+.verify-resend__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-green-800);
+  font-weight: 700;
+  transition: color var(--transition);
+}
+
+.verify-resend__btn:hover:not(:disabled) {
+  color: var(--color-gold);
+}
+
+.verify-resend__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spin {
+  animation: verifySpin 1s linear infinite;
+}
+
+@keyframes verifySpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Success state */
+.auth-card--success {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.verify-success__icon {
+  font-size: 3.2rem;
+  color: var(--color-green-800);
+  margin: 4px 0 10px;
+}
+
+.auth-card--success .auth-btn {
+  margin-top: 8px;
+  max-width: 320px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 480px) {
+  .otp-inputs {
+    gap: 7px;
+  }
+
+  .otp-inputs__cell {
+    width: 40px;
+    height: 50px;
+    font-size: 1.2rem;
+  }
+}
+
+/* Very small phones (e.g. iPhone SE 1st gen, older/narrow Android) */
+@media (max-width: 360px) {
+  .auth-page__form-side {
+    padding: 20px 12px 36px;
+  }
+
+  .auth-card {
+    padding: 22px 14px;
+    border-radius: var(--radius-md);
+  }
+
+  .auth-card__logo {
+    width: 92px;
+    margin-bottom: 12px;
+  }
+
+  .auth-card__title {
+    font-size: 1.12rem;
+  }
+
+  .auth-card__subtitle {
+    font-size: 0.8rem;
+    margin-bottom: 22px;
+  }
+
+  .otp-inputs {
+    gap: 6px;
+  }
+
+  .otp-inputs__cell {
+    width: 34px;
+    height: 44px;
+    font-size: 1.05rem;
+    border-radius: 9px;
+  }
+
+  .auth-btn {
+    padding: 13px;
+    font-size: 0.86rem;
+  }
+
+  .verify-resend {
+    font-size: 0.78rem;
+  }
+
+  .verify-success__icon {
+    font-size: 2.6rem;
+  }
+}
+
+/* Short-height / landscape phones — avoid excessive vertical centering & scroll */
+@media (max-height: 480px) and (orientation: landscape) {
+  .auth-page__form-side {
+    align-items: flex-start;
+    padding: 16px 24px 24px;
+  }
+
+  .auth-card {
+    padding: 20px 28px;
+  }
+
+  .auth-card__logo {
+    width: 70px;
+    margin-bottom: 10px;
+  }
+
+  .auth-card__subtitle {
+    margin-bottom: 16px;
+  }
+
+  .auth-form {
+    gap: 12px;
+  }
+
+  .otp-inputs__cell {
+    height: 42px;
+  }
+}
+
+/* Large / wide screens — keep the card comfortably centered, never edge to edge */
+@media (min-width: 1440px) {
+  .auth-form-wrap {
+    max-width: 560px;
+  }
+
+  .auth-card {
+    max-width: 560px;
+    padding: 52px 56px;
   }
 }

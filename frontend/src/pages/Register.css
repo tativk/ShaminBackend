@@ -217,6 +217,7 @@
   font-weight: 700;
   transition: transform var(--transition), background var(--transition), color var(--transition);
   border: 1px solid transparent;
+  direction: ltr;
 }
 
 .auth-btn--primary {

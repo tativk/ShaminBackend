@@ -3,7 +3,8 @@ import { FiArrowRight, FiHeart, FiShoppingCart, FiTrash2 } from "react-icons/fi"
 import { Link } from "react-router-dom";
 import { apiRequest, getAssetUrl } from "../api";
 import { getFavorites, removeFavorite } from "../favorites";
-import { Header, Footer } from "./Home";
+import Header from "../components/Header/Header";
+import Footer from "../components/Footer/Footer";
 import "./Home.css";
 import "./Favorites.css";
 
