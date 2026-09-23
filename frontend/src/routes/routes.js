@@ -5,7 +5,7 @@ import Dashboard from "../pages/Dashboard";
 import Cart from "../pages/Cart";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
-
+import Verify from "../pages/Verify";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -14,6 +14,7 @@ const AppRoutes = () => {
       <Route path="/Cart" element={<Cart />} />
       <Route path="/Login" element={<Login />} />
       <Route path="/Register" element={<Register />} />
+      <Route path="/Verify" element={<Verify />} />
     </Routes>
   );
 };

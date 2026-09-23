@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  FiSearch,
-  FiUser,
-  FiHeart,
   FiShoppingCart,
-  FiMenu,
   FiChevronLeft,
   FiChevronRight,
   FiTruck,
@@ -13,25 +9,15 @@ import {
   FiCreditCard,
   FiAward,
   FiMail,
-  FiPhone,
-  FiMapPin,
-  FiX,
 } from "react-icons/fi";
-import { FaStar, FaInstagram, FaTelegramPlane, FaWhatsapp, FaPinterestP } from "react-icons/fa";
+import { FaStar } from "react-icons/fa";
+import Header from "../components/Header/Header";
+import Footer from "../components/Footer/Footer";
 import "./Home.css";
 
 /* =========================================================
    DATA
    ========================================================= */
-
-const NAV_LINKS = [
-  { label: "خانه", href: "#" },
-  { label: "عطر و ادکلن", href: "#" },
-  { label: "لوازم آرایشی و بهداشتی", href: "#" },
-  { label: "اکسسوری", href: "#" },
-];
-
-
 
 const HERO_SLIDES = [
   {
@@ -89,7 +75,7 @@ const CATEGORIES = [
   },
 ];
 
-const BRANDS = ["Dior", "CHANEL", "TOM FORD", "GUCCI", "YSL", "LANCÔME", "ESTÉE LAUDER", "CLINIQUE"];
+
 
 const PRODUCTS = [
   {
@@ -141,7 +127,7 @@ const PRODUCTS = [
     name: "پالت سایه چشم NYX",
     brand: "NYX",
     price: 1890000,
-    oldPrice: 2495000,
+    oldPrice: null,
     rating: 4,
     badge: "٪۳۰",
     image:
@@ -181,7 +167,7 @@ const PRODUCTS = [
       "/arayeshi2.png",
   },
   {
-    id: 8,
+    id: 9,
     name: "اتو مو",
     brand: "shiglam",
     price: 3990000,
@@ -223,8 +209,8 @@ const BLOG_POSTS = [
   },
 ];
 
-const FOOTER_QUICK_LINKS = ["صفحه اصلی", "عطر و ادکلن", "لوازم آرایشی و بهداشتی", "اکسسوری"];
-const FOOTER_SERVICE_LINKS = ["پشتیبانی", "تماس با ما", "سوالات متداول", "شرایط و قوانین"];
+
+
 
 /* =========================================================
    HELPERS
@@ -250,91 +236,11 @@ const Stars = ({ rating }) => (
    SECTION: HEADER
    ========================================================= */
 
-export const Header = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  return (
-    <header className="header">
-      <div className="container header__inner">
-        <div className="header__nav">
-          <button
-            className="header__hamburger"
-            aria-label="باز کردن منو"
-            onClick={() => setMenuOpen(true)}
-          >
-            <FiMenu />
-          </button>
-          <nav className="header__links">
-            {NAV_LINKS.map((link) => (
-              <a href={link.href} key={link.label} className="header__link">
-                {link.label}
-              </a>
-            ))}
-          </nav>
-        </div>
-
-        <a href="#" className="header__logo" aria-label="فروشگاه شمین">
-          <span className="header__logo-mark"></span>
-          <span className="header__logo-text">
-            گالری شمین
-          </span>
-        </a>
-
-        <div className="header__actions">
-          <div className="header__search">
-            <FiSearch className="header__search-icon" />
-            <input type="text" placeholder="جستجو در محصولات..." />
-          </div>
-          <button className="header__icon-btn" aria-label="حساب کاربری">
-            <FiUser />
-          </button>
-          <button className="header__icon-btn" aria-label="علاقه‌مندی‌ها">
-            <FiHeart />
-          </button>
-          <button className="header__icon-btn" aria-label="سبد خرید">
-            <FiShoppingCart />
-            <span className="header__badge">0</span>
-          </button>
-        </div>
-      </div>
-
-      {menuOpen && (
-        <div className="mobile-menu">
-          <div className="mobile-menu__backdrop" onClick={() => setMenuOpen(false)} />
-          <div className="mobile-menu__panel">
-            <div className="mobile-menu__head">
-              <span className="header__logo-text">گالری شمین</span>
-              <button
-                className="header__icon-btn"
-                aria-label="بستن منو"
-                onClick={() => setMenuOpen(false)}
-              >
-                <FiX />
-              </button>
-            </div>
-            <div className="mobile-menu__search">
-              <FiSearch className="header__search-icon" />
-              <input type="text" placeholder="جستجو در محصولات..." />
-            </div>
-            <nav className="mobile-menu__links">
-              {NAV_LINKS.map((link) => (
-                <a href={link.href} key={link.label} onClick={() => setMenuOpen(false)}>
-                  {link.label}
-                </a>
-              ))}
-            </nav>
-          </div>
-        </div>
-      )}
-    </header>
-  );
-};
-
 /* =========================================================
    SECTION: HERO
    ========================================================= */
 
-export const Hero = () => {
+const Hero = () => {
   const [active, setActive] = useState(0);
   const timerRef = useRef(null);
 
@@ -445,76 +351,60 @@ const CategorySection = () => (
    SECTION: BRANDS
    ========================================================= */
 
-const BrandsSection = () => {
-  const scrollerRef = useRef(null);
 
-  const scroll = (dir) => {
-    if (scrollerRef.current) {
-      scrollerRef.current.scrollBy({ left: dir * 240, behavior: "smooth" });
-    }
-  };
 
-  return (
-    <section className="container brands-section">
-      <div className="section-title">
-        <FiAward />
-        <h2>برندهای معتبر</h2>
-      </div>
-      <div className="brands-section__row">
-        <button className="brands-section__arrow" onClick={() => scroll(1)} aria-label="بعدی">
-          <FiChevronRight />
-        </button>
-        <div className="brands-section__scroller" ref={scrollerRef}>
-          {BRANDS.map((brand) => (
-            <div className="brand-card" key={brand}>
-              {brand}
-            </div>
-          ))}
-        </div>
-        <button className="brands-section__arrow" onClick={() => scroll(-1)} aria-label="قبلی">
-          <FiChevronLeft />
-        </button>
-      </div>
-    </section>
-  );
-};
+
 
 /* =========================================================
    SECTION: PRODUCTS
    ========================================================= */
 
-const ProductCard = ({ product }) => (
-  <div className="product-card">
-    <div className="product-card__media">
-      {product.badge && (
-        <span
-          className={
-            product.badge === "جدید"
-              ? "product-card__badge product-card__badge--new"
-              : "product-card__badge product-card__badge--sale"
-          }
-        >
-          {product.badge}
-        </span>
-      )}
-      <button className="product-card__wishlist" aria-label="افزودن به علاقه‌مندی‌ها">
-        <FiHeart />
-      </button>
-      <img src={product.image} alt={product.name} />
-    </div>
-    <div className="product-card__body">
-      <span className="product-card__brand">{product.brand}</span>
-      <h3 className="product-card__name">{product.name}</h3>
-      <Stars rating={product.rating} />
-      <div className="product-card__price">
-        <span className="product-card__price-current">{formatPrice(product.price)}</span>
-        {product.oldPrice && (
-          <span className="product-card__price-old">{formatPrice(product.oldPrice)}</span>
-        )}
+const ProductCard = ({ product }) => {
+  const handleAddToCart = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // TODO: connect to real cart logic
+    console.log("افزودن به سبد خرید:", product.name);
+  };
+
+  return (
+    <div className="product-card">
+      <a href={`/product/${product.id}`} className="product-card__link">
+        <div className="product-card__media">
+          {product.badge && (
+            <span
+              className={
+                product.badge === "جدید"
+                  ? "product-card__badge product-card__badge--new"
+                  : "product-card__badge product-card__badge--sale"
+              }
+            >
+              {product.badge}
+            </span>
+          )}
+          <img src={product.image} alt={product.name} />
+        </div>
+        <div className="product-card__body">
+          <span className="product-card__brand">{product.brand}</span>
+          <h3 className="product-card__name">{product.name}</h3>
+          <Stars rating={product.rating} />
+          <div className="product-card__price">
+            <span className="product-card__price-current">{formatPrice(product.price)}</span>
+            {product.oldPrice && (
+              <span className="product-card__price-old">{formatPrice(product.oldPrice)}</span>
+            )}
+          </div>
+        </div>
+      </a>
+      <div className="product-card__actions">
+        <button className="product-card__add-btn" onClick={handleAddToCart}>
+          <FiShoppingCart />
+          افزودن به سبد خرید
+        </button>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const BestSellingProducts = () => (
   <section className="container products-section" id="products">
@@ -595,81 +485,6 @@ const Newsletter = () => (
    SECTION: FOOTER
    ========================================================= */
 
-export const Footer = () => (
-  <footer className="footer">
-    <div className="container footer__grid">
-      <div className="footer__col footer__col--brand">
-        <a href="#" className="header__logo header__logo--footer">
-          <span className="header__logo-mark">S</span>
-          <span className="header__logo-text">
-            SHAMIN
-            <small>BEAUTY · STYLE · YOU</small>
-          </span>
-        </a>
-        <p>فروشگاه آنلاین عطر، لوازم آرایشی و اکسسوری با ضمانت اصالت کالا.</p>
-        <div className="footer__social">
-          <a href="#" aria-label="اینستاگرام">
-            <FaInstagram />
-          </a>
-          <a href="#" aria-label="تلگرام">
-            <FaTelegramPlane />
-          </a>
-          <a href="#" aria-label="واتس‌اپ">
-            <FaWhatsapp />
-          </a>
-          <a href="#" aria-label="پینترست">
-            <FaPinterestP />
-          </a>
-        </div>
-      </div>
-
-      <div className="footer__col">
-        <h4>دسترسی به دسته بندی</h4>
-        <ul>
-          {FOOTER_QUICK_LINKS.map((l) => (
-            <li key={l}>
-              <a href="#">{l}</a>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="footer__col">
-        <h4>خدمات مشتریان</h4>
-        <ul>
-          {FOOTER_SERVICE_LINKS.map((l) => (
-            <li key={l}>
-              <a href="#">{l}</a>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="footer__col">
-        <h4>تماس با ما</h4>
-        <ul className="footer__contact">
-          <li>
-            <FiPhone /> ۰۲۱-۱۲۳۴۵۶۷۸
-          </li>
-          <li>
-            <FiMail /> info@shamin.ir
-          </li>
-          <li>
-            <FiMapPin /> تهران، افسریه
-          </li>
-        </ul>
-      </div>
-    </div>
-
-    <div className="footer__bottom">
-      <div className="container footer__bottom-inner">
-        <span>© تمامی حقوق مادی و معنوی متعلق به فروشگاه شمین است.</span>
-        <span id="morena">طراحی شده توسط تیم برنامه نویسی <a href="https://morenacode.ir/">مورنا کد</a></span>
-      </div>
-    </div>
-  </footer>
-);
-
 /* =========================================================
    PAGE
    ========================================================= */
@@ -682,7 +497,6 @@ const Home = () => {
         <Hero />
         <Features />
         <CategorySection />
-        <BrandsSection />
         <BestSellingProducts />
         <BlogSection />
         <Newsletter />
@@ -693,3 +507,4 @@ const Home = () => {
 };
 
 export default Home;
+export { Hero };

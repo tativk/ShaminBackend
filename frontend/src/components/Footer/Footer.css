@@ -1,0 +1,165 @@
+/* =========================================================
+   FOOTER (در جریان عادی صفحه — همیشه در انتهای محتوا)
+   ========================================================= */
+
+.footer {
+  background: var(--color-green-950);
+  color: rgba(250, 246, 238, 0.85);
+  margin-top: 12px;
+}
+
+/* Specificity بالاتر از .container در Home.css تا padding عمودی صفر نشود */
+.footer .footer__grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 32px;
+  padding: 52px 24px 36px;
+}
+
+.footer__col h4 {
+  color: var(--color-white);
+  font-size: 1rem;
+  margin: 0 0 18px;
+}
+
+.footer__col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 0.86rem;
+}
+
+.footer__col ul a {
+  transition: color var(--transition);
+}
+
+.footer__col ul a:hover {
+  color: var(--color-gold-soft);
+}
+
+.footer__contact li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.footer__contact li a {
+  color: inherit;
+}
+
+.footer__contact li a:hover {
+  color: var(--color-gold-soft);
+}
+
+.footer__col--brand p {
+  font-size: 0.86rem;
+  margin: 14px 0 18px;
+  max-width: 32ch;
+  color: rgba(250, 246, 238, 0.7);
+}
+
+.header__logo--footer .header__logo-text {
+  color: var(--color-white);
+}
+
+.header__logo--footer .header__logo-text small {
+  color: rgba(250, 246, 238, 0.6);
+}
+
+.footer__social {
+  display: flex;
+  gap: 10px;
+}
+
+.footer__social a {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(250, 246, 238, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.footer__social a:hover {
+  background: var(--color-gold);
+  border-color: var(--color-gold);
+  color: var(--color-green-950);
+}
+
+.footer__social-icon {
+  width: 17px;
+  height: 17px;
+  object-fit: contain;
+}
+
+/* بج حرفی برای پیام‌رسان‌هایی که فایل آیکون‌شان موجود نیست */
+.footer__social-letter {
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.footer__bottom {
+  border-top: 1px solid rgba(250, 246, 238, 0.12);
+}
+
+.footer .footer__bottom-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 24px;
+  font-size: 0.78rem;
+  color: rgba(250, 246, 238, 0.6);
+  flex-wrap: wrap;
+}
+
+.footer__morena {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(250, 246, 238, 0.6);
+  transition: color var(--transition);
+}
+
+.footer__morena:hover {
+  color: var(--color-gold-soft);
+}
+
+.footer__morena-logo {
+  height: 20px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* =========================================================
+   FOOTER RESPONSIVE
+   ========================================================= */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .footer .footer__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .footer .footer__grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding: 40px 16px 28px;
+  }
+
+  .footer .footer__bottom-inner {
+    flex-direction: column;
+    text-align: center;
+    padding: 16px;
+  }
+}

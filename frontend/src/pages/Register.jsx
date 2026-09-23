@@ -71,7 +71,7 @@ const Register = () => {
                 <input
                   type="email"
                   name="email"
-                  placeholder="ایمیل"
+                  placeholder="ایمیل (اختیاری)"
                   value={form.email}
                   onChange={handleChange}
                   required

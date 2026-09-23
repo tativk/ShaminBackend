@@ -20,7 +20,8 @@ import {
 import { FaStar } from "react-icons/fa";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiRequest, getAssetUrl } from "../api";
-import { Footer, Header } from "./Home";
+import Header from "../components/Header/Header";
+import Footer from "../components/Footer/Footer";
 import "./Home.css";
 import "./Product.css";
 

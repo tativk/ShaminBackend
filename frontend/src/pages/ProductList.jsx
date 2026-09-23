@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { FiChevronDown, FiFilter, FiHeart, FiSearch, FiSliders, FiX } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { apiRequest, getAssetUrl } from "../api";
-import { Footer, Header, Hero } from "./Home";
+import { Hero } from "./Home";
+import Header from "../components/Header/Header";
+import Footer from "../components/Footer/Footer";
 import "./Home.css";
 import "./ProductList.css";
 
@@ -49,6 +51,15 @@ const ProductList = () => {
   const [sort, setSort] = useState("newest");
   const [search, setSearch] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  // لینک‌های دسته‌بندی هدر (مثل /products?category=perfume) فیلتر صفحه را تنظیم می‌کنند
+  useEffect(() => {
+    const categoryParam = searchParams.get("category");
+    const genderParam = searchParams.get("gender");
+    if (categoryParam && CATEGORY_LABEL[categoryParam]) setCategory(CATEGORY_LABEL[categoryParam]);
+    if (genderParam && GENDER_LABEL[genderParam]) setGender(GENDER_LABEL[genderParam]);
+  }, [searchParams]);
 
   useEffect(() => {
     let ignore = false;
@@ -115,8 +126,8 @@ const ProductList = () => {
               <button type="button" onClick={() => setFiltersOpen(false)} aria-label="بستن فیلترها"><FiX /></button>
             </div>
             <label className="product-list-search"><FiSearch /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="جستجوی محصول یا برند" /></label>
-            <label className="product-list-field"><span>دسته‌بندی</span><span className="select-control"><select value={category} onChange={(event) => setCategory(event.target.value)}><option>همه</option><option>عطر و ادکلن</option><option>لوازم آرایشی</option></select><FiChevronDown /></span></label>
-            <label className="product-list-field"><span>نوع محصول</span><span className="select-control"><select value={gender} onChange={(event) => setGender(event.target.value)}><option>همه</option><option>مردانه</option><option>زنانه</option></select><FiChevronDown /></span></label>
+            <label className="product-list-field"><span>دسته‌بندی</span><span className="select-control"><select value={category} onChange={(event) => setCategory(event.target.value)}><option>همه</option><option>عطر و ادکلن</option><option>لوازم آرایشی</option><option>اکسسوری</option></select><FiChevronDown /></span></label>
+            <label className="product-list-field"><span>نوع محصول</span><span className="select-control"><select value={gender} onChange={(event) => setGender(event.target.value)}><option>همه</option><option>مردانه</option><option>زنانه</option><option>یونیسکس</option></select><FiChevronDown /></span></label>
             <div className="product-list-field"><div className="product-list-price-label"><span>حداکثر قیمت</span><strong>{formatPrice(maxPrice)}</strong></div><input className="product-list-range" type="range" min="500000" max="10000000" step="250000" value={maxPrice} onChange={(event) => setMaxPrice(Number(event.target.value))} /></div>
             <button type="button" className="product-list-reset" onClick={resetFilters}>پاک کردن فیلترها</button>
           </aside>

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from decimal import Decimal
+from django.db.models import Avg
 
 from .models import Brand, Product, ProductImage
 
@@ -12,9 +13,17 @@ class BrandSerializer(serializers.ModelSerializer):
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = ProductImage
         fields = ['id', 'image', 'is_main']
+
+    def get_image(self, obj):
+        request = self.context.get('request')
+        if request is not None:
+            return request.build_absolute_uri(obj.image.url)
+        return obj.image.url
 
 
 class ProductListSerializer(serializers.ModelSerializer):
@@ -172,24 +181,7 @@ class ProductDetailSerializer(ProductListSerializer):
     class Meta(ProductListSerializer.Meta):
         fields = ProductListSerializer.Meta.fields + ['description', 'stock', 'images', 'average_rating']
 
-
     def get_average_rating(self, obj) -> float | None:
-
-
-        # تا اسپرینت ۷ null برمی‌گردونه
-        return None
-from django.db.models import Avg
-
-class ProductDetailSerializer(serializers.ModelSerializer):
-    images = ProductImageSerializer(source='productimage_set', many=True, read_only=True)
-    average_rating = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Product
-        fields = ['id', 'name', 'brand', 'category', 'gender', 'description', 'price', 
-                  'discount_percent', 'final_price', 'stock', 'is_active', 'images', 'average_rating']
-
-    def get_average_rating(self, obj):
         """میانگین امتیاز نظرات تأیید شده"""
         avg = obj.reviews.filter(is_approved=True).aggregate(Avg('rating'))['rating__avg']
-        return round(avg, 2) if avg else None
+        return round(avg, 2) if avg is not None else None
