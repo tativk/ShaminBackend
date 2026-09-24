@@ -1,10 +1,20 @@
 import React, { useState } from "react";
 import { FiMail, FiUser, FiEye, FiEyeOff, FiChevronLeft } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+import { apiRequest } from "../api";
 import "./Login.css";
 
+const toEnDigits = (value) =>
+  String(value || "")
+    .replace(/[۰-۹]/g, (c) => "۰۱۲۳۴۵۶۷۸۹".indexOf(c))
+    .replace(/[٠-٩]/g, (c) => "٠١٢٣٤٥٦٧٨٩".indexOf(c));
+
 const Login = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [form, setForm] = useState({ identifier: "", password: "" });
 
   const handleChange = (e) => {
@@ -14,8 +24,29 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // TODO: connect to authentication API
-    console.log({ ...form, remember });
+    const phone = toEnDigits(form.identifier).replace(/\s/g, "");
+    if (!/^09\d{9}$/.test(phone)) {
+      setError("شماره موبایل معتبر نیست (مثال: 09123456789)");
+      return;
+    }
+    if (!form.password) {
+      setError("رمز عبور را وارد کنید.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    apiRequest("/auth/login/", {
+      method: "POST",
+      body: JSON.stringify({ phone, password: form.password }),
+    })
+      .then((data) => {
+        if (data.access) localStorage.setItem("access", data.access);
+        if (data.refresh) localStorage.setItem("refresh", data.refresh);
+        if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+        navigate(data.user && data.user.role === "admin" ? "/admin" : "/dashboard");
+      })
+      .catch((err) => setError(err.message || "ورود ناموفق بود."))
+      .finally(() => setLoading(false));
   };
 
   return (
@@ -78,9 +109,11 @@ const Login = () => {
                 </a>
               </div>
 
-              <button type="submit" className="auth-btn auth-btn--primary">
+              {error && <p className="auth-form__error">{error}</p>}
+
+              <button type="submit" className="auth-btn auth-btn--primary" disabled={loading}>
                 <FiChevronLeft />
-                <a href="/verify">ورود</a>
+                {loading ? "در حال ورود..." : "ورود"}
               </button>
 
               <div className="auth-divider">
