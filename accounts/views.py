@@ -1,3 +1,4 @@
+from django.contrib.auth import authenticate, get_user_model
 from django.shortcuts import render
 
 # Create your views here.
@@ -20,6 +21,8 @@ from .services import create_and_send_otp, verify_otp_and_get_user
 from .models import Address
 from orders.models import OrderItem
 
+User = get_user_model()
+
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -27,6 +30,75 @@ def get_tokens_for_user(user):
         "refresh": str(refresh),
         "access": str(refresh.access_token),
     }
+
+
+class PasswordLoginView(APIView):
+    """ورود با شماره موبایل و رمز عبور — برای کاربرانی که پسورد ست کرده‌اند."""
+
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        summary="ورود با شماره موبایل و رمز عبور",
+        tags=["احراز هویت"],
+    )
+    def post(self, request):
+        phone = str(request.data.get("phone") or "").strip()
+        password = str(request.data.get("password") or "")
+
+        user = authenticate(request, username=phone, password=password)
+        if user is None:
+            return Response(
+                {"detail": "شماره موبایل یا رمز عبور اشتباه است."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        tokens = get_tokens_for_user(user)
+        return Response({
+            **tokens,
+            "user": UserSerializer(user).data,
+            "next_step": "dashboard" if user.is_profile_complete else "complete_registration",
+        }, status=status.HTTP_200_OK)
+
+
+class RegisterView(APIView):
+    """ثبت‌نام با شماره موبایل و رمز عبور — سپس تأیید با کد پیامکی."""
+
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        summary="ثبت‌نام با شماره موبایل و رمز عبور",
+        tags=["احراز هویت"],
+    )
+    def post(self, request):
+        serializer = RequestOtpSerializer(data={"phone": request.data.get("phone", "")})
+        serializer.is_valid(raise_exception=True)
+        phone = serializer.validated_data["phone"]
+        password = str(request.data.get("password") or "")
+
+        if len(password) < 4:
+            return Response(
+                {"detail": "رمز عبور باید حداقل ۴ کاراکتر باشد."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = User.objects.filter(phone=phone).first()
+        if user and user.has_usable_password():
+            return Response(
+                {"detail": "این شماره قبلاً ثبت‌نام کرده است؛ وارد شوید."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if user is None:
+            user = User.objects.create_user(phone=phone)
+        user.set_password(password)
+        user.save()
+
+        # ارسال کد تأیید؛ خطای cooldown گذرنده است چون پسورد ثبت شده
+        success, message = create_and_send_otp(phone)
+        return Response(
+            {"detail": message if not success else "کد تأیید ارسال شد."},
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class RequestOtpView(APIView):

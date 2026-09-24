@@ -1,26 +1,28 @@
 import React, { useState } from "react";
 import {
-  FiUser,
-  FiMail,
   FiPhone,
   FiLock,
   FiEye,
   FiEyeOff,
   FiChevronLeft,
 } from "react-icons/fi";
+import { Link, useNavigate } from "react-router-dom";
+import { apiRequest } from "../api";
 import "./Register.css";
 
+const toEnDigits = (value) =>
+  String(value || "")
+    .replace(/[۰-۹]/g, (c) => "۰۱۲۳۴۵۶۷۸۹".indexOf(c))
+    .replace(/[٠-٩]/g, (c) => "٠١٢٣٤٥٦٧٨٩".indexOf(c));
+
 const Register = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [agree, setAgree] = useState(false);
-  const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    password: "",
-    confirmPassword: "",
-  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [form, setForm] = useState({ phone: "", password: "", confirmPassword: "" });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -29,17 +31,34 @@ const Register = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const phone = toEnDigits(form.phone).replace(/\s/g, "");
+    if (!/^09\d{9}$/.test(phone)) {
+      setError("شماره موبایل معتبر نیست (مثال: 09123456789)");
+      return;
+    }
+    if (form.password.length < 4) {
+      setError("رمز عبور باید حداقل ۴ کاراکتر باشد.");
+      return;
+    }
     if (form.password !== form.confirmPassword) {
-      // TODO: show a proper validation message in the UI
-      console.warn("رمز عبور و تکرار آن یکسان نیستند");
+      setError("رمز عبور و تکرار آن یکسان نیستند.");
       return;
     }
     if (!agree) {
-      console.warn("لطفاً با قوانین و مقررات موافقت کنید");
+      setError("لطفاً با قوانین و مقررات موافقت کنید.");
       return;
     }
-    // TODO: connect to authentication API
-    console.log(form);
+    setLoading(true);
+    setError("");
+    apiRequest("/auth/register/", {
+      method: "POST",
+      body: JSON.stringify({ phone, password: form.password }),
+    })
+      .then(() => {
+        navigate("/Verify", { state: { phone } });
+      })
+      .catch((err) => setError(err.message || "ثبت‌نام ناموفق بود."))
+      .finally(() => setLoading(false));
   };
 
   return (
@@ -51,41 +70,19 @@ const Register = () => {
 
             <h2 className="auth-card__title">ثبت نام در شمین گالری</h2>
             <p className="auth-card__subtitle">
-              برای دسترسی به حساب کاربری خود، اطلاعات زیر را وارد کنید.
+              شماره موبایل و رمز عبور خود را انتخاب کنید؛ سپس با کد پیامکی حساب شما فعال می‌شود.
             </p>
 
             <form className="auth-form" onSubmit={handleSubmit}>
               <label className="auth-field">
                 <input
-                  type="text"
-                  name="fullName"
-                  placeholder="نام و نام خانوادگی"
-                  value={form.fullName}
-                  onChange={handleChange}
-                  required
-                />
-                <FiUser className="auth-field__icon" />
-              </label>
-
-              <label className="auth-field">
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="ایمیل (اختیاری)"
-                  value={form.email}
-                  onChange={handleChange}
-                  required
-                />
-                <FiMail className="auth-field__icon" />
-              </label>
-
-              <label className="auth-field">
-                <input
                   type="tel"
                   name="phone"
-                  placeholder="شماره موبایل"
+                  placeholder="شماره موبایل (0912...)"
                   value={form.phone}
                   onChange={handleChange}
+                  inputMode="numeric"
+                  dir="ltr"
                   required
                 />
                 <FiPhone className="auth-field__icon" />
@@ -112,7 +109,7 @@ const Register = () => {
 
               <label className="auth-field">
                 <input
-                  type={showConfirmPassword ? "text" : "password"}
+                  type={showConfirm ? "text" : "password"}
                   name="confirmPassword"
                   placeholder="تکرار رمز عبور"
                   value={form.confirmPassword}
@@ -122,12 +119,10 @@ const Register = () => {
                 <button
                   type="button"
                   className="auth-field__icon auth-field__icon--btn"
-                  onClick={() => setShowConfirmPassword((prev) => !prev)}
-                  aria-label={
-                    showConfirmPassword ? "پنهان کردن رمز عبور" : "نمایش رمز عبور"
-                  }
+                  onClick={() => setShowConfirm((prev) => !prev)}
+                  aria-label={showConfirm ? "پنهان کردن رمز عبور" : "نمایش رمز عبور"}
                 >
-                  {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
+                  {showConfirm ? <FiEyeOff /> : <FiEye />}
                 </button>
               </label>
 
@@ -138,25 +133,30 @@ const Register = () => {
                     type="checkbox"
                     checked={agree}
                     onChange={(e) => setAgree(e.target.checked)}
-                    required
                   />
                   <span className="auth-checkbox__box" />
                 </label>
               </div>
 
-              <button type="submit" className="auth-btn auth-btn--primary">
+              {error && <p className="auth-form__error">{error}</p>}
+
+              <button
+                type="submit"
+                className="auth-btn auth-btn--primary"
+                disabled={loading}
+              >
                 <FiChevronLeft />
-                ثبت نام
+                {loading ? "در حال ثبت..." : "ثبت نام و دریافت کد"}
               </button>
 
               <div className="auth-divider">
                 <span>یا</span>
               </div>
 
-              <a href="/login" className="auth-btn auth-btn--ghost">
+              <Link to="/Login" className="auth-btn auth-btn--ghost">
                 <FiLock />
                 قبلاً ثبت نام کرده‌اید؟ وارد شوید
-              </a>
+              </Link>
             </form>
           </div>
         </div>

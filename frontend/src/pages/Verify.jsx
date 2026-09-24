@@ -1,38 +1,32 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FiChevronLeft, FiCheckCircle, FiRefreshCw, FiAlertCircle } from "react-icons/fi";
+import { useLocation, useNavigate } from "react-router-dom";
+import { apiRequest } from "../api";
 import "./Verify.css";
 
 const CODE_LENGTH = 6;
 const RESEND_SECONDS = 60;
 
-// TODO: replace this with a real API call to your backend.
-// It should resolve to `true` when the code is correct and `false` otherwise.
-const verifyCodeWithServer = (code) =>
-  new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(code === "123456"); // demo-only check
-    }, 900);
-  });
-
-// TODO: replace this with a real API call that (re)sends the OTP code.
-const resendCodeToServer = () =>
-  new Promise((resolve) => {
-    setTimeout(() => resolve(true), 600);
-  });
+const toEnDigits = (value) =>
+  String(value || "")
+    .replace(/[۰-۹]/g, (c) => "۰۱۲۳۴۵۶۷۸۹".indexOf(c))
+    .replace(/[٠-٩]/g, (c) => "٠١٢٣٤٥٦٧٨٩".indexOf(c));
 
 const Verify = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [digits, setDigits] = useState(Array(CODE_LENGTH).fill(""));
   const [status, setStatus] = useState("idle"); // idle | loading | success | error
   const [resendSeconds, setResendSeconds] = useState(RESEND_SECONDS);
   const [resending, setResending] = useState(false);
   const inputsRef = useRef([]);
 
-  // Read the phone/email the code was sent to, e.g. /verify?identifier=0912...
-  // If you use React Router, you can instead pass this in via route state or a prop.
+  // شماره از ثبت‌نام به این صفحه منتقل می‌شود (route state) یا از query خوانده می‌شود
   const identifier =
-    typeof window !== "undefined"
+    location.state?.phone ||
+    (typeof window !== "undefined"
       ? new URLSearchParams(window.location.search).get("identifier")
-      : null;
+      : null);
 
   useEffect(() => {
     inputsRef.current[0]?.focus();
@@ -89,17 +83,28 @@ const Verify = () => {
   };
 
   const handleVerify = async (codeOverride) => {
-    const code = codeOverride ?? digits.join("");
+    const code = toEnDigits(codeOverride ?? digits.join(""));
+    const phone = toEnDigits(identifier || "").replace(/\s/g, "");
     if (code.length !== CODE_LENGTH) return;
+    if (!/^09\d{9}$/.test(phone)) {
+      setStatus("error");
+      return;
+    }
 
     setStatus("loading");
-    const isCorrect = await verifyCodeWithServer(code);
-
-    if (isCorrect) {
+    try {
+      const data = await apiRequest("/auth/verify-otp/", {
+        method: "POST",
+        body: JSON.stringify({ phone, code }),
+      });
+      if (data.access) localStorage.setItem("access", data.access);
+      if (data.refresh) localStorage.setItem("refresh", data.refresh);
+      if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
       setStatus("success");
-      // TODO: this is where you'd normally save the auth token / session
-      // and redirect the user onward — see the notes below the component.
-    } else {
+      setTimeout(() => {
+        navigate(data.user && data.user.role === "admin" ? "/admin" : "/dashboard");
+      }, 1800);
+    } catch (err) {
       setStatus("error");
       inputsRef.current[0]?.focus();
     }
@@ -111,8 +116,19 @@ const Verify = () => {
   };
 
   const handleResend = async () => {
+    const phone = toEnDigits(identifier || "").replace(/\s/g, "");
+    if (!/^09\d{9}$/.test(phone)) return;
     setResending(true);
-    await resendCodeToServer();
+    try {
+      await apiRequest("/auth/request-otp/", {
+        method: "POST",
+        body: JSON.stringify({ phone }),
+      });
+    } catch (err) {
+      // در صورت خطا تایمر ریست نمی‌شود تا اسپم نشود
+      setResending(false);
+      return;
+    }
     setResending(false);
     setDigits(Array(CODE_LENGTH).fill(""));
     setStatus("idle");
@@ -134,7 +150,7 @@ const Verify = () => {
               <p className="auth-card__subtitle">
                 حساب کاربری شما با موفقیت تأیید شد. اکنون می‌توانید از خرید در شمین گالری لذت ببرید.
               </p>
-              <a href="/" className="auth-btn auth-btn--primary">
+              <a href="/dashboard" className="auth-btn auth-btn--primary">
                 <FiChevronLeft />
                 ورود به حساب کاربری
               </a>
