@@ -6,10 +6,19 @@ import Cart from "../pages/Cart";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import ProductList from "../pages/ProductList";
+
+import Dashboard from "../pages/Dashboard";
+import Favorites from "../pages/Favorites";
+
 import Product from "../pages/Product";
 import Verify from "../pages/Verify";
+
 import Blog from "../pages/Blog";
 import BlogPost from "../pages/BlogPost";
+
+import PaymentCallback from "../pages/PaymentCallback";
+
+
 
 const AppRoutes = () => {
   return (
@@ -22,12 +31,15 @@ const AppRoutes = () => {
       <Route path="/blog" element={<Blog />} />
       <Route path="/blog/:slug" element={<BlogPost />} />
       <Route path="/admin" element={<AdminPanel />} />
-      <Route path="/dashboard" element={<AdminPanel />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/favorites" element={<Favorites />} />
+      <Route path="/Favorites" element={<Favorites />} />
       <Route path="/Cart" element={<Cart />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/Login" element={<Login />} />
       <Route path="/Register" element={<Register />} />
       <Route path="/Verify" element={<Verify />} />
+      <Route path="/PaymentCallback" element={<PaymentCallback />} />
     </Routes>
   );
 };

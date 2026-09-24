@@ -9,6 +9,7 @@ import Header from "../components/Header/Header";
 import Footer from "../components/Footer/Footer";
 import "./Home.css";
 import "./ProductList.css";
+import { isFavorite, toggleFavorite } from "../favorites";
 
 const CATEGORY_LABEL = { perfume: "عطر و ادکلن", cosmetic: "لوازم آرایشی", accessory: "اکسسوری" };
 const GENDER_LABEL = { male: "مردانه", female: "زنانه", unisex: "یونیسکس" };
@@ -17,13 +18,16 @@ const FALLBACK_IMAGE = "/logo.png";
 const formatPrice = (value) => `${new Intl.NumberFormat("fa-IR").format(value)} تومان`;
 
 const ProductCard = ({ product }) => {
+
   const { has, toggle } = useWishlist();
   const wishlisted = has(product.id);
+
 
   return (
   <article className="product-list-card">
     <div className="product-list-card__media">
       {product.badge && <span className="product-list-card__badge">{product.badge}</span>}
+
       <button
         type="button"
         className={wishlisted ? "product-list-card__wishlist product-list-card__wishlist--active" : "product-list-card__wishlist"}
@@ -32,6 +36,7 @@ const ProductCard = ({ product }) => {
       >
         <FiHeart />
       </button>
+
       <img src={product.image} alt={product.name} loading="lazy" />
     </div>
     <div className="product-list-card__body">

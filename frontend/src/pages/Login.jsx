@@ -80,7 +80,7 @@ const Login = () => {
 
               <button type="submit" className="auth-btn auth-btn--primary">
                 <FiChevronLeft />
-                <a href="/verify">ورود</a> 
+                <a href="/verify">ورود</a>
               </button>
 
               <div className="auth-divider">
