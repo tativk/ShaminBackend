@@ -1611,3 +1611,788 @@
     display: none;
   }
 }
+
+/* ===================== Admin profile & account settings ===================== */
+
+@keyframes shaminAccountEnter {
+  from {
+    opacity: 0;
+
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0);
+  }
+}
+
+.shamin-account {
+  max-width: 1060px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+
+  animation: shaminAccountEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.shamin-account__head h2 {
+  margin: 0;
+
+  color: var(--shamin-text);
+
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.shamin-account__head p {
+  margin: 7px 0 0;
+
+  color: var(--shamin-text-soft);
+
+  font-size: 11px;
+}
+
+.shamin-account__grid {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.shamin-account__grid--settings {
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+}
+
+.shamin-account__card {
+  position: relative;
+
+  padding: 24px;
+
+  border: 1px solid var(--shamin-border);
+  border-radius: 17px;
+
+  background: var(--shamin-surface);
+
+  box-shadow:
+    0 4px 18px rgba(25, 51, 46, 0.035),
+    0 1px 3px rgba(25, 51, 46, 0.03);
+
+  overflow: hidden;
+
+  transition:
+    background-color 0.35s ease,
+    border-color 0.35s ease;
+}
+
+.shamin-account__card::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  right: 20px;
+  left: 20px;
+
+  height: 2px;
+
+  border-radius: 0 0 10px 10px;
+
+  background: linear-gradient(90deg, #17483f, #b99a5b);
+
+  opacity: 0.55;
+
+  pointer-events: none;
+}
+
+.shamin-account__head,
+.shamin-account__card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.shamin-account__card-head {
+  padding-bottom: 16px;
+  margin-bottom: 18px;
+
+  border-bottom: 1px solid var(--shamin-border);
+}
+
+.shamin-account__card-head h3 {
+  margin: 0;
+
+  color: var(--shamin-text);
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.shamin-account__card-head p {
+  margin: 4px 0 0;
+
+  color: var(--shamin-text-muted);
+
+  font-size: 9.5px;
+  line-height: 1.9;
+}
+
+.shamin-account__card-icon {
+  width: 42px;
+  height: 42px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  background: #f1f4f2;
+
+  color: var(--shamin-green);
+
+  font-size: 18px;
+
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* --- identity card --- */
+
+.shamin-account__identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  padding-top: 30px;
+  padding-bottom: 14px;
+
+  text-align: center;
+}
+
+.shamin-account__avatar {
+  width: 86px;
+  height: 86px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 26px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #0a4a40,
+      #06372f
+    );
+
+  color: #ffffff;
+
+  font-family: "Estedad", sans-serif;
+
+  font-size: 30px;
+  font-weight: 600;
+
+  box-shadow:
+    0 12px 26px rgba(6, 60, 52, 0.18),
+    inset 0 0 0 1px rgba(216, 193, 141, 0.25);
+}
+
+.shamin-account__identity-name {
+  margin-top: 14px;
+
+  color: var(--shamin-text);
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.shamin-account__identity-phone {
+  margin-top: 4px;
+
+  color: var(--shamin-text-muted);
+
+  font-size: 10px;
+
+  letter-spacing: 0.4px;
+}
+
+.shamin-account__role-badge {
+  margin-top: 11px;
+
+  padding: 5px 13px;
+
+  border-radius: 20px;
+
+  background: rgba(194, 165, 106, 0.13);
+
+  color: #8a6d33;
+
+  font-size: 9px;
+  font-weight: 600;
+
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+.shamin-account__identity-rows {
+  width: 100%;
+
+  margin-top: 20px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.shamin-account__identity-row {
+  display: flex;
+  align-items: center;
+
+  padding: 12px 2px;
+
+  border-top: 1px solid var(--shamin-border);
+
+  text-align: right;
+}
+
+.shamin-account__identity-row > span {
+  width: 34px;
+  height: 34px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  background: #f1f4f2;
+
+  color: var(--shamin-green);
+
+  font-size: 14px;
+
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+.shamin-account__identity-row > div {
+  margin-right: 11px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.shamin-account__identity-row small {
+  color: var(--shamin-text-muted);
+
+  font-size: 9px;
+}
+
+.shamin-account__identity-row strong {
+  color: var(--shamin-text);
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* --- form fields --- */
+
+.shamin-account__fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.shamin-account__field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+
+  min-width: 0;
+}
+
+.shamin-account__field--wide {
+  grid-column: 1 / -1;
+}
+
+.shamin-account__field > span {
+  color: var(--shamin-text-soft);
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.shamin-account__field input {
+  width: 100%;
+  height: 45px;
+
+  padding: 0 14px;
+
+  outline: none;
+
+  border: 1px solid var(--shamin-border);
+
+  border-radius: 12px;
+
+  background: var(--shamin-surface-soft);
+
+  color: var(--shamin-text);
+
+  font-size: 11px;
+
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    background-color 0.3s ease;
+}
+
+.shamin-account__field input::placeholder {
+  color: var(--shamin-text-muted);
+}
+
+.shamin-account__field input:hover {
+  border-color: #d4ddd8;
+}
+
+.shamin-account__field input:focus {
+  border-color: rgba(6, 60, 52, 0.35);
+
+  background: var(--shamin-surface);
+
+  box-shadow: 0 0 0 4px rgba(6, 60, 52, 0.055);
+}
+
+.shamin-account__password {
+  position: relative;
+}
+
+.shamin-account__password input {
+  padding-left: 46px;
+}
+
+.shamin-account__password-toggle {
+  position: absolute;
+
+  left: 8px;
+  top: 50%;
+
+  width: 31px;
+  height: 31px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transform: translateY(-50%);
+
+  border-radius: 9px;
+
+  background: transparent;
+
+  color: var(--shamin-text-muted);
+
+  cursor: pointer;
+
+  font-size: 14px;
+
+  transition:
+    background 0.22s ease,
+    color 0.22s ease;
+}
+
+.shamin-account__password-toggle:hover {
+  background: rgba(6, 60, 52, 0.07);
+
+  color: var(--shamin-green);
+}
+
+/* --- feedback & actions --- */
+
+.shamin-account__feedback {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-top: 16px;
+
+  padding: 11px 14px;
+
+  border-radius: 12px;
+
+  font-size: 10.5px;
+  font-weight: 500;
+
+  animation: shaminAccountEnter 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.shamin-account__feedback svg {
+  flex-shrink: 0;
+
+  font-size: 15px;
+}
+
+.shamin-account__feedback--success {
+  border: 1px solid rgba(23, 107, 78, 0.2);
+
+  background: rgba(23, 107, 78, 0.07);
+
+  color: #176b4e;
+}
+
+.shamin-account__feedback--error {
+  border: 1px solid rgba(163, 75, 75, 0.22);
+
+  background: rgba(163, 75, 75, 0.06);
+
+  color: #a34b4b;
+}
+
+.shamin-account__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  margin-top: 20px;
+}
+
+.shamin-account__submit {
+  height: 45px;
+
+  padding: 0 24px;
+
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #0a4a40,
+      #06372f
+    );
+
+  color: #ffffff;
+
+  cursor: pointer;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  box-shadow: 0 8px 20px rgba(6, 60, 52, 0.16);
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    opacity 0.25s ease;
+}
+
+.shamin-account__submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+
+  box-shadow: 0 11px 26px rgba(6, 60, 52, 0.2);
+}
+
+.shamin-account__submit:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.shamin-account__submit:disabled {
+  opacity: 0.65;
+
+  cursor: default;
+}
+
+.shamin-account__ghost {
+  height: 45px;
+
+  padding: 0 18px;
+
+  border: 1px solid var(--shamin-border);
+
+  border-radius: 12px;
+
+  background: transparent;
+
+  color: var(--shamin-text-soft);
+
+  cursor: pointer;
+
+  font-size: 11px;
+  font-weight: 500;
+
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.shamin-account__ghost:hover:not(:disabled) {
+  background: var(--shamin-surface-soft);
+
+  color: var(--shamin-text);
+
+  border-color: #d4ddd8;
+}
+
+.shamin-account__ghost:disabled {
+  opacity: 0.6;
+
+  cursor: default;
+}
+
+/* --- theme options --- */
+
+.shamin-account__theme {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.shamin-account__theme-option {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  padding: 17px 16px;
+
+  border: 1.5px solid var(--shamin-border);
+
+  border-radius: 14px;
+
+  background: var(--shamin-surface-soft);
+
+  cursor: pointer;
+
+  text-align: right;
+
+  transition:
+    border-color 0.28s ease,
+    background 0.28s ease,
+    box-shadow 0.28s ease,
+    transform 0.28s ease;
+}
+
+.shamin-account__theme-option:hover {
+  transform: translateY(-2px);
+
+  border-color: #d4ddd8;
+}
+
+.shamin-account__theme-option--active {
+  border-color: rgba(6, 60, 52, 0.42);
+
+  background: var(--shamin-surface);
+
+  box-shadow: 0 0 0 4px rgba(6, 60, 52, 0.05);
+}
+
+.shamin-account__theme-option strong {
+  margin-top: 11px;
+
+  color: var(--shamin-text);
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.shamin-account__theme-option > span:not(.shamin-account__theme-icon) {
+  margin-top: 3px;
+
+  color: var(--shamin-text-muted);
+
+  font-size: 9px;
+}
+
+.shamin-account__theme-icon {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  font-size: 17px;
+}
+
+.shamin-account__theme-icon--light {
+  background: rgba(194, 165, 106, 0.16);
+
+  color: #b3924f;
+}
+
+.shamin-account__theme-icon--dark {
+  background: #0d1513;
+
+  color: var(--shamin-gold-light);
+
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.shamin-account__theme-check {
+  position: absolute;
+
+  top: 13px;
+  left: 13px;
+
+  color: var(--shamin-green);
+
+  font-size: 16px;
+}
+
+/* --- dark mode --- */
+
+.shamin-dashboard--dark .shamin-account__card-icon,
+.shamin-dashboard--dark .shamin-account__identity-row > span {
+  background: rgba(255, 255, 255, 0.055);
+
+  color: var(--shamin-gold-light);
+}
+
+.shamin-dashboard--dark .shamin-account__role-badge {
+  background: rgba(216, 193, 141, 0.1);
+
+  color: var(--shamin-gold-light);
+}
+
+.shamin-dashboard--dark .shamin-account__field input {
+  border-color: #2b3934;
+
+  background:
+    linear-gradient(
+      145deg,
+      #151f1c,
+      #111a17
+    );
+
+  color: #edf2ef;
+}
+
+.shamin-dashboard--dark .shamin-account__field input:hover {
+  border-color: #3a4943;
+}
+
+.shamin-dashboard--dark .shamin-account__field input:focus {
+  border-color: rgba(216, 193, 141, 0.42);
+
+  background: #17211e;
+
+  box-shadow: 0 0 0 4px rgba(216, 193, 141, 0.055);
+}
+
+.shamin-dashboard--dark .shamin-account__password-toggle:hover {
+  background: rgba(216, 193, 141, 0.08);
+
+  color: var(--shamin-gold-light);
+}
+
+.shamin-dashboard--dark .shamin-account__feedback--success {
+  border-color: rgba(126, 211, 167, 0.18);
+
+  background: rgba(126, 211, 167, 0.07);
+
+  color: #7ed0a8;
+}
+
+.shamin-dashboard--dark .shamin-account__feedback--error {
+  border-color: rgba(224, 140, 140, 0.2);
+
+  background: rgba(224, 140, 140, 0.07);
+
+  color: #e0a3a3;
+}
+
+.shamin-dashboard--dark .shamin-account__submit {
+  background:
+    linear-gradient(
+      135deg,
+      #10564a,
+      #0a4038
+    );
+
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3);
+}
+
+.shamin-dashboard--dark .shamin-account__ghost:hover:not(:disabled) {
+  border-color: #3a4943;
+}
+
+.shamin-dashboard--dark .shamin-account__theme-option:hover {
+  border-color: #3a4943;
+}
+
+.shamin-dashboard--dark .shamin-account__theme-option--active {
+  border-color: rgba(216, 193, 141, 0.45);
+
+  box-shadow: 0 0 0 4px rgba(216, 193, 141, 0.05);
+}
+
+.shamin-dashboard--dark .shamin-account__theme-check {
+  color: var(--shamin-gold-light);
+}
+
+.shamin-dashboard--dark .shamin-account__theme-icon--light {
+  background: rgba(216, 193, 141, 0.12);
+
+  color: var(--shamin-gold-light);
+}
+
+.shamin-dashboard--dark .shamin-account__theme-icon--dark {
+  background: #050c0a;
+
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* --- responsive --- */
+
+@media (max-width: 980px) {
+  .shamin-account__grid,
+  .shamin-account__grid--settings {
+    grid-template-columns: 1fr;
+  }
+
+  .shamin-account__identity {
+    padding-top: 26px;
+  }
+}
+
+@media (max-width: 650px) {
+  .shamin-account {
+    gap: 18px;
+  }
+
+  .shamin-account__head h2 {
+    font-size: 17px;
+  }
+
+  .shamin-account__card {
+    padding: 19px 16px;
+  }
+
+  .shamin-account__fields {
+    grid-template-columns: 1fr;
+
+    gap: 14px;
+  }
+
+  .shamin-account__actions {
+    flex-wrap: wrap;
+  }
+
+  .shamin-account__submit,
+  .shamin-account__ghost {
+    flex: 1 1 auto;
+  }
+}

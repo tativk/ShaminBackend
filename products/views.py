@@ -1,4 +1,4 @@
-from django.db.models import ProtectedError
+from django.db.models import Q, ProtectedError
 from rest_framework import permissions, status, viewsets
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
@@ -31,6 +31,14 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         if gender:
             queryset = queryset.filter(gender=gender)
 
+        search = self.request.query_params.get('search', '').strip()
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search)
+                | Q(brand__name__icontains=search)
+                | Q(description__icontains=search)
+            )
+
         return queryset
 
     def get_serializer_class(self):
@@ -44,6 +52,17 @@ class AdminProductViewSet(viewsets.ModelViewSet):
     permission_classes = [IsStaffUser]
     serializer_class = AdminProductSerializer
     queryset = Product.objects.all().select_related('brand').prefetch_related('images')
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search = self.request.query_params.get('search', '').strip()
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search)
+                | Q(brand__name__icontains=search)
+                | Q(description__icontains=search)
+            )
+        return queryset
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
