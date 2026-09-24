@@ -3,19 +3,22 @@ import "./App.css";
 import { BrowserRouter } from "react-router-dom";
 import AppRoutes from "./routes/AppRoutes";
 import ScrollToTop from "./components/ScrollToTop";
+import { WishlistProvider } from "./context/WishlistContext";
 
 
 const App = () => {
   return (
-    <BrowserRouter>
+    <WishlistProvider>
+      <BrowserRouter>
 
-      <ScrollToTop />
+        <ScrollToTop />
 
-      <div className="App">
-        <AppRoutes />
-      </div>
+        <div className="App">
+          <AppRoutes />
+        </div>
 
-    </BrowserRouter>
+      </BrowserRouter>
+    </WishlistProvider>
   );
 };
 

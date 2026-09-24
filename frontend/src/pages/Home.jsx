@@ -9,10 +9,14 @@ import {
   FiCreditCard,
   FiAward,
   FiMail,
+  FiHeart,
 } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
 import Header from "../components/Header/Header";
 import Footer from "../components/Footer/Footer";
+import { Link } from "react-router-dom";
+import blogPosts from "../data/blogPosts";
+import { useWishlist } from "../context/WishlistContext";
 import "./Home.css";
 
 /* =========================================================
@@ -182,32 +186,7 @@ const PRODUCTS = [
 
 
 
-const BLOG_POSTS = [
-  {
-    title: "۱۰ نکته برای انتخاب عطر مناسب",
-    date: "۱۴۰۴/۰۶/۲۶",
-    image:
-      "/10nokteh.png",
-  },
-  {
-    title: "روش‌های مراقبت از پوست در تابستان",
-    date: "۱۴۰۴/۰۶/۲۰",
-    image:
-      "/raveshpost.png",
-  },
-  {
-    title: "ترندهای اکسسوری سال ۲۰۲۶",
-    date: "۱۴۰۴/۰۶/۱۵",
-    image:
-      "/teredacsesory.png",
-  },
-  {
-    title: "معرفی بهترین عطرهای زنانه",
-    date: "۱۴۰۴/۰۶/۱۰",
-    image:
-      "/moarefiatre.png",
-  },
-];
+const BLOG_POSTS = blogPosts;
 
 
 
@@ -360,11 +339,20 @@ const CategorySection = () => (
    ========================================================= */
 
 const ProductCard = ({ product }) => {
+  const { has, toggle } = useWishlist();
+  const wishlisted = has(product.id);
+
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
     // TODO: connect to real cart logic
     console.log("افزودن به سبد خرید:", product.name);
+  };
+
+  const handleToggleWishlist = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggle(product);
   };
 
   return (
@@ -382,6 +370,18 @@ const ProductCard = ({ product }) => {
               {product.badge}
             </span>
           )}
+          <button
+            type="button"
+            className={
+              wishlisted
+                ? "product-card__wishlist product-card__wishlist--active"
+                : "product-card__wishlist"
+            }
+            onClick={handleToggleWishlist}
+            aria-label={wishlisted ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
+          >
+            <FiHeart />
+          </button>
           <img src={product.image} alt={product.name} />
         </div>
         <div className="product-card__body">
@@ -431,18 +431,18 @@ const BestSellingProducts = () => (
    ========================================================= */
 
 const BlogCard = ({ post }) => (
-  <a href="#" className="blog-card">
+  <Link to={`/blog/${post.slug}`} className="blog-card">
     <div className="blog-card__image-wrap">
       <img src={post.image} alt={post.title} />
     </div>
     <div className="blog-card__body">
-      <span className="blog-card__date">{post.date}</span>
+      <span className="blog-card__date">{post.date} · {post.readingTime}</span>
       <h3>{post.title}</h3>
       <span className="blog-card__arrow">
         <FiChevronLeft />
       </span>
     </div>
-  </a>
+  </Link>
 );
 
 const BlogSection = () => (
@@ -450,10 +450,14 @@ const BlogSection = () => (
     <div className="section-title">
       <FiAward />
       <h2>آخرین مطالب وبلاگ</h2>
+      <Link to="/blog" className="blog-section__all">
+        مشاهده همه مطالب
+        <FiChevronLeft />
+      </Link>
     </div>
     <div className="blog-grid">
       {BLOG_POSTS.map((post) => (
-        <BlogCard post={post} key={post.title} />
+        <BlogCard post={post} key={post.slug} />
       ))}
     </div>
   </section>

@@ -8,6 +8,7 @@ const NAV_LINKS = [
   { label: "عطر و ادکلن", to: "/products?category=perfume" },
   { label: "لوازم آرایشی و بهداشتی", to: "/products?category=cosmetic" },
   { label: "اکسسوری", to: "/products?category=accessory" },
+  { label: "وبلاگ", to: "/blog" },
 ];
 
 const Header = () => {
