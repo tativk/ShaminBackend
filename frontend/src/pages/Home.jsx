@@ -12,15 +12,13 @@ import {
   FiHeart,
 } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
-import { apiRequest } from "../api";
+import { apiRequest, getAssetUrl } from "../api";
 import { notifyCartAdded, notifyCartError } from "../cart-notice";
 import Header from "../components/Header/Header";
 import Footer from "../components/Footer/Footer";
 import { Link } from "react-router-dom";
 import blogPosts from "../data/blogPosts";
 import { useWishlist } from "../context/WishlistContext";
-import { apiRequest, getAssetUrl } from "../api";
-import { notifyCartAdded, notifyCartError } from "../cart-notice";
 import "./Home.css";
 
 /* =========================================================

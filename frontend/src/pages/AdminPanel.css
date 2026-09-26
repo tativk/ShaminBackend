@@ -2263,7 +2263,8 @@
 .shamin-dashboard--dark select:focus-visible,
 .shamin-dashboard--dark textarea:focus-visible {
   outline-color: rgba(216, 193, 141, 0.45);
-=======
+}
+
 /* ===================== Admin profile & account settings ===================== */
 
 @keyframes shaminAccountEnter {
