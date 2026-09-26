@@ -142,10 +142,11 @@ function BasketIcon() {
 /* ── کامپوننت اصلی ───────────────────────────────────────── */
 export default function Cart() {
   const [cart, setCart] = useState(null);
-  const [cities, setCities] = useState([]);
+  const [provinces, setProvinces] = useState([]);
+  const [selectedProvince, setSelectedProvince] = useState('');
+  const [selectedCityId, setSelectedCityId] = useState('');
   const [products, setProducts] = useState([]);
   const [province, setProvince] = useState('');
-  const [manualCity, setManualCity] = useState('');
   const [address, setAddress] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [loading, setLoading] = useState(true);
@@ -156,6 +157,15 @@ export default function Cart() {
   const sliderRef = useRef(null);
 
   const items = useMemo(() => cart?.items ?? [], [cart?.items]);
+
+  const provinceData = useMemo(
+    () => provinces.find((p) => p.province === selectedProvince) || null,
+    [provinces, selectedProvince],
+  );
+  const selectedCity = useMemo(() => {
+    if (!provinceData) return null;
+    return provinceData.cities.find((c) => String(c.id) === String(selectedCityId)) || null;
+  }, [provinceData, selectedCityId]);
 
   const totals = useMemo(() => {
     const count = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -168,20 +178,29 @@ export default function Cart() {
   useEffect(() => {
     const loadPage = async () => {
       try {
-        const [cartData, cityData, productData] = await Promise.all([
+        const [cartData, provinceData_, productData] = await Promise.all([
           apiRequest('/cart/'),
-          apiRequest('/shipping/cities/'),
+          apiRequest('/shipping/provinces/'),
           apiRequest('/products/'),
         ]);
         setCart(cartData);
-        setCities(cityData.results ?? cityData);
+        setProvinces(provinceData_ ?? []);
         setProducts(productData.results ?? productData);
         try {
           const addressData = await apiRequest('/auth/address/');
           setProvince(addressData.province ?? '');
-          setManualCity(addressData.city ?? '');
           setAddress([addressData.street, addressData.detail].filter(Boolean).join('، '));
           setPostalCode(addressData.postal_code ?? '');
+          // اگر سبد قبلاً شهر داشته باشد، استان/شهر مربوط به آن انتخاب می‌شود
+          if (cartData?.city) {
+            const match = (provinceData_ ?? []).find((p) => p.province === addressData.province && p.cities.some((c) => c.city === cartData.city))
+              || (provinceData_ ?? []).find((p) => p.cities.some((c) => c.city === cartData.city));
+            if (match) {
+              setSelectedProvince(match.province);
+              const cityMatch = match.cities.find((c) => c.city === cartData.city);
+              if (cityMatch) setSelectedCityId(String(cityMatch.id));
+            }
+          }
         } catch {
           // کاربر هنوز آدرس ثبت نکرده — فرم خالی می‌ماند
         }
@@ -238,67 +257,65 @@ export default function Cart() {
     }
   };
 
-  const handleCityInput = (value) => {
-    const normalized = value.trim();
-    setManualCity(normalized);
+  const handleProvinceChange = (value) => {
+    setSelectedProvince(value);
+    setSelectedCityId('');
     setError('');
+    // تغییر استان، شهر و هزینه ارسال قبلی را باطل می‌کند
+    setCart((prev) => (prev ? { ...prev, city: null, shipping_cost: null } : prev));
+  };
 
-    if (!normalized) {
+  const handleCityChange = async (value) => {
+    setSelectedCityId(value);
+    setError('');
+    if (!value) {
       setCart((prev) => (prev ? { ...prev, city: null, shipping_cost: null } : prev));
       return;
     }
-
-    const matchedCity = cities.find((item) => item.city.toLowerCase() === normalized.toLowerCase());
-    if (!matchedCity) {
-      setCart((prev) => (prev ? { ...prev, city: null, shipping_cost: null } : prev));
-      return;
-    }
-
-    setCart((prev) => (prev ? { ...prev, city: matchedCity.city, shipping_cost: matchedCity.cost } : prev));
-
-    // ثبت شهر روی سرور — بدون این، ثبت سفارش با خطای «شهر انتخاب نشده» رد می‌شود
-    if (cart?.city !== matchedCity.city) {
-      apiRequest('/cart/', {
+    // ثبت شهر (با شناسه) و دریافت هزینه ارسال محاسبه‌شده از سرور
+    try {
+      const updated = await apiRequest('/cart/', {
         method: 'PATCH',
-        body: JSON.stringify({ city: matchedCity.city }),
-      })
-        .then((data) => setCart(data))
-        .catch((err) => setError(err.message));
+        body: JSON.stringify({ city: Number(value) }),
+      });
+      setCart(updated);
+    } catch (err) {
+      setError(err.message);
     }
   };
 
   const checkout = async () => {
-    if (!cart?.city && !manualCity.trim()) return setError('لطفاً استان و شهر ارسال را وارد کنید.');
-    if (!province.trim() || !manualCity.trim()) return setError('لطفاً استان و شهر خود را وارد کنید.');
-    if (!address.trim() || !/^\d{10}$/.test(postalCode))
-      return setError('آدرس و کد پستی ده رقمی را وارد کنید.');
+    if (!selectedCity) return setError('لطفاً استان و شهر ارسال را انتخاب کنید.');
+    if (!province.trim() || !address.trim() || !/^\d{10}$/.test(postalCode))
+      return setError('استان، آدرس و کد پستی ده رقمی را کامل وارد کنید.');
     setBusy(true);
     setError('');
     try {
-      // قبل از ثبت سفارش، انتخاب شهر دوباره روی سرور هماهنگ می‌شود
-      const matched = cities.find((c) => c.city.toLowerCase() === manualCity.trim().toLowerCase());
+      // هماهنگ‌سازی دوباره شهر انتخابی با سرور
       let current = cart;
-      if (matched) {
+      if (selectedCity) {
         current = await apiRequest('/cart/', {
           method: 'PATCH',
-          body: JSON.stringify({ city: matched.city }),
+          body: JSON.stringify({ city: Number(selectedCity.id) }),
         });
         setCart(current);
       }
+      // فعلاً درگاه پرداخت قطع است — سفارش بدون پرداخت ثبت می‌شود
       const order = await apiRequest('/orders/', {
         method: 'POST',
         body: JSON.stringify({
-          city: current?.city || manualCity.trim(),
+          city: current?.city || selectedCity.city,
           province: province.trim(),
           address: address.trim(),
           postal_code: postalCode,
-          shipping_cost: current?.shipping_cost ?? 0,
+          shipping_cost: current?.shipping_cost ?? selectedCity.cost ?? 0,
         }),
       });
       if (order.payment_url) {
+        // بعد از اتصال درگاه واقعی، کاربر به درگاه هدایت می‌شود
         window.location.assign(order.payment_url);
       } else {
-        setNotice(`سفارش شماره ${toFa(order.order_id)} ایجاد شد.`);
+        setNotice(`سفارش شما با شماره ${toFa(order.order_id)} ثبت شد. برای پیگیری به داشبورد کاربری بروید.`);
       }
     } catch (err) {
       setError(err.message);
@@ -452,22 +469,31 @@ export default function Cart() {
               <div className="cart-shipping-form">
                 <div className="cart-shipping-form__field">
                   <label htmlFor="shipping-province">استان</label>
-                  <input
+                  <select
                     id="shipping-province"
-                    value={province}
-                    onChange={(e) => setProvince(e.target.value)}
-                    placeholder="مثلاً تهران"
-                  />
+                    value={selectedProvince}
+                    onChange={(e) => handleProvinceChange(e.target.value)}
+                  >
+                    <option value="">انتخاب استان</option>
+                    {provinces.map((p) => (
+                      <option key={p.province} value={p.province}>{p.province}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="cart-shipping-form__field">
                   <label htmlFor="shipping-city">شهر</label>
-                  <input
+                  <select
                     id="shipping-city"
-                    value={manualCity}
-                    onChange={(e) => handleCityInput(e.target.value)}
-                    placeholder="مثلاً تهران یا شیراز"
-                  />
+                    value={selectedCityId}
+                    onChange={(e) => handleCityChange(e.target.value)}
+                    disabled={!provinceData}
+                  >
+                    <option value="">{provinceData ? 'انتخاب شهر' : 'ابتدا استان را انتخاب کنید'}</option>
+                    {(provinceData?.cities ?? []).map((c) => (
+                      <option key={c.id} value={String(c.id)}>{c.city}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="cart-shipping-form__field cart-shipping-form__field--address">
@@ -500,9 +526,9 @@ export default function Cart() {
                 disabled={busy || !items.length}
               >
                 <LockIcon />
-                ادامه فرآیند پرداخت
+                {busy ? 'در حال ثبت...' : 'ثبت سفارش نهایی'}
               </button>
-              <p className="cart-summary__secure"><CheckCircleIcon /> پرداخت امن و مطمئن</p>
+              <p className="cart-summary__secure"><CheckCircleIcon /> ثبت سفارش بدون پرداخت آنلاین</p>
             </div>
 
             {/* مزایا */}

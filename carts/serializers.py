@@ -32,7 +32,8 @@ class CartSerializer(serializers.ModelSerializer):
 
 
 class CartCitySerializer(serializers.Serializer):
-    city = serializers.SlugRelatedField(slug_field='city', queryset=ShippingRate.objects.all())
+    # انتخاب شهر با شناسه (id) ShippingRate — جلوگیری از ابهام شهرهای هم‌نام در استان‌های مختلف
+    city = serializers.PrimaryKeyRelatedField(queryset=ShippingRate.objects.all())
 
 
 class QuantitySerializer(serializers.Serializer):
