@@ -1,7 +1,6 @@
 import React,{useEffect,useRef,useState}from"react";
 import{useNavigate}from"react-router-dom";
-import{FiHome,FiShoppingBag,FiBox,FiUsers,FiGrid,FiTag,FiBarChart2,FiSettings,FiFileText,FiHeadphones,FiLogOut,FiBell,FiSearch,FiMenu,FiX,FiSun,FiMoon,FiCalendar,FiChevronLeft,FiChevronDown,FiUser}from"react-icons/fi";
-import DashboardOverview from"../components/Dashboard";
+import{FiHome,FiShoppingBag,FiBox,FiUsers,FiGrid,FiTag,FiBarChart2,FiSettings,FiFileText,FiLogOut,FiBell,FiSearch,FiMenu,FiX,FiSun,FiMoon,FiCalendar,FiChevronLeft,FiChevronDown,FiUser}from"react-icons/fi";import DashboardOverview from"../components/Dashboard";
 import Orders from"../components/Orders";
 import Products from"../components/Products";
 import{apiRequest}from"../api";
@@ -16,7 +15,6 @@ const shaminDashboardMenu=[
 {id:"reports",title:"گزارش‌ها",icon:FiBarChart2},
 {id:"store-settings",title:"تنظیمات فروشگاه",icon:FiSettings},
 {id:"content",title:"مدیریت محتوا",icon:FiFileText},
-{id:"support",title:"پشتیبانی",icon:FiHeadphones}
 ];
 function AdminPanel({children}){
 const navigate=useNavigate();
@@ -84,11 +82,9 @@ return(
 <aside className="shamin-dashboard__sidebar">
 <div className="shamin-dashboard__brand">
 <div className="shamin-dashboard__brand-logo">
-<img src="/Asets/Shamin gallery.png" alt="Shamin Gallery" className="shamin-dashboard__brand-image"/>
+<img src="/logo.png" alt="Shamin Gallery" className="shamin-dashboard__brand-image"/>
 </div>
 <div className="shamin-dashboard__brand-text">
-<strong>پنل ادمین</strong>
-<span>Shamin Gallery</span>
 </div>
 <button type="button" className="shamin-dashboard__mobile-close" onClick={()=>setMobileSidebarOpen(false)} aria-label="بستن منو"><FiX/></button>
 </div>
@@ -96,13 +92,7 @@ return(
 <nav className="shamin-dashboard__navigation">{shaminRenderMenu()}</nav>
 </div>
 <div className="shamin-dashboard__sidebar-bottom">
-<div className="shamin-dashboard__support-box">
-<div className="shamin-dashboard__support-icon"><FiHeadphones/></div>
-<div className="shamin-dashboard__support-text">
-<strong>پشتیبانی آنلاین</strong>
-<span>در خدمت مدیران فروشگاه هستیم</span>
-</div>
-</div>
+
 <button type="button" className="shamin-dashboard__logout" onClick={shaminHandleLogout}><FiLogOut/><span>خروج از پنل ادمین</span></button>
 </div>
 </aside>

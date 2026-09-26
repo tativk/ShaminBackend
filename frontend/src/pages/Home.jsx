@@ -467,23 +467,7 @@ const BlogSection = () => (
    SECTION: NEWSLETTER
    ========================================================= */
 
-const Newsletter = () => (
-  <section className="container">
-    <div className="newsletter">
-      <div className="newsletter__content">
-        <h2>عضو خبرنامه ما شوید</h2>
-        <p>برای دریافت جدیدترین محصولات و تخفیف‌های ویژه، ایمیل خود را وارد کنید.</p>
-        <form className="newsletter__form" onSubmit={(e) => e.preventDefault()}>
-          <input type="tel" placeholder="شماره تماس شما" required />
-          <button type="submit" className="btn btn--primary">
-            عضویت
-            <FiMail />
-          </button>
-        </form>
-      </div>
-    </div>
-  </section>
-);
+
 
 /* =========================================================
    SECTION: FOOTER
@@ -503,7 +487,6 @@ const Home = () => {
         <CategorySection />
         <BestSellingProducts />
         <BlogSection />
-        <Newsletter />
       </main>
       <Footer />
     </div>

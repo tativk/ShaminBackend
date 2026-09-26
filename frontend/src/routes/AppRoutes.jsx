@@ -17,12 +17,16 @@ import Blog from "../pages/Blog";
 import BlogPost from "../pages/BlogPost";
 
 import PaymentCallback from "../pages/PaymentCallback";
+import AboutUs from "../pages/AboutUs";
+import Faq from "../pages/Faq";
 
 
 
 const AppRoutes = () => {
   return (
     <Routes>
+      <Route path="/faq" element={<Faq />} />
+      <Route path="/about-us" element={<AboutUs />} />
       <Route path="/" element={<Home />} />
       <Route path="/products" element={<ProductList />} />
       <Route path="/ProductList" element={<ProductList />} />
