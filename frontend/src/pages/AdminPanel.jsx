@@ -1,8 +1,6 @@
 import React,{useCallback,useEffect,useRef,useState}from"react";
 import{useNavigate}from"react-router-dom";
 
-import{FiHome,FiShoppingBag,FiBox,FiUsers,FiGrid,FiTag,FiBarChart2,FiSettings,FiFileText,FiLogOut,FiBell,FiSearch,FiMenu,FiX,FiSun,FiMoon,FiCalendar,FiChevronLeft,FiChevronDown,FiUser}from"react-icons/fi";import DashboardOverview from"../components/Dashboard";
-
 import{FiHome,FiShoppingBag,FiBox,FiUsers,FiTag,FiBarChart2,FiSettings,FiLogOut,FiBell,FiSearch,FiMenu,FiX,FiSun,FiMoon,FiCalendar,FiChevronLeft,FiChevronDown,FiUser,FiMessageSquare,FiSave,FiEye,FiEyeOff,FiCheckCircle,FiAlertCircle,FiShield,FiPhone}from"react-icons/fi";
 import DashboardOverview from"../components/Dashboard";
 
