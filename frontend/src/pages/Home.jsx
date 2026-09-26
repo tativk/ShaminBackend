@@ -11,6 +11,8 @@ import {
   FiMail,
 } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
+import { apiRequest } from "../api";
+import { notifyCartAdded, notifyCartError } from "../cart-notice";
 import Header from "../components/Header/Header";
 import Footer from "../components/Footer/Footer";
 import "./Home.css";
@@ -360,11 +362,18 @@ const CategorySection = () => (
    ========================================================= */
 
 const ProductCard = ({ product }) => {
-  const handleAddToCart = (e) => {
+  const handleAddToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    // TODO: connect to real cart logic
-    console.log("افزودن به سبد خرید:", product.name);
+    try {
+      const data = await apiRequest("/cart/items/", {
+        method: "POST",
+        body: JSON.stringify({ product: product.id, quantity: 1 }),
+      });
+      notifyCartAdded({ added: 1, totalItems: data?.total_items, productName: product.name });
+    } catch (err) {
+      notifyCartError(err?.message || "افزودن به سبد خرید انجام نشد.");
+    }
   };
 
   return (

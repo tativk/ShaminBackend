@@ -1,4 +1,4 @@
-from django.db.models import Q, ProtectedError
+from django.db.models import ProtectedError
 from rest_framework import permissions, status, viewsets
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from config.permissions import IsStaffUser
 
 from .models import Brand, Product
+from .search import build_product_search_q
 from .serializers import (
     AdminProductSerializer,
     BrandSerializer,
@@ -33,13 +34,9 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
         search = self.request.query_params.get('search', '').strip()
         if search:
-            queryset = queryset.filter(
-                Q(name__icontains=search)
-                | Q(brand__name__icontains=search)
-                | Q(description__icontains=search)
-            )
+            queryset = queryset.filter(build_product_search_q(search))
 
-        return queryset
+        return queryset.order_by('-created_at')
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -57,11 +54,7 @@ class AdminProductViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         search = self.request.query_params.get('search', '').strip()
         if search:
-            queryset = queryset.filter(
-                Q(name__icontains=search)
-                | Q(brand__name__icontains=search)
-                | Q(description__icontains=search)
-            )
+            queryset = queryset.filter(build_product_search_q(search))
         return queryset
 
     def destroy(self, request, *args, **kwargs):
