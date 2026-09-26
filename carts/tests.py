@@ -16,8 +16,8 @@ class CartTests(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {RefreshToken.for_user(self.user).access_token}')
         self.product = Product.objects.create(name='Perfume', category='perfume', gender='unisex',
                                               price=Decimal('100.00'), discount_percent=10, stock=5)
-        ShippingRate.objects.create(city='Tehran', cost=Decimal('20.00'))
-        ShippingRate.objects.create(city='Shiraz', cost=Decimal('30.00'))
+        self.tehran = ShippingRate.objects.create(province='Tehran Province', city='Tehran', cost=Decimal('20.00'))
+        self.shiraz = ShippingRate.objects.create(province='Fars Province', city='Shiraz', cost=Decimal('30.00'))
 
     def add(self, quantity=1):
         return self.client.post('/api/cart/items/', {'product': self.product.pk, 'quantity': quantity}, format='json')
@@ -40,11 +40,11 @@ class CartTests(TestCase):
 
     def test_discount_totals_and_city_changes(self):
         self.assertEqual(self.add(2).status_code, 201)
-        response = self.client.patch('/api/cart/', {'city': 'Tehran'}, format='json')
+        response = self.client.patch('/api/cart/', {'city': self.tehran.pk}, format='json')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['subtotal'], '180.00')
         self.assertEqual(response.data['total'], '200.00')
-        response = self.client.patch('/api/cart/', {'city': 'Shiraz'}, format='json')
+        response = self.client.patch('/api/cart/', {'city': self.shiraz.pk}, format='json')
         self.assertEqual(response.data['total'], '210.00')
         self.product.refresh_from_db()
         self.assertEqual(self.product.stock, 5)
@@ -83,8 +83,8 @@ class CartTests(TestCase):
         self.assertEqual(self.client.post('/api/cart/items/', {'product': 99999, 'quantity': 1}).status_code, 404)
 
     def test_unknown_city_rejected_and_existing_city_retained(self):
-        self.client.patch('/api/cart/', {'city': 'Tehran'}, format='json')
-        self.assertEqual(self.client.patch('/api/cart/', {'city': 'Unknown'}, format='json').status_code, 400)
+        self.client.patch('/api/cart/', {'city': self.tehran.pk}, format='json')
+        self.assertEqual(self.client.patch('/api/cart/', {'city': 999999}, format='json').status_code, 400)
         self.assertEqual(self.client.get('/api/cart/').data['city'], 'Tehran')
 
     def test_other_users_item_is_private(self):

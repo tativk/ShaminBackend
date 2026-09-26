@@ -1,6 +1,6 @@
 from rest_framework import serializers
 import re
-from .models import User, Address
+from .models import User, Address, StoreSetting
 
 
 def validate_iranian_phone(value: str) -> str:
@@ -43,6 +43,28 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_role(self, obj):
         return "admin" if obj.is_staff or obj.is_superuser else "customer"
+
+
+class StoreSettingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StoreSetting
+        fields = [
+            "store_name", "support_phone", "support_email", "address",
+            "instagram_url", "telegram_url", "announcement", "updated_at",
+        ]
+        read_only_fields = ["updated_at"]
+
+
+class AdminCustomerSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    phone = serializers.CharField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    email = serializers.EmailField()
+    is_active = serializers.BooleanField()
+    date_joined = serializers.DateTimeField()
+    orders_count = serializers.IntegerField()
+    total_spent = serializers.FloatField()
 
 
 class AddressSerializer(serializers.ModelSerializer):

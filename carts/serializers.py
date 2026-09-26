@@ -25,14 +25,20 @@ class CartSerializer(serializers.ModelSerializer):
     subtotal = serializers.DecimalField(max_digits=30, decimal_places=2, read_only=True)
     shipping_cost = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True, allow_null=True)
     total = serializers.DecimalField(max_digits=30, decimal_places=2, read_only=True, allow_null=True)
+    # بعد از «items» می‌آید تا از کوئری همان relation کش‌شده استفاده کند
+    total_items = serializers.SerializerMethodField()
 
     class Meta:
         model = Cart
-        fields = ['id', 'city', 'items', 'subtotal', 'shipping_cost', 'total']
+        fields = ['id', 'city', 'items', 'total_items', 'subtotal', 'shipping_cost', 'total']
+
+    def get_total_items(self, obj):
+        return sum(item.quantity for item in obj.items.all())
 
 
 class CartCitySerializer(serializers.Serializer):
-    city = serializers.SlugRelatedField(slug_field='city', queryset=ShippingRate.objects.all())
+    # انتخاب شهر با شناسه (id) ShippingRate — جلوگیری از ابهام شهرهای هم‌نام در استان‌های مختلف
+    city = serializers.PrimaryKeyRelatedField(queryset=ShippingRate.objects.all())
 
 
 class QuantitySerializer(serializers.Serializer):

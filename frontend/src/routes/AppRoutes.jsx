@@ -17,8 +17,12 @@ import Blog from "../pages/Blog";
 import BlogPost from "../pages/BlogPost";
 
 import PaymentCallback from "../pages/PaymentCallback";
+
 import AboutUs from "../pages/AboutUs";
 import Faq from "../pages/Faq";
+
+import PaymentCallbackConnected from "../pages/PaymentCallbackConnected";
+
 
 
 
@@ -43,7 +47,8 @@ const AppRoutes = () => {
       <Route path="/Login" element={<Login />} />
       <Route path="/Register" element={<Register />} />
       <Route path="/Verify" element={<Verify />} />
-      <Route path="/PaymentCallback" element={<PaymentCallback />} />
+      <Route path="/payment/callback" element={<PaymentCallbackConnected />} />
+      <Route path="/PaymentCallback" element={<PaymentCallbackConnected />} />
     </Routes>
   );
 };

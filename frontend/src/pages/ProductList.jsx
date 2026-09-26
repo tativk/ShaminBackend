@@ -71,12 +71,14 @@ const ProductList = () => {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [searchParams] = useSearchParams();
 
-  // لینک‌های دسته‌بندی هدر (مثل /products?category=perfume) فیلتر صفحه را تنظیم می‌کنند
+  // لینک‌های هدر (مثل /products?category=perfume یا /products?search=...) فیلتر صفحه را تنظیم می‌کنند
   useEffect(() => {
     const categoryParam = searchParams.get("category");
     const genderParam = searchParams.get("gender");
+    const searchParam = searchParams.get("search");
     if (categoryParam && CATEGORY_LABEL[categoryParam]) setCategory(CATEGORY_LABEL[categoryParam]);
     if (genderParam && GENDER_LABEL[genderParam]) setGender(GENDER_LABEL[genderParam]);
+    if (searchParam) setSearch(searchParam);
   }, [searchParams]);
 
   useEffect(() => {
@@ -91,6 +93,7 @@ const ProductList = () => {
           brand: typeof product.brand === "string" ? product.brand : "",
           category: CATEGORY_LABEL[product.category] || product.category,
           gender: GENDER_LABEL[product.gender] || product.gender,
+          description: product.description || "",
           price: Number(product.final_price ?? product.price ?? 0),
           rating: null,
           badge: product.discount_percent > 0 ? `${new Intl.NumberFormat("fa-IR").format(product.discount_percent)}٪ تخفیف` : undefined,
@@ -108,7 +111,7 @@ const ProductList = () => {
       (category === "همه" || product.category === category) &&
       (gender === "همه" || product.gender === gender) &&
       product.price <= maxPrice &&
-      (!query || `${product.name} ${product.brand}`.toLocaleLowerCase().includes(query))
+      (!query || `${product.name} ${product.brand} ${product.category} ${product.gender} ${product.description}`.toLocaleLowerCase().includes(query))
     ));
     if (sort === "price-low") return [...result].sort((a, b) => a.price - b.price);
     if (sort === "price-high") return [...result].sort((a, b) => b.price - a.price);

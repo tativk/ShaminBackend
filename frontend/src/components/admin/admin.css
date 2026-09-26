@@ -1,0 +1,621 @@
+/* =========================================================
+   ADMIN SECTION COMPONENTS — مشتریان، تخفیف‌ها، گزارش‌ها، نظرها، تنظیمات
+   استفاده از متغیرهای پنل (تعریف‌شده در AdminPanel.css)
+   ========================================================= */
+
+.adm-section {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  color: var(--sd-text);
+}
+
+.adm-section__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.adm-section__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--sd-primary);
+  margin-bottom: 6px;
+}
+
+.adm-section__kicker svg {
+  width: 14px;
+  height: 14px;
+}
+
+.adm-section__title {
+  margin: 0 0 4px;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--sd-text);
+}
+
+.adm-section__desc {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--sd-muted);
+}
+
+.adm-section__head > .adm-btn,
+.adm-section__head .adm-periods {
+  flex-shrink: 0;
+}
+
+/* ── کارت‌های آماری ─────────────────────────────────────── */
+.adm-cards-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+}
+
+.adm-card-stat {
+  background: var(--sd-card);
+  border: 1px solid var(--sd-border);
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.adm-card-stat:hover {
+  box-shadow: var(--sd-shadow);
+  transform: translateY(-2px);
+}
+
+.adm-card-stat span {
+  font-size: 0.76rem;
+  color: var(--sd-muted);
+  font-weight: 600;
+}
+
+.adm-card-stat strong {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--sd-text);
+}
+
+.adm-card-stat strong small {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--sd-muted);
+}
+
+.adm-card-stat--danger strong {
+  color: #a34b4b;
+}
+
+.adm-card-stat--gold strong {
+  color: #a88950;
+}
+
+/* ── دکمه‌ها ─────────────────────────────────────────────── */
+.adm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--sd-border);
+  background: var(--sd-card);
+  color: var(--sd-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  white-space: nowrap;
+}
+
+.adm-btn:hover:not(:disabled) {
+  border-color: var(--sd-primary);
+  color: var(--sd-primary);
+  transform: translateY(-1px);
+}
+
+.adm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.adm-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.adm-btn--primary {
+  background: var(--sd-primary);
+  border-color: var(--sd-primary);
+  color: #fff;
+}
+
+.adm-btn--primary:hover:not(:disabled) {
+  background: var(--sd-primary-strong);
+  color: #fff;
+}
+
+.adm-btn--active {
+  background: var(--sd-primary-soft);
+  border-color: var(--sd-primary);
+  color: var(--sd-primary);
+}
+
+.adm-btn--green-soft {
+  background: var(--sd-green-soft);
+  border-color: transparent;
+  color: #2e7d5a;
+}
+
+.adm-btn--green-soft:hover:not(:disabled) {
+  color: #1f6244;
+}
+
+.adm-btn--danger-soft {
+  background: var(--sd-red-soft);
+  border-color: transparent;
+  color: #a34b4b;
+}
+
+.adm-btn--danger-soft:hover:not(:disabled) {
+  color: #8f3f3f;
+}
+
+/* ── دوره‌های زمانی و فیلترها ────────────────────────────── */
+.adm-periods,
+.adm-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── جستجو ───────────────────────────────────────────────── */
+.adm-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.adm-search {
+  flex: 1;
+  max-width: 420px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--sd-card);
+  border: 1px solid var(--sd-border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  transition: border-color 0.18s ease;
+}
+
+.adm-search:focus-within {
+  border-color: var(--sd-primary);
+}
+
+.adm-search svg {
+  width: 15px;
+  height: 15px;
+  color: var(--sd-muted);
+  flex-shrink: 0;
+}
+
+.adm-search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--sd-text);
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+.adm-search button {
+  border: none;
+  background: none;
+  color: var(--sd-muted);
+  cursor: pointer;
+  display: flex;
+  padding: 2px;
+}
+
+/* ── جدول ────────────────────────────────────────────────── */
+.adm-table-wrap {
+  background: var(--sd-card);
+  border: 1px solid var(--sd-border);
+  border-radius: 16px;
+  overflow: auto;
+}
+
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  min-width: 720px;
+}
+
+.adm-table th {
+  text-align: right;
+  padding: 13px 16px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--sd-muted);
+  background: var(--sd-table-head);
+  border-bottom: 1px solid var(--sd-border);
+  white-space: nowrap;
+}
+
+.adm-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--sd-border);
+  color: var(--sd-text);
+  vertical-align: middle;
+}
+
+.adm-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.adm-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.adm-table tbody tr:hover {
+  background: var(--sd-row-hover);
+}
+
+.adm-table--compact {
+  min-width: 0;
+}
+
+.adm-table__empty {
+  text-align: center;
+  color: var(--sd-muted);
+  padding: 28px 16px !important;
+}
+
+.adm-row--blocked td {
+  opacity: 0.62;
+}
+
+.adm-row--pending {
+  background: var(--sd-gold-tint);
+}
+
+.adm-customer {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.adm-customer small {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--sd-muted);
+}
+
+.adm-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--sd-primary-soft);
+  color: var(--sd-primary);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.adm-product {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.adm-product img {
+  width: 42px;
+  height: 42px;
+  border-radius: 9px;
+  object-fit: cover;
+  background: var(--sd-soft);
+  flex-shrink: 0;
+}
+
+.adm-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── بج‌ها ───────────────────────────────────────────────── */
+.adm-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: var(--sd-soft);
+  color: var(--sd-muted);
+  white-space: nowrap;
+}
+
+.adm-badge--green {
+  background: var(--sd-green-soft);
+  color: #2e7d5a;
+}
+
+.adm-badge--red {
+  background: var(--sd-red-soft);
+  color: #a34b4b;
+}
+
+.adm-badge--gold {
+  background: var(--sd-gold-soft);
+  color: #a88950;
+}
+
+.adm-stars {
+  display: inline-flex;
+  gap: 2px;
+  color: var(--sd-border);
+}
+
+.adm-stars .is-filled {
+  color: #e8b73a;
+}
+
+.adm-stars svg {
+  width: 13px;
+  height: 13px;
+}
+
+.adm-review-text {
+  max-width: 260px;
+  line-height: 1.7;
+}
+
+/* ── ورودی تخفیف ─────────────────────────────────────────── */
+.adm-discount-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--sd-border);
+  border-radius: 10px;
+  padding: 6px 10px;
+  background: var(--sd-soft);
+  transition: border-color 0.18s ease;
+}
+
+.adm-discount-input:focus-within {
+  border-color: var(--sd-primary);
+}
+
+.adm-discount-input input {
+  width: 56px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--sd-text);
+  font: inherit;
+  font-weight: 700;
+  text-align: center;
+}
+
+.adm-discount-input span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--sd-muted);
+}
+
+/* ── پنل‌ها و فرم ────────────────────────────────────────── */
+.adm-panels-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .adm-panels-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.adm-panel {
+  background: var(--sd-card);
+  border: 1px solid var(--sd-border);
+  border-radius: 16px;
+  padding: 20px 22px;
+}
+
+.adm-panel__title {
+  margin: 0 0 16px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--sd-text);
+}
+
+.adm-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.adm-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 700px) {
+  .adm-form__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.adm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.adm-field--full {
+  grid-column: 1 / -1;
+}
+
+.adm-field span {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--sd-muted);
+}
+
+.adm-field input {
+  padding: 11px 14px;
+  border-radius: 11px;
+  border: 1px solid var(--sd-border);
+  background: var(--sd-soft);
+  color: var(--sd-text);
+  font: inherit;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.adm-field input:focus-visible {
+  border-color: var(--sd-primary);
+  background: var(--sd-card);
+}
+
+.adm-field input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.adm-form__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ── نمودار میله‌ای گزارش ────────────────────────────────── */
+.adm-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.adm-bars__row {
+  display: grid;
+  grid-template-columns: 92px 1fr 90px;
+  align-items: center;
+  gap: 10px;
+}
+
+.adm-bars__label {
+  font-size: 0.72rem;
+  color: var(--sd-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.adm-bars__track {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--sd-soft);
+  overflow: hidden;
+}
+
+.adm-bars__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(270deg, var(--sd-primary), #3d7a68);
+  transition: width 0.5s ease;
+}
+
+.adm-bars__value {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--sd-text);
+  text-align: left;
+}
+
+.adm-growth {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 16px 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.adm-growth--up {
+  color: #2e7d5a;
+}
+
+.adm-growth--down {
+  color: #a34b4b;
+}
+
+.adm-share {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adm-share span {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--sd-primary);
+  min-width: 8px;
+  transition: width 0.4s ease;
+}
+
+.adm-share b {
+  font-size: 0.7rem;
+  color: var(--sd-muted);
+  white-space: nowrap;
+}
+
+/* ── حالت‌ها ─────────────────────────────────────────────── */
+.adm-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 34px 18px;
+  background: var(--sd-card);
+  border: 1px solid var(--sd-border);
+  border-radius: 16px;
+  color: var(--sd-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.adm-state svg {
+  width: 16px;
+  height: 16px;
+}
+
+.adm-state--error {
+  color: #a34b4b;
+  border-color: var(--sd-red-soft);
+  background: var(--sd-red-soft);
+}
+
+.adm-state--success {
+  color: #2e7d5a;
+  border-color: var(--sd-green-soft);
+  background: var(--sd-green-soft);
+}

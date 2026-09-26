@@ -1,0 +1,255 @@
+/* =========================================================
+   CART NOTICE — اعلان افزودن به سبد خرید
+   استایل اختصاصی همین اعلان؛ از کلاس‌های عمومی سایت استفاده نشده،
+   فقط متغیرهای رنگ/سایه پالت سایت با مقادیر جایگزین امن به‌کار رفته است.
+   ========================================================= */
+
+.cart-notice {
+  position: fixed;
+  top: 14px;
+  right: 50%;
+  z-index: 1200; /* بالاتر از هدر ثابت (z-index: 100) */
+  width: min(460px, calc(100vw - 24px));
+  text-align: start;
+  direction: rtl;
+  font-family: inherit;
+  background: linear-gradient(135deg, var(--color-white, #ffffff) 0%, var(--color-cream, #faf6ee) 100%);
+  border: 1px solid var(--color-border, #e7e1d3);
+  border-radius: var(--radius-lg, 14px);
+  box-shadow: var(--shadow-md, 0 10px 30px rgba(20, 40, 30, 0.1)), 0 4px 14px rgba(20, 40, 30, 0.08);
+  padding: 14px 16px 17px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  overflow: hidden;
+  opacity: 0;
+  transform: translate(50%, calc(-100% - 26px)) scale(0.92);
+  transform-origin: top center;
+  transition:
+    transform 0.38s cubic-bezier(0.55, 0, 0.85, 0.45),
+    opacity 0.3s ease-in;
+  will-change: transform, opacity;
+}
+
+.cart-notice--visible {
+  opacity: 1;
+  transform: translate(50%, 0) scale(1);
+  transition:
+    transform 0.55s cubic-bezier(0.22, 1.35, 0.36, 1),
+    opacity 0.3s ease-out;
+}
+
+/* ── آیکن وضعیت ─────────────────────────────────────────── */
+
+.cart-notice__icon {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-white, #ffffff);
+  background: linear-gradient(145deg, var(--color-green-800, #1a4d3b), var(--color-green-950, #0e2f24));
+  box-shadow: 0 4px 12px rgba(14, 47, 36, 0.35);
+  animation: cart-notice-icon-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s backwards;
+}
+
+.cart-notice__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.cart-notice__icon path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: cart-notice-check-draw 0.4s ease-out 0.4s forwards;
+}
+
+.cart-notice--error .cart-notice__icon {
+  background: linear-gradient(145deg, #b8503f, #8e3527);
+  box-shadow: 0 4px 12px rgba(142, 53, 39, 0.35);
+  animation: none;
+}
+
+.cart-notice--error .cart-notice__icon path {
+  animation: none;
+  stroke-dashoffset: 0;
+}
+
+/* ── متن‌ها ─────────────────────────────────────────────── */
+
+.cart-notice__body {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.cart-notice__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-green-950, #0e2f24);
+  line-height: 1.5;
+}
+
+.cart-notice--error .cart-notice__title {
+  color: #8e3527;
+}
+
+.cart-notice__meta {
+  margin: 3px 0 0;
+  font-size: 0.8rem;
+  color: var(--color-text-soft, #5f6b63);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.cart-notice__product {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cart-notice__count-chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-green-800, #1a4d3b);
+  background: var(--color-cream-soft, #f3ecdd);
+  border: 1px solid var(--color-border, #e7e1d3);
+  white-space: nowrap;
+}
+
+/* ── اکشن‌ها ────────────────────────────────────────────── */
+
+.cart-notice__action {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-green-700, #1f5c46);
+  text-decoration: none;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm, 10px);
+  border: 1px solid transparent;
+  transition: color 0.25s ease, background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.cart-notice__action:hover,
+.cart-notice__action:focus-visible {
+  color: var(--color-green-950, #0e2f24);
+  background: var(--color-cream-soft, #f3ecdd);
+  border-color: var(--color-border, #e7e1d3);
+}
+
+.cart-notice__close {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-soft, #5f6b63);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.cart-notice__close:hover,
+.cart-notice__close:focus-visible {
+  background: var(--color-cream-soft, #f3ecdd);
+  color: var(--color-green-950, #0e2f24);
+}
+
+/* ── نوار باریک پیشرفت (پر شدن = پایان نمایش) ───────────── */
+
+.cart-notice__bar {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: var(--color-cream-soft, #f3ecdd);
+}
+
+.cart-notice__bar-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 3px 0 0 3px; /* لبه در حال رشد در RTL سمت چپ است */
+  background: linear-gradient(270deg, var(--color-gold, #c9a227), var(--color-gold-soft, #e4c96b));
+  animation: cart-notice-fill linear forwards;
+  animation-duration: var(--cart-notice-duration, 4200ms);
+}
+
+.cart-notice--error .cart-notice__bar-fill {
+  background: linear-gradient(270deg, #8e3527, #b8503f);
+}
+
+.cart-notice--paused .cart-notice__bar-fill {
+  animation-play-state: paused;
+}
+
+/* ── انیمیشن‌ها ─────────────────────────────────────────── */
+
+@keyframes cart-notice-fill {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes cart-notice-icon-pop {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+
+@keyframes cart-notice-check-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* ── ریسپانسیو و دسترس‌پذیری ────────────────────────────── */
+
+@media (max-width: 560px) {
+  .cart-notice {
+    top: 10px;
+    gap: 10px;
+    padding: 12px 14px 15px;
+  }
+
+  .cart-notice__action {
+    padding: 5px 10px;
+  }
+
+  .cart-notice__product {
+    max-width: 130px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cart-notice,
+  .cart-notice--visible {
+    transition: opacity 0.3s ease;
+    transform: translate(50%, 0);
+  }
+
+  .cart-notice:not(.cart-notice--visible) {
+    opacity: 0;
+  }
+
+  .cart-notice__icon {
+    animation: none;
+  }
+}

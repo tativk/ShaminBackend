@@ -80,6 +80,30 @@ class Address(models.Model):
         return f"{self.user.phone} — {self.city}"
 
 
+class StoreSetting(models.Model):
+    """تنظیمات تک‌ردیفی فروشگاه — از پنل ادمین ویرایش می‌شود."""
+    store_name = models.CharField("نام فروشگاه", max_length=100, default="گالری شمین")
+    support_phone = models.CharField("تلفن پشتیبانی", max_length=30, blank=True, default="")
+    support_email = models.EmailField("ایمیل پشتیبانی", blank=True, default="")
+    address = models.CharField("آدرس", max_length=255, blank=True, default="")
+    instagram_url = models.URLField("اینستاگرام", blank=True, default="")
+    telegram_url = models.URLField("تلگرام", blank=True, default="")
+    announcement = models.CharField("اعلان سایت", max_length=200, blank=True, default="")
+    updated_at = models.DateTimeField("آخرین تغییر", auto_now=True)
+
+    class Meta:
+        verbose_name = "تنظیمات فروشگاه"
+        verbose_name_plural = "تنظیمات فروشگاه"
+
+    def __str__(self):
+        return self.store_name
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+
 class OtpCode(models.Model):
     phone = models.CharField(max_length=11, verbose_name="موبایل")
     code = models.CharField(max_length=6, verbose_name="کد OTP")
@@ -102,4 +126,22 @@ class OtpCode(models.Model):
     def generate_code(cls):
         return "".join(random.choices(string.digits, k=6))
 
-# Create your models here.
+class PasswordRecovery(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    code_hash = models.CharField(max_length=128)
+    created_at = models.DateTimeField(default=timezone.now)
+    attempts = models.PositiveSmallIntegerField(default=0)
+    verified = models.BooleanField(default=False)
+    consumed = models.BooleanField(default=False)
+
+
+class AdminNotification(models.Model):
+    kind = models.CharField(max_length=24)
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    section = models.CharField(max_length=24, blank=True)
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+    read_by = models.ManyToManyField(User, blank=True, related_name='read_notifications')
+
+    class Meta:
+        ordering = ['-id']

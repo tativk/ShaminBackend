@@ -1113,3 +1113,35 @@ button {
     animation-iteration-count: infinite !important;
   }
 }
+
+.products-state {
+  text-align: center;
+  padding: 32px 0;
+  color: var(--color-text-soft, #667);
+  font-size: 0.95rem;
+}
+
+.product-card__message {
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.product-card__message--success {
+  color: #2e7d5a;
+}
+
+.product-card__message--error {
+  color: #a34b4b;
+}
+
+.product-card__message button {
+  background: none;
+  border: none;
+  padding: 0 4px;
+  font: inherit;
+  color: var(--color-green-900, #17483f);
+  text-decoration: underline;
+  cursor: pointer;
+}
