@@ -1,7 +1,11 @@
 import React,{useCallback,useEffect,useRef,useState}from"react";
 import{useNavigate}from"react-router-dom";
+
+import{FiHome,FiShoppingBag,FiBox,FiUsers,FiGrid,FiTag,FiBarChart2,FiSettings,FiFileText,FiLogOut,FiBell,FiSearch,FiMenu,FiX,FiSun,FiMoon,FiCalendar,FiChevronLeft,FiChevronDown,FiUser}from"react-icons/fi";import DashboardOverview from"../components/Dashboard";
+
 import{FiHome,FiShoppingBag,FiBox,FiUsers,FiTag,FiBarChart2,FiSettings,FiLogOut,FiBell,FiSearch,FiMenu,FiX,FiSun,FiMoon,FiCalendar,FiChevronLeft,FiChevronDown,FiUser,FiMessageSquare,FiSave,FiEye,FiEyeOff,FiCheckCircle,FiAlertCircle,FiShield,FiPhone}from"react-icons/fi";
 import DashboardOverview from"../components/Dashboard";
+
 import Orders from"../components/Orders";
 import Products from"../components/Products";
 import CustomersSection from"../components/admin/CustomersSection";
@@ -20,7 +24,9 @@ const shaminDashboardMenu=[
 {id:"customers",title:"مشتریان",icon:FiUsers},
 {id:"discounts",title:"تخفیف‌ها و پیشنهادها",icon:FiTag},
 {id:"reports",title:"گزارش‌ها",icon:FiBarChart2},
+
 {id:"store-settings",title:"تنظیمات فروشگاه",icon:FiSettings}
+
 ];
 const shaminExtraSections=[{id:"profile",title:"پروفایل من",icon:FiUser},{id:"account-settings",title:"تنظیمات حساب",icon:FiSettings}];
 const shaminNormalizeText=value=>String(value||"").replace(/ي/g,"ی").replace(/ى/g,"ی").replace(/ك/g,"ک").replace(/\u200c/g," ").replace(/\s+/g," ").toLowerCase().trim();
@@ -306,11 +312,9 @@ return(
 <aside className="shamin-dashboard__sidebar">
 <div className="shamin-dashboard__brand">
 <div className="shamin-dashboard__brand-logo">
-<img src="/Asets/Shamin gallery.png" alt="Shamin Gallery" className="shamin-dashboard__brand-image"/>
+<img src="/logo.png" alt="Shamin Gallery" className="shamin-dashboard__brand-image"/>
 </div>
 <div className="shamin-dashboard__brand-text">
-<strong>پنل ادمین</strong>
-<span>Shamin Gallery</span>
 </div>
 <button type="button" className="shamin-dashboard__mobile-close" onClick={()=>setMobileSidebarOpen(false)} aria-label="بستن منو"><FiX/></button>
 </div>
@@ -318,6 +322,7 @@ return(
 <nav className="shamin-dashboard__navigation">{shaminRenderMenu()}</nav>
 </div>
 <div className="shamin-dashboard__sidebar-bottom">
+
 <button type="button" className="shamin-dashboard__logout" onClick={shaminHandleLogout}><FiLogOut/><span>خروج از پنل ادمین</span></button>
 </div>
 </aside>
