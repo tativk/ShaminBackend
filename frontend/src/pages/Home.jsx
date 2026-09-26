@@ -14,9 +14,10 @@ import {
 import { FaStar } from "react-icons/fa";
 import Header from "../components/Header/Header";
 import Footer from "../components/Footer/Footer";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import blogPosts from "../data/blogPosts";
 import { useWishlist } from "../context/WishlistContext";
+import { apiRequest, getAssetUrl } from "../api";
 import "./Home.css";
 
 /* =========================================================
@@ -58,20 +59,24 @@ const FEATURES = [
   { icon: <FiTruck />, title: "ارسال سریع", desc: "ارسال به سراسر کشور" },
 ];
 
+// دسته‌بندی‌های واقعی بک‌اند (products.Product.CATEGORY_CHOICES)
 const CATEGORIES = [
   {
+    code: "perfume",
     title: "عطر و ادکلن",
     desc: "رایحه‌ای خاص، لحظاتی ماندگار",
     image:
       "/cat-perfume.jpg",
   },
   {
+    code: "cosmetic",
     title: "لوازم آرایشی و بهداشتی",
     desc: "زیبایی، مراقبت، اعتماد به نفس",
     image:
       "/cat-cosmetics.jpg",
   },
   {
+    code: "accessory",
     title: "اکسسوری",
     desc: "جزئیات کوچک، تفاوت‌های بزرگ",
     image:
@@ -79,110 +84,7 @@ const CATEGORIES = [
   },
 ];
 
-
-
-const PRODUCTS = [
-  {
-    id: 1,
-    name: "رژ لب مدل YSL Rouge Pur Couture",
-    brand: "YSL",
-    price: 2450000,
-    oldPrice: null,
-    rating: 5,
-    badge: null,
-    image:
-      "/rozh.png",
-  },
-  {
-    id: 2,
-    name: "عطر شنل مدل Coco Mademoiselle",
-    brand: "CHANEL",
-    price: 6490000,
-    oldPrice: null,
-    rating: 5,
-    badge: null,
-    image:
-      "/perfuame1.png",
-  },
-  {
-    id: 3,
-    name: "کرم مرطوب‌کننده کلینیک Moisture Surge",
-    brand: "CLINIQUE",
-    price: 2190000,
-    oldPrice: null,
-    rating: 4,
-    badge: null,
-    image:
-      "/kerem1.png",
-  },
-  {
-    id: 4,
-    name: "عطر دیور مدل Sauvage",
-    brand: "Dior",
-    price: 6990000,
-    oldPrice: null,
-    rating: 5,
-    badge: null,
-    image:
-      "/perfuame2.png",
-  },
-  {
-    id: 5,
-    name: "پالت سایه چشم NYX",
-    brand: "NYX",
-    price: 1890000,
-    oldPrice: null,
-    rating: 4,
-    badge: "٪۳۰",
-    image:
-      "/arayeshi.png",
-  },
-  {
-    id: 6,
-    name: "ساعت زنانه مایکل کورس",
-    brand: "MICHAEL KORS",
-    price: 7990000,
-    oldPrice: null,
-    rating: 5,
-    badge: "جدید",
-    image:
-      "/wach1.png",
-  },
-  {
-    id: 7,
-    name: "ساعت مردانه رولکس",
-    brand: "Rolex",
-    price: 2390000,
-    oldPrice: null,
-    rating: 5,
-    badge: "",
-    image:
-      "/wach2.png",
-  },
-  {
-    id: 8,
-    name: "ریمل essence",
-    brand: "essence",
-    price: 990000,
-    oldPrice: null,
-    rating: 5,
-    badge: "",
-    image:
-      "/arayeshi2.png",
-  },
-  {
-    id: 9,
-    name: "اتو مو",
-    brand: "shiglam",
-    price: 3990000,
-    oldPrice: null,
-    rating: 5,
-    badge: "",
-    image:
-      "/arayeshi3.png",
-  },
-  
-];
+const FALLBACK_IMAGE = "/logo.png";
 
 
 
@@ -305,7 +207,7 @@ const Features = () => (
    ========================================================= */
 
 const CategoryCard = ({ category }) => (
-  <a href="#" className="category-card">
+  <Link to={`/products?category=${category.code}`} className="category-card">
     <img src={category.image} alt={category.title} className="category-card__image" />
     <div className="category-card__overlay" />
     <div className="category-card__body">
@@ -315,7 +217,7 @@ const CategoryCard = ({ category }) => (
     <span className="category-card__arrow">
       <FiChevronLeft />
     </span>
-  </a>
+  </Link>
 );
 
 const CategorySection = () => (
@@ -340,13 +242,28 @@ const CategorySection = () => (
 
 const ProductCard = ({ product }) => {
   const { has, toggle } = useWishlist();
+  const navigate = useNavigate();
   const wishlisted = has(product.id);
+  const [adding, setAdding] = useState(false);
+  const [message, setMessage] = useState(null); // {type:'success'|'error', text}
 
-  const handleAddToCart = (e) => {
+  const handleAddToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    // TODO: connect to real cart logic
-    console.log("افزودن به سبد خرید:", product.name);
+    if (adding) return;
+    setAdding(true);
+    setMessage(null);
+    try {
+      await apiRequest("/cart/items/", {
+        method: "POST",
+        body: JSON.stringify({ product: product.id, quantity: 1 }),
+      });
+      setMessage({ type: "success", text: "به سبد خرید اضافه شد ✓" });
+    } catch (err) {
+      setMessage({ type: "error", text: err?.message || "افزودن به سبد ناموفق بود." });
+    } finally {
+      setAdding(false);
+    }
   };
 
   const handleToggleWishlist = (e) => {
@@ -387,7 +304,7 @@ const ProductCard = ({ product }) => {
         <div className="product-card__body">
           <span className="product-card__brand">{product.brand}</span>
           <h3 className="product-card__name">{product.name}</h3>
-          <Stars rating={product.rating} />
+          {product.rating != null && <Stars rating={Math.round(product.rating)} />}
           <div className="product-card__price">
             <span className="product-card__price-current">{formatPrice(product.price)}</span>
             {product.oldPrice && (
@@ -397,28 +314,78 @@ const ProductCard = ({ product }) => {
         </div>
       </a>
       <div className="product-card__actions">
-        <button className="product-card__add-btn" onClick={handleAddToCart}>
+        <button className="product-card__add-btn" onClick={handleAddToCart} disabled={adding}>
           <FiShoppingCart />
-          افزودن به سبد خرید
+          {adding ? "در حال افزودن..." : "افزودن به سبد خرید"}
         </button>
       </div>
+      {message && (
+        <p
+          className={
+            message.type === "success"
+              ? "product-card__message product-card__message--success"
+              : "product-card__message product-card__message--error"
+          }
+        >
+          {message.text}
+          {message.type === "error" && (
+            <button type="button" onClick={() => navigate("/Login")}>ورود</button>
+          )}
+        </p>
+      )}
     </div>
   );
 };
 
-const BestSellingProducts = () => (
-  <section className="container products-section" id="products">
-    <div className="section-title">
-      <FiAward />
-      <h2>محصولات پرفروش</h2>
-    </div>
-    <div className="products-grid">
-      {PRODUCTS.map((p) => (
-        <ProductCard product={p} key={p.id} />
-      ))}
-    </div>
-  </section>
-);
+const BestSellingProducts = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let ignore = false;
+    apiRequest("/products/")
+      .then((data) => {
+        if (ignore) return;
+        const rows = Array.isArray(data) ? data : data?.results || [];
+        setProducts(rows.map((product) => ({
+          id: product.id,
+          name: product.name,
+          brand: typeof product.brand === "string" ? product.brand : "",
+          price: Number(product.final_price ?? product.price ?? 0),
+          oldPrice: Number(product.discount_percent || 0) > 0 ? Number(product.price) : null,
+          rating: null,
+          badge: product.discount_percent > 0 ? `${new Intl.NumberFormat("fa-IR").format(product.discount_percent)}٪ تخفیف` : null,
+          image: product.main_image ? getAssetUrl(product.main_image) : FALLBACK_IMAGE,
+        })));
+      })
+      .catch((err) => { if (!ignore) setError(err?.message || "خطا در دریافت محصولات"); })
+      .finally(() => { if (!ignore) setLoading(false); });
+    return () => { ignore = true; };
+  }, []);
+
+  return (
+    <section className="container products-section" id="products">
+      <div className="section-title">
+        <FiAward />
+        <h2>محصولات پرفروش</h2>
+      </div>
+      {loading ? (
+        <p className="products-state">در حال دریافت محصولات...</p>
+      ) : error ? (
+        <p className="products-state">{error}</p>
+      ) : products.length === 0 ? (
+        <p className="products-state">هنوز محصولی ثبت نشده است.</p>
+      ) : (
+        <div className="products-grid">
+          {products.map((p) => (
+            <ProductCard product={p} key={p.id} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+};
 
 /* =========================================================
    SECTION: PROMO BANNERS

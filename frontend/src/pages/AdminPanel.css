@@ -1611,3 +1611,656 @@
     display: none;
   }
 }
+
+/* =========================================================
+   DESIGN REFRESH — متغیرهای بخش‌های ادمین، دارک‌مود کامل، دکمه‌ها و مودال
+   ========================================================= */
+
+.shamin-dashboard {
+  --sd-card: #ffffff;
+  --sd-soft: #f6f8f7;
+  --sd-text: var(--shamin-text);
+  --sd-muted: var(--shamin-text-soft);
+  --sd-border: #e7ebe8;
+  --sd-table-head: #fafbfa;
+  --sd-row-hover: #f7faf8;
+  --sd-shadow: 0 10px 26px rgba(23, 72, 63, 0.08);
+  --sd-primary: #17483f;
+  --sd-primary-strong: #0f352c;
+  --sd-primary-soft: rgba(23, 72, 63, 0.09);
+  --sd-green-soft: #e9f5ef;
+  --sd-red-soft: #fceeee;
+  --sd-gold-soft: #faf3e3;
+  --sd-gold-tint: rgba(194, 165, 106, 0.06);
+}
+
+.shamin-dashboard--dark {
+  --sd-card: #161f1c;
+  --sd-soft: #1b2522;
+  --sd-text: #edf2ef;
+  --sd-muted: #93a19a;
+  --sd-border: #26332e;
+  --sd-table-head: #19241f;
+  --sd-row-hover: #1c2724;
+  --sd-shadow: 0 12px 30px rgba(0, 0, 0, 0.32);
+  --sd-primary: #d8c18d;
+  --sd-primary-strong: #c2a56a;
+  --sd-primary-soft: rgba(216, 193, 141, 0.13);
+  --sd-green-soft: rgba(46, 125, 90, 0.18);
+  --sd-red-soft: rgba(163, 75, 75, 0.16);
+  --sd-gold-soft: rgba(216, 193, 141, 0.14);
+  --sd-gold-tint: rgba(216, 193, 141, 0.05);
+}
+
+/* اسکرول‌بار یکدست پنل */
+.shamin-dashboard ::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+.shamin-dashboard ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.shamin-dashboard ::-webkit-scrollbar-thumb {
+  background: rgba(23, 72, 63, 0.24);
+  border-radius: 999px;
+}
+
+.shamin-dashboard--dark ::-webkit-scrollbar-thumb {
+  background: rgba(216, 193, 141, 0.22);
+}
+
+/* ── دارک‌مود بخش محصولات (sp) ──────────────────────────── */
+.shamin-dashboard--dark .sp {
+  --sp-card: #161f1c;
+  --sp-line: #26332e;
+}
+
+.shamin-dashboard--dark .sp,
+.shamin-dashboard--dark .sp-header-kicker,
+.shamin-dashboard--dark .sp-title,
+.shamin-dashboard--dark .sp-product-brand,
+.shamin-dashboard--dark .sp-product-name,
+.shamin-dashboard--dark .sp-product-price strong,
+.shamin-dashboard--dark .sp-stat-content strong,
+.shamin-dashboard--dark .sp-result-title b,
+.shamin-dashboard--dark .sp-details-grid strong,
+.shamin-dashboard--dark .sp-details-info-list strong,
+.shamin-dashboard--dark .sp-field span {
+  color: #edf2ef;
+}
+
+.shamin-dashboard--dark .sp-description,
+.shamin-dashboard--dark .sp-product-meta span,
+.shamin-dashboard--dark .sp-stat-content span,
+.shamin-dashboard--dark .sp-product-price span,
+.shamin-dashboard--dark .sp-result-right span,
+.shamin-dashboard--dark .sp-result-title span,
+.shamin-dashboard--dark .sp-details-info-list span,
+.shamin-dashboard--dark .sp-details-grid span,
+.shamin-dashboard--dark .sp-empty p {
+  color: #93a19a;
+}
+
+.shamin-dashboard--dark .sp-stat,
+.shamin-dashboard--dark .sp-search,
+.shamin-dashboard--dark .sp-select-wrap,
+.shamin-dashboard--dark .sp-product-card,
+.shamin-dashboard--dark .sp-modal,
+.shamin-dashboard--dark .sp-details-modal,
+.shamin-dashboard--dark .sp-total-box,
+.shamin-dashboard--dark .sp-result-bar,
+.shamin-dashboard--dark .sp-empty,
+.shamin-dashboard--dark .sp-form-image,
+.shamin-dashboard--dark .sp-form-gallery-item,
+.shamin-dashboard--dark .sp-field input,
+.shamin-dashboard--dark .sp-field select,
+.shamin-dashboard--dark .sp-field textarea,
+.shamin-dashboard--dark .sp-details-modal,
+.shamin-dashboard--dark .sp-image-url-row input {
+  background: #161f1c !important;
+  border-color: #26332e !important;
+  color: #edf2ef !important;
+}
+
+.shamin-dashboard--dark .sp-field input,
+.shamin-dashboard--dark .sp-field textarea,
+.shamin-dashboard--dark .sp-image-url-row input {
+  background: #1b2522 !important;
+}
+
+.shamin-dashboard--dark .sp-stat-icon,
+.shamin-dashboard--dark .sp-empty-icon,
+.shamin-dashboard--dark .sp-product-image {
+  background: #1b2522 !important;
+}
+
+.shamin-dashboard--dark .sp-form-image-head strong,
+.shamin-dashboard--dark .sp-form-image-head span,
+.shamin-dashboard--dark .sp-details-brand,
+.shamin-dashboard--dark .sp-details-description span {
+  color: #93a19a;
+}
+
+.shamin-dashboard--dark .sp-details-content h2,
+.shamin-dashboard--dark .sp-details-description p {
+  color: #edf2ef;
+}
+
+.shamin-dashboard--dark .sp-modal-header h2,
+.shamin-dashboard--dark .sp-modal-header p {
+  color: #edf2ef;
+}
+
+.shamin-dashboard--dark .sp-edit-button {
+  background: rgba(216, 193, 141, 0.13);
+  color: #d8c18d;
+}
+
+.shamin-dashboard--dark .sp-view-button {
+  background: #1b2522;
+  color: #edf2ef;
+}
+
+.shamin-dashboard--dark .sp-cancel-button,
+.shamin-dashboard--dark .sp-save-button,
+.shamin-dashboard--dark .sp-add-button,
+.shamin-dashboard--dark .sp-image-upload,
+.shamin-dashboard--dark .sp-image-url-row button,
+.shamin-dashboard--dark .sp-reset {
+  border-color: #26332e;
+}
+
+.shamin-dashboard--dark .sp-pagination button,
+.shamin-dashboard--dark .sp-product-bottom button {
+  border-color: #26332e;
+}
+
+.shamin-dashboard--dark .sp-pagination button {
+  background: #161f1c;
+  color: #edf2ef;
+}
+
+/* ── دارک‌مود بخش سفارشات (so) ──────────────────────────── */
+.shamin-dashboard--dark .so {
+  --bd: #26332e;
+  --bg: #161f1c;
+}
+
+.shamin-dashboard--dark .so,
+.shamin-dashboard--dark .so-ttl,
+.shamin-dashboard--dark .so-head-count strong,
+.shamin-dashboard--dark .so-sn strong,
+.shamin-dashboard--dark .so-on span,
+.shamin-dashboard--dark .so-cu strong,
+.shamin-dashboard--dark .so-ps strong,
+.shamin-dashboard--dark .so-am strong,
+.shamin-dashboard--dark .so-th span,
+.shamin-dashboard--dark .so-dh strong,
+.shamin-dashboard--dark .so-nomt h2,
+.shamin-dashboard--dark .so-fld span,
+.shamin-dashboard--dark .so-edsl,
+.shamin-dashboard--dark .so-edtt strong {
+  color: #edf2ef;
+}
+
+.shamin-dashboard--dark .so-desc,
+.shamin-dashboard--dark .so-tkk span,
+.shamin-dashboard--dark .so-head-count span,
+.shamin-dashboard--dark .so-head-count__unit,
+.shamin-dashboard--dark .so-sn span,
+.shamin-dashboard--dark .so-sn small,
+.shamin-dashboard--dark .so-cu span,
+.shamin-dashboard--dark .so-ps span,
+.shamin-dashboard--dark .so-ps em,
+.shamin-dashboard--dark .so-am span,
+.shamin-dashboard--dark .so-tm,
+.shamin-dashboard--dark .so-pgi,
+.shamin-dashboard--dark .so-tbh,
+.shamin-dashboard--dark .so-fl label,
+.shamin-dashboard--dark .so-dcu span,
+.shamin-dashboard--dark .so-dil span,
+.shamin-dashboard--dark .so-nome,
+.shamin-dashboard--dark .so-nomst span,
+.shamin-dashboard--dark .so-edtt span,
+.shamin-dashboard--dark .so-fld span {
+  color: #93a19a;
+}
+
+.shamin-dashboard--dark .so-sc,
+.shamin-dashboard--dark .so-fl,
+.shamin-dashboard--dark .so-pn,
+.shamin-dashboard--dark .so-tb,
+.shamin-dashboard--dark .so-se,
+.shamin-dashboard--dark .so-tr,
+.shamin-dashboard--dark .so-dw,
+.shamin-dashboard--dark .so-edm,
+.shamin-dashboard--dark .so-nom,
+.shamin-dashboard--dark .so-search select,
+.shamin-dashboard--dark .so-tlt select,
+.shamin-dashboard--dark .so-dsc select,
+.shamin-dashboard--dark .so-fld select,
+.shamin-dashboard--dark .so-fld input,
+.shamin-dashboard--dark .so-qd button,
+.shamin-dashboard--dark .so-cs button,
+.shamin-dashboard--dark .so-pf input,
+.shamin-dashboard--dark .so-nc select,
+.shamin-dashboard--dark .so-fldi,
+.shamin-dashboard--dark .so-vb,
+.shamin-dashboard--dark .so-nb,
+.shamin-dashboard--dark .so-af,
+.shamin-dashboard--dark .so-rf,
+.shamin-dashboard--dark .so-edp,
+.shamin-dashboard--dark .so-dp,
+.shamin-dashboard--dark .so-mm {
+  background: #161f1c !important;
+  border-color: #26332e !important;
+}
+
+.shamin-dashboard--dark .so-se input,
+.shamin-dashboard--dark .so-pf input,
+.shamin-dashboard--dark .so-fld input,
+.shamin-dashboard--dark .so-edp input,
+.shamin-dashboard--dark .so-edp textarea {
+  background: #1b2522 !important;
+  color: #edf2ef !important;
+}
+
+.shamin-dashboard--dark .so-em,
+.shamin-dashboard--dark .so-ei {
+  background: #161f1c;
+  color: #edf2ef;
+}
+
+.shamin-dashboard--dark .so-dst,
+.shamin-dashboard--dark .so-edtr {
+  color: #edf2ef;
+}
+
+.shamin-dashboard--dark .so-ca,
+.shamin-dashboard--dark .so-dav {
+  background: rgba(216, 193, 141, 0.13);
+  color: #d8c18d;
+}
+
+.shamin-dashboard--dark .so-tl,
+.shamin-dashboard--dark .so-fd {
+  background: #26332e;
+}
+
+/* ── دارک‌مود داشبورد (shamin-overview) ─────────────────── */
+.shamin-dashboard--dark .shamin-overview__stat-card,
+.shamin-dashboard--dark .shamin-overview__mini-card,
+.shamin-dashboard--dark .shamin-overview__sales-card,
+.shamin-dashboard--dark .shamin-overview__orders-status,
+.shamin-dashboard--dark .shamin-overview__orders-card,
+.shamin-dashboard--dark .shamin-overview__products-card,
+.shamin-dashboard--dark .shamin-overview__activity-card,
+.shamin-dashboard--dark .shamin-overview__period-button,
+.shamin-dashboard--dark .shamin-overview__period-menu,
+.shamin-dashboard--dark .shamin-overview__table-row,
+.shamin-dashboard--dark .shamin-overview__status-menu,
+.shamin-dashboard--dark .shamin-overview__stat-menu {
+  background: #161f1c !important;
+  border-color: #26332e !important;
+}
+
+.shamin-dashboard--dark .shamin-overview__stat-info span,
+.shamin-dashboard--dark .shamin-overview__stat-info strong,
+.shamin-dashboard--dark .shamin-overview__mini-content strong,
+.shamin-dashboard--dark .shamin-overview__panel-title,
+.shamin-dashboard--dark .shamin-overview__section-head h3,
+.shamin-dashboard--dark .shamin-overview__table-row strong,
+.shamin-dashboard--dark .shamin-overview__product-info strong,
+.shamin-dashboard--dark .shamin-overview__activity-title strong,
+.shamin-dashboard--dark .shamin-overview__status-ring-inner strong,
+.shamin-dashboard--dark .shamin-overview__status-name strong,
+.shamin-dashboard--dark .shamin-overview__chart-tooltip,
+.shamin-dashboard--dark .shamin-overview__sales-summary strong,
+.shamin-dashboard--dark .shamin-overview__period-option {
+  color: #edf2ef !important;
+}
+
+.shamin-dashboard--dark .shamin-overview__stat-info span,
+.shamin-dashboard--dark .shamin-overview__mini-content span,
+.shamin-dashboard--dark .shamin-overview__section-head span,
+.shamin-dashboard--dark .shamin-overview__chart-legend,
+.shamin-dashboard--dark .shamin-overview__stat-change small,
+.shamin-dashboard--dark .shamin-overview__table-row small,
+.shamin-dashboard--dark .shamin-overview__product-sales-count,
+.shamin-dashboard--dark .shamin-overview__status-total-label,
+.shamin-dashboard--dark .shamin-overview__status-total-unit,
+.shamin-dashboard--dark .shamin-overview__activity-content p,
+.shamin-dashboard--dark .shamin-overview__chart-grid span,
+.shamin-dashboard--dark .shamin-overview__chart-labels span,
+.shamin-dashboard--dark .shamin-overview__sales-summary span {
+  color: #93a19a !important;
+}
+
+.shamin-dashboard--dark .shamin-overview__chart-grid-row i,
+.shamin-dashboard--dark .shamin-overview__status-item {
+  border-color: #26332e;
+}
+
+.shamin-dashboard--dark .shamin-overview__product-image,
+.shamin-dashboard--dark .shamin-overview__customer-avatar,
+.shamin-dashboard--dark .shamin-overview__stat-icon,
+.shamin-dashboard--dark .shamin-overview__mini-icon,
+.shamin-dashboard--dark .shamin-overview__status-icon,
+.shamin-dashboard--dark .shamin-overview__activity-icon,
+.shamin-dashboard--dark .shamin-overview__product-rank {
+  background: #1b2522 !important;
+}
+
+.shamin-dashboard--dark .shamin-overview__chart-area {
+  fill: rgba(216, 193, 141, 0.1);
+}
+
+.shamin-dashboard--dark .shamin-overview__chart-point {
+  fill: #d8c18d;
+}
+
+/* ── دارک‌مود عناصر عمومی ───────────────────────────────── */
+.shamin-dashboard--dark .shamin-dashboard__content,
+.shamin-dashboard--dark .shamin-dashboard__sidebar,
+.shamin-dashboard--dark .shamin-dashboard__sidebar-scroll {
+  background: #0d1513;
+}
+
+.shamin-dashboard--dark .shamin-dashboard__nav-item:hover,
+.shamin-dashboard--dark .shamin-dashboard__nav-item--active {
+  background: rgba(216, 193, 141, 0.1);
+}
+
+.shamin-dashboard--dark .shamin-dashboard__nav-item--active {
+  color: #d8c18d;
+}
+
+.shamin-dashboard--dark .shamin-dashboard__admin-dropdown,
+.shamin-dashboard--dark .shamin-dashboard__admin-dropdown-head {
+  background: #161f1c !important;
+  border-color: #26332e !important;
+  color: #edf2ef;
+}
+
+.shamin-dashboard--dark .shamin-dashboard__admin-dropdown-item:hover {
+  background: rgba(216, 193, 141, 0.08);
+  color: #d8c18d;
+}
+
+.shamin-dashboard--dark .shamin-dashboard__admin-dropdown-item--logout {
+  color: #c98787;
+}
+
+.shamin-dashboard--dark .shamin-dashboard__date strong,
+.shamin-dashboard--dark .shamin-dashboard__date span,
+.shamin-dashboard--dark .shamin-dashboard__brand-text strong,
+.shamin-dashboard--dark .shamin-dashboard__brand-text span {
+  color: #edf2ef;
+}
+
+/* ── مودال پروفایل و دکمه‌های سراسری ────────────────────── */
+.shamin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(9, 20, 17, 0.55);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.shamin-modal {
+  width: 100%;
+  max-width: 440px;
+  background: var(--sd-card);
+  border: 1px solid var(--sd-border);
+  border-radius: 20px;
+  box-shadow: var(--sd-shadow);
+  overflow: hidden;
+  animation: shaminModalIn 0.22s ease;
+}
+
+@keyframes shaminModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.shamin-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--sd-border);
+}
+
+.shamin-modal__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--sd-primary);
+  margin-bottom: 4px;
+}
+
+.shamin-modal__head h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--sd-text);
+}
+
+.shamin-modal__close {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--sd-border);
+  background: var(--sd-soft);
+  color: var(--sd-muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease;
+}
+
+.shamin-modal__close:hover {
+  color: #a34b4b;
+  border-color: #a34b4b;
+}
+
+.shamin-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 24px 24px;
+}
+
+.shamin-modal__state {
+  padding: 30px 24px;
+  text-align: center;
+  color: var(--sd-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.shamin-modal__msg {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.shamin-modal__msg--success {
+  color: #2e7d5a;
+}
+
+.shamin-modal__msg--error {
+  color: #a34b4b;
+}
+
+.shamin-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 6px;
+}
+
+.shamin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px 20px;
+  border-radius: 12px;
+  font-size: 0.83rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+  border: 1px solid transparent;
+}
+
+.shamin-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.shamin-btn--primary {
+  background: var(--sd-primary);
+  color: #fff;
+}
+
+.shamin-dashboard--dark .shamin-btn--primary {
+  color: #0d1513;
+}
+
+.shamin-btn--primary:hover:not(:disabled) {
+  background: var(--sd-primary-strong);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(23, 72, 63, 0.22);
+}
+
+.shamin-btn--ghost {
+  background: var(--sd-card);
+  border-color: var(--sd-border);
+  color: var(--sd-muted);
+}
+
+.shamin-btn--ghost:hover:not(:disabled) {
+  color: var(--sd-text);
+  border-color: var(--sd-muted);
+}
+
+.shamin-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.shamin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.shamin-field span {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--sd-muted);
+}
+
+.shamin-field input {
+  padding: 11px 14px;
+  border-radius: 11px;
+  border: 1px solid var(--sd-border);
+  background: var(--sd-soft);
+  color: var(--sd-text);
+  font: inherit;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.shamin-field input:focus-visible {
+  border-color: var(--sd-primary);
+  background: var(--sd-card);
+}
+
+.shamin-field input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── پالیش دکمه‌های موجود بخش‌ها ────────────────────────── */
+.shamin-dashboard .sp-add-button,
+.shamin-dashboard .sp-save-button,
+.shamin-dashboard .so-nb,
+.shamin-dashboard .so-nomsub,
+.shamin-dashboard .so-edsc {
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(23, 72, 63, 0.18);
+}
+
+.shamin-dashboard .sp-add-button:hover,
+.shamin-dashboard .sp-save-button:hover,
+.shamin-dashboard .so-nb:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(23, 72, 63, 0.24);
+}
+
+.shamin-dashboard .sp-cancel-button,
+.shamin-dashboard .sp-view-button,
+.shamin-dashboard .sp-product-bottom button,
+.shamin-dashboard .so-nomca,
+.shamin-dashboard .so-edft button,
+.shamin-dashboard .so-af,
+.shamin-dashboard .so-rf {
+  border-radius: 12px;
+}
+
+.shamin-dashboard .sp-search input,
+.shamin-dashboard .so-se input,
+.shamin-dashboard .sp-select-wrap select,
+.shamin-dashboard .sp-field input,
+.shamin-dashboard .sp-field select,
+.shamin-dashboard .sp-field textarea {
+  border-radius: 12px;
+}
+
+.shamin-dashboard .sp-stat,
+.shamin-dashboard .so-sc {
+  border-radius: 16px;
+}
+
+.shamin-dashboard .sp-product-card,
+.shamin-dashboard .sp-modal,
+.shamin-dashboard .sp-details-modal,
+.shamin-dashboard .so-tr,
+.shamin-dashboard .so-dw,
+.shamin-dashboard .so-nom,
+.shamin-dashboard .so-edm {
+  border-radius: 18px;
+}
+
+/* focus ring یکدست برای دسترس‌پذیری */
+.shamin-dashboard button:focus-visible,
+.shamin-dashboard input:focus-visible,
+.shamin-dashboard select:focus-visible,
+.shamin-dashboard textarea:focus-visible {
+  outline: 2px solid rgba(23, 72, 63, 0.35);
+  outline-offset: 1px;
+}
+
+.shamin-dashboard--dark button:focus-visible,
+.shamin-dashboard--dark input:focus-visible,
+.shamin-dashboard--dark select:focus-visible,
+.shamin-dashboard--dark textarea:focus-visible {
+  outline-color: rgba(216, 193, 141, 0.45);
+}

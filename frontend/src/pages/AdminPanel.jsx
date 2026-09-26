@@ -1,22 +1,25 @@
 import React,{useEffect,useRef,useState}from"react";
 import{useNavigate}from"react-router-dom";
-import{FiHome,FiShoppingBag,FiBox,FiUsers,FiGrid,FiTag,FiBarChart2,FiSettings,FiFileText,FiHeadphones,FiLogOut,FiBell,FiSearch,FiMenu,FiX,FiSun,FiMoon,FiCalendar,FiChevronLeft,FiChevronDown,FiUser}from"react-icons/fi";
+import{FiHome,FiShoppingBag,FiBox,FiUsers,FiTag,FiBarChart2,FiSettings,FiLogOut,FiBell,FiSearch,FiMenu,FiX,FiSun,FiMoon,FiCalendar,FiChevronLeft,FiChevronDown,FiUser,FiMessageSquare,FiSave}from"react-icons/fi";
 import DashboardOverview from"../components/Dashboard";
 import Orders from"../components/Orders";
 import Products from"../components/Products";
+import CustomersSection from"../components/admin/CustomersSection";
+import DiscountsSection from"../components/admin/DiscountsSection";
+import ReportsSection from"../components/admin/ReportsSection";
+import StoreSettingsSection from"../components/admin/StoreSettingsSection";
+import ReviewsSection from"../components/admin/ReviewsSection";
 import{apiRequest}from"../api";
 import"./AdminPanel.css";
 const shaminDashboardMenu=[
 {id:"dashboard",title:"پنل ادمین",icon:FiHome},
 {id:"orders",title:"سفارشات",icon:FiShoppingBag},
 {id:"products",title:"محصولات",icon:FiBox},
+{id:"reviews",title:"نظرها",icon:FiMessageSquare},
 {id:"customers",title:"مشتریان",icon:FiUsers},
-{id:"categories",title:"دسته‌بندی‌ها",icon:FiGrid},
 {id:"discounts",title:"تخفیف‌ها و پیشنهادها",icon:FiTag},
 {id:"reports",title:"گزارش‌ها",icon:FiBarChart2},
-{id:"store-settings",title:"تنظیمات فروشگاه",icon:FiSettings},
-{id:"content",title:"مدیریت محتوا",icon:FiFileText},
-{id:"support",title:"پشتیبانی",icon:FiHeadphones}
+{id:"store-settings",title:"تنظیمات فروشگاه",icon:FiSettings}
 ];
 function AdminPanel({children}){
 const navigate=useNavigate();
@@ -26,6 +29,11 @@ const[adminMenuOpen,setAdminMenuOpen]=useState(false);
 const[darkMode,setDarkMode]=useState(false);
 const[searchValue,setSearchValue]=useState("");
 const[adminUser,setAdminUser]=useState(null);
+const[profileModalOpen,setProfileModalOpen]=useState(false);
+const[profileForm,setProfileForm]=useState({first_name:"",last_name:"",email:""});
+const[profileLoading,setProfileLoading]=useState(false);
+const[profileSaving,setProfileSaving]=useState(false);
+const[profileMessage,setProfileMessage]=useState(null);
 const shaminAdminRef=useRef(null);
 useEffect(()=>{const savedTheme=localStorage.getItem("shamin-dashboard-theme");if(savedTheme==="dark"){setDarkMode(true)}},[]);
 useEffect(()=>{localStorage.setItem("shamin-dashboard-theme",darkMode?"dark":"light")},[darkMode]);
@@ -51,6 +59,30 @@ const shaminHandleLogout=()=>{
 ["access","refresh","access_token","refresh_token","user"].forEach(key=>localStorage.removeItem(key));
 navigate("/Login");
 };
+useEffect(()=>{
+if(!profileModalOpen)return;
+let ignore=false;
+setProfileLoading(true);
+setProfileMessage(null);
+apiRequest("/auth/profile/")
+.then(user=>{if(!ignore)setProfileForm({first_name:user.first_name||"",last_name:user.last_name||"",email:user.email||""})})
+.catch(err=>{if(!ignore)setProfileMessage({type:"error",text:err?.message||"دریافت پروفایل ناموفق بود."})})
+.finally(()=>{if(!ignore)setProfileLoading(false)});
+return()=>{ignore=true};
+},[profileModalOpen]);
+const shaminSaveProfile=e=>{
+e.preventDefault();
+setProfileSaving(true);
+setProfileMessage(null);
+apiRequest("/auth/profile/",{method:"PATCH",body:JSON.stringify({
+first_name:profileForm.first_name.trim(),
+last_name:profileForm.last_name.trim(),
+email:profileForm.email.trim(),
+})})
+.then(user=>{setProfileForm({first_name:user.first_name||"",last_name:user.last_name||"",email:user.email||""});setProfileMessage({type:"success",text:"پروفایل ذخیره شد."})})
+.catch(err=>setProfileMessage({type:"error",text:err?.message||"ذخیره پروفایل ناموفق بود."}))
+.finally(()=>setProfileSaving(false));
+};
 const shaminAdminName=adminUser?[adminUser.first_name,adminUser.last_name].filter(Boolean).join(" ")||"مدیر سایت":"مدیر سایت";
 const shaminAdminPhone=adminUser?adminUser.phone:"";
 const shaminTodayLabel=new Intl.DateTimeFormat("fa-IR",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date());
@@ -59,6 +91,7 @@ const shaminHandleSectionChange=id=>{setActiveSection(id);setMobileSidebarOpen(f
 const shaminHandleAdminMenu=()=>{setAdminMenuOpen(previous=>!previous)};
 const shaminHandleThemeChange=()=>{setDarkMode(previous=>!previous)};
 const shaminHandleSearchClear=()=>{setSearchValue("")};
+const shaminHandleProfileOpen=()=>{setAdminMenuOpen(false);setProfileModalOpen(true)};
 const shaminRenderMenu=()=>shaminDashboardMenu.map(item=>{
 const Icon=item.icon;
 const isActive=activeSection===item.id;
@@ -75,6 +108,11 @@ if(children){return children}
 if(activeSection==="dashboard"){return<DashboardOverview/>}
 if(activeSection==="orders"){return<Orders/>}
 if(activeSection==="products"){return<Products/>}
+if(activeSection==="reviews"){return<ReviewsSection/>}
+if(activeSection==="customers"){return<CustomersSection/>}
+if(activeSection==="discounts"){return<DiscountsSection/>}
+if(activeSection==="reports"){return<ReportsSection/>}
+if(activeSection==="store-settings"){return<StoreSettingsSection/>}
 return null;
 };
 if(!adminUser){return null}
@@ -96,13 +134,6 @@ return(
 <nav className="shamin-dashboard__navigation">{shaminRenderMenu()}</nav>
 </div>
 <div className="shamin-dashboard__sidebar-bottom">
-<div className="shamin-dashboard__support-box">
-<div className="shamin-dashboard__support-icon"><FiHeadphones/></div>
-<div className="shamin-dashboard__support-text">
-<strong>پشتیبانی آنلاین</strong>
-<span>در خدمت مدیران فروشگاه هستیم</span>
-</div>
-</div>
 <button type="button" className="shamin-dashboard__logout" onClick={shaminHandleLogout}><FiLogOut/><span>خروج از پنل ادمین</span></button>
 </div>
 </aside>
@@ -147,13 +178,13 @@ return(
 </div>
 </div>
 <div className="shamin-dashboard__admin-dropdown-divider"/>
-<button type="button" className="shamin-dashboard__admin-dropdown-item" onClick={()=>setAdminMenuOpen(false)}>
+<button type="button" className="shamin-dashboard__admin-dropdown-item" onClick={shaminHandleProfileOpen}>
 <span className="shamin-dashboard__admin-dropdown-icon"><FiUser/></span>
 <span>پروفایل من</span>
 </button>
-<button type="button" className="shamin-dashboard__admin-dropdown-item" onClick={()=>setAdminMenuOpen(false)}>
+<button type="button" className="shamin-dashboard__admin-dropdown-item" onClick={()=>{setAdminMenuOpen(false);shaminHandleSectionChange("store-settings")}}>
 <span className="shamin-dashboard__admin-dropdown-icon"><FiSettings/></span>
-<span>تنظیمات حساب</span>
+<span>تنظیمات فروشگاه</span>
 </button>
 <div className="shamin-dashboard__admin-dropdown-divider"/>
 <button type="button" className="shamin-dashboard__admin-dropdown-item shamin-dashboard__admin-dropdown-item--logout" onClick={shaminHandleLogout}>
@@ -166,6 +197,36 @@ return(
 </header>
 <section className="shamin-dashboard__content">{shaminRenderContent()}</section>
 </main>
+{profileModalOpen&&(
+<div className="shamin-modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setProfileModalOpen(false)}}>
+<div className="shamin-modal" role="dialog" aria-modal="true" aria-label="پروفایل من">
+<div className="shamin-modal__head">
+<div>
+<span className="shamin-modal__kicker"><FiUser/> حساب مدیریت</span>
+<h2>پروفایل من</h2>
+</div>
+<button type="button" className="shamin-modal__close" onClick={()=>setProfileModalOpen(false)} aria-label="بستن"><FiX/></button>
+</div>
+{profileLoading?(
+<div className="shamin-modal__state">در حال دریافت اطلاعات...</div>
+):(
+<form className="shamin-modal__body" onSubmit={shaminSaveProfile}>
+<label className="shamin-field"><span>نام</span><input type="text" value={profileForm.first_name} onChange={e=>setProfileForm(p=>({...p,first_name:e.target.value}))}/></label>
+<label className="shamin-field"><span>نام خانوادگی</span><input type="text" value={profileForm.last_name} onChange={e=>setProfileForm(p=>({...p,last_name:e.target.value}))}/></label>
+<label className="shamin-field"><span>ایمیل</span><input type="email" dir="ltr" value={profileForm.email} onChange={e=>setProfileForm(p=>({...p,email:e.target.value}))}/></label>
+<label className="shamin-field"><span>شماره موبایل</span><input type="text" dir="ltr" value={shaminAdminPhone||""} disabled/></label>
+{profileMessage&&(
+<p className={profileMessage.type==="success"?"shamin-modal__msg shamin-modal__msg--success":"shamin-modal__msg shamin-modal__msg--error"}>{profileMessage.text}</p>
+)}
+<div className="shamin-modal__actions">
+<button type="button" className="shamin-btn shamin-btn--ghost" onClick={()=>setProfileModalOpen(false)}>بستن</button>
+<button type="submit" className="shamin-btn shamin-btn--primary" disabled={profileSaving}><FiSave/> {profileSaving?"در حال ذخیره...":"ذخیره تغییرات"}</button>
+</div>
+</form>
+)}
+</div>
+</div>
+)}
 </div>
 );
 }

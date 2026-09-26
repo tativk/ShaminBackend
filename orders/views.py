@@ -32,7 +32,9 @@ REVENUE_STATUSES = (Order.Status.PAID, Order.Status.SHIPPING, Order.Status.COMPL
 class CreateOrderView(APIView):
     """
     POST /api/orders/
-    سبد خرید را به سفارش تبدیل می‌کند و URL درگاه پرداخت را برمی‌گرداند.
+    سبد خرید را به سفارش تبدیل می‌کند.
+    فعلاً بدون درگاه پرداخت — سفارش با وضعیت pending ثبت می‌شود؛
+    بعد از اتصال درگاه واقعی، payment_url دوباره به پاسخ اضافه می‌شود.
     """
     permission_classes = [permissions.IsAuthenticated]
 
@@ -46,7 +48,7 @@ class CreateOrderView(APIView):
         cart = data['cart']
 
         try:
-            order, payment_url = self._create_order_and_get_payment_url(
+            order = self._create_order(
                 user=request.user,
                 cart=cart,
                 city=data['city'],
@@ -63,15 +65,13 @@ class CreateOrderView(APIView):
         return Response(
             {
                 'order_id': order.id,
-                'payment_url': payment_url,
+                'status': order.status,
             },
             status=status.HTTP_201_CREATED,
         )
 
     @transaction.atomic
-    def _create_order_and_get_payment_url(
-        self, *, user, cart, city, address, postal_code, shipping_cost
-    ):
+    def _create_order(self, *, user, cart, city, address, postal_code, shipping_cost):
         # ── محاسبه مبلغ سفارش ──────────────────────────────────────────
         items = cart.items.select_related('product').select_for_update()
         items_total = Decimal('0')
@@ -88,7 +88,7 @@ class CreateOrderView(APIView):
             address=f'{city}، {address}، کد پستی: {postal_code}',
         )
 
-        # ── کپی آیتم‌ها با قیید (snapshot) ──────────────────ه خرید (snapshot) ──────────────────
+        # ── کپی آیتم‌ها با ثبت (snapshot) ──────────────────────────────
         order_items = []
         for item in items:
             order_items.append(OrderItem(
@@ -107,28 +107,16 @@ class CreateOrderView(APIView):
         # ── خالی کردن سبد ──────────────────────────────────────────────
         cart.items.all().delete()
 
-        # ── درخواست پرداخت به درگاه ────────────────────────────────────
-        callback_url = (
-            f"{settings.FRONTEND_URL}/payment/callback"
-            if hasattr(settings, 'FRONTEND_URL')
-            else f"{settings.BACKEND_BASE_URL}/api/orders/payment/callback/"
-        )
+        # ── درگاه پرداخت — فعلاً قطع است ───────────────────────────────
+        # بعد از اتصال درگاه واقعی (زرین‌پال) این بخش برمی‌گردد:
+        # callback_url = ...
+        # payment_service = get_payment_service()
+        # result = payment_service.request_payment(PaymentRequest(...))
+        # order.payment_authority = result.authority
+        # order.save(update_fields=['payment_authority'])
+        # return order, result.payment_url
 
-        payment_service = get_payment_service()
-        result = payment_service.request_payment(PaymentRequest(
-            amount=total_amount,
-            description=f'سفارش شماره {order.id} — شامین گالری',
-            callback_url=callback_url,
-            order_id=order.id,
-        ))
-
-        if not result.success:
-            raise ValueError(result.error_message or 'خطا در اتصال به درگاه پرداخت.')
-
-        order.payment_authority = result.authority
-        order.save(update_fields=['payment_authority'])
-
-        return order, result.payment_url
+        return order
 
 
 class MockGatewayView(APIView):
