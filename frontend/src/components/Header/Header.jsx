@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FiSearch, FiUser, FiHeart, FiShoppingCart, FiMenu, FiX } from "react-icons/fi";
+import { FiUser, FiHeart, FiShoppingCart, FiMenu, FiX } from "react-icons/fi";
 import { Link } from "react-router-dom";
+import SearchBox from "../SearchBox/SearchBox";
 import "./Header.css";
 
 const NAV_LINKS = [
@@ -56,10 +57,7 @@ const Header = () => {
         </Link>
 
         <div className="header__actions">
-          <div className="header__search">
-            <FiSearch className="header__search-icon" />
-            <input type="text" placeholder="جستجو در محصولات..." />
-          </div>
+          <SearchBox variant="desktop" />
           <Link to="/register" className="header__icon-btn" aria-label="ورود / ثبت نام">
             <FiUser />
           </Link>
@@ -90,10 +88,7 @@ const Header = () => {
                 <FiX />
               </button>
             </div>
-            <div className="mobile-menu__search">
-              <FiSearch className="header__search-icon" />
-              <input type="text" placeholder="جستجو در محصولات..." />
-            </div>
+            <SearchBox variant="mobile" onNavigate={() => setMenuOpen(false)} />
             <nav className="mobile-menu__links">
               {NAV_LINKS.map((link) => (
                 <Link to={link.to} key={link.label} onClick={() => setMenuOpen(false)}>

@@ -12,12 +12,15 @@ import {
   FiHeart,
 } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
+import { apiRequest } from "../api";
+import { notifyCartAdded, notifyCartError } from "../cart-notice";
 import Header from "../components/Header/Header";
 import Footer from "../components/Footer/Footer";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import blogPosts from "../data/blogPosts";
 import { useWishlist } from "../context/WishlistContext";
 import { apiRequest, getAssetUrl } from "../api";
+import { notifyCartAdded, notifyCartError } from "../cart-notice";
 import "./Home.css";
 
 /* =========================================================
@@ -242,25 +245,22 @@ const CategorySection = () => (
 
 const ProductCard = ({ product }) => {
   const { has, toggle } = useWishlist();
-  const navigate = useNavigate();
   const wishlisted = has(product.id);
   const [adding, setAdding] = useState(false);
-  const [message, setMessage] = useState(null); // {type:'success'|'error', text}
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (adding) return;
     setAdding(true);
-    setMessage(null);
     try {
-      await apiRequest("/cart/items/", {
+      const data = await apiRequest("/cart/items/", {
         method: "POST",
         body: JSON.stringify({ product: product.id, quantity: 1 }),
       });
-      setMessage({ type: "success", text: "به سبد خرید اضافه شد ✓" });
+      notifyCartAdded({ added: 1, totalItems: data?.total_items, productName: product.name });
     } catch (err) {
-      setMessage({ type: "error", text: err?.message || "افزودن به سبد ناموفق بود." });
+      notifyCartError(err?.message || "افزودن به سبد خرید انجام نشد.");
     } finally {
       setAdding(false);
     }
@@ -319,20 +319,6 @@ const ProductCard = ({ product }) => {
           {adding ? "در حال افزودن..." : "افزودن به سبد خرید"}
         </button>
       </div>
-      {message && (
-        <p
-          className={
-            message.type === "success"
-              ? "product-card__message product-card__message--success"
-              : "product-card__message product-card__message--error"
-          }
-        >
-          {message.text}
-          {message.type === "error" && (
-            <button type="button" onClick={() => navigate("/Login")}>ورود</button>
-          )}
-        </p>
-      )}
     </div>
   );
 };

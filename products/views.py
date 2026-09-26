@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from config.permissions import IsStaffUser
 
 from .models import Brand, Product
+from .search import build_product_search_q
 from .serializers import (
     AdminProductSerializer,
     BrandSerializer,
@@ -31,7 +32,11 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         if gender:
             queryset = queryset.filter(gender=gender)
 
-        return queryset
+        search = self.request.query_params.get('search', '').strip()
+        if search:
+            queryset = queryset.filter(build_product_search_q(search))
+
+        return queryset.order_by('-created_at')
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -44,6 +49,13 @@ class AdminProductViewSet(viewsets.ModelViewSet):
     permission_classes = [IsStaffUser]
     serializer_class = AdminProductSerializer
     queryset = Product.objects.all().select_related('brand').prefetch_related('images')
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search = self.request.query_params.get('search', '').strip()
+        if search:
+            queryset = queryset.filter(build_product_search_q(search))
+        return queryset
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

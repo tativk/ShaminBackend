@@ -20,6 +20,7 @@ import {
 import { FaStar } from "react-icons/fa";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiRequest, getAssetUrl } from "../api";
+import { notifyCartAdded } from "../cart-notice";
 import Header from "../components/Header/Header";
 import Footer from "../components/Footer/Footer";
 import "./Home.css";
@@ -167,11 +168,15 @@ const ProductInfo = ({ product }) => {
     setCartMessage(null);
     try {
       // نکته: فروش گرمی هنوز در بک‌اند پشتیبانی نمی‌شود؛ هر کلیک یک عدد اضافه می‌کند.
-      await apiRequest("/cart/items/", {
+      const data = await apiRequest("/cart/items/", {
         method: "POST",
         body: JSON.stringify({ product: product.id, quantity: isPerfume ? 1 : quantity }),
       });
-      setCartMessage({ type: "success", text: "محصول به سبد خرید اضافه شد." });
+      notifyCartAdded({
+        added: isPerfume ? 1 : quantity,
+        totalItems: data?.total_items,
+        productName: product.name,
+      });
     } catch (err) {
       setCartMessage({ type: "error", text: err?.message || "افزودن به سبد ناموفق بود." });
     } finally {

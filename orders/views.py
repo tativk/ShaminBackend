@@ -3,7 +3,7 @@ from datetime import datetime, time, timedelta
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Avg, Count, F, Sum
+from django.db.models import Avg, Count, F, Q, Sum
 from django.db.models.functions import TruncDate, TruncHour, TruncMonth
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -100,6 +100,12 @@ class CreateOrderView(APIView):
             # کاهش موجودی با F expression برای جلوگیری از race condition
             item.product.__class__.objects.filter(pk=item.product.pk).update(
                 stock=F('stock') - item.quantity
+            )
+            # QuerySet.update bypasses model signals; record this stock change explicitly.
+            from accounts.models import AdminNotification
+            AdminNotification.objects.create(
+                kind='product', title='موجودی محصول کاهش یافت', section='products',
+                message=f'{item.product.name} · {item.quantity} عدد برای سفارش #{order.pk}',
             )
 
         OrderItem.objects.bulk_create(order_items)
@@ -266,6 +272,19 @@ class AdminOrdersView(APIView):
             .all()
             .order_by('-created_at')
         )
+
+        search = request.query_params.get('search', '').strip()
+        if search:
+            query = (
+                Q(user__first_name__icontains=search)
+                | Q(user__last_name__icontains=search)
+                | Q(user__phone__icontains=search)
+                | Q(items__product__name__icontains=search)
+            )
+            if search.isdigit():
+                query |= Q(id=int(search))
+            orders = orders.filter(query).distinct()
+
         serializer = AdminOrderSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

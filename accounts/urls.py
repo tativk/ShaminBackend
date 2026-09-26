@@ -1,5 +1,8 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
+from .notifications import AdminNotificationsView
+from .account_settings import ChangePasswordView
+from .recovery import RequestPasswordResetView, VerifyPasswordResetView, ResetPasswordView
 
 from .views import (
     AdminCustomersView,
@@ -15,6 +18,11 @@ from .views import (
 )
 
 urlpatterns = [
+    path("admin/notifications/", AdminNotificationsView.as_view()),
+    path("auth/password-reset/request/", RequestPasswordResetView.as_view()),
+    path("auth/password-reset/verify/", VerifyPasswordResetView.as_view()),
+    path("auth/password-reset/confirm/", ResetPasswordView.as_view()),
+    path("auth/change-password/", ChangePasswordView.as_view()),
     path("auth/login/", PasswordLoginView.as_view(), name="password-login"),
     path("auth/register/", RegisterView.as_view(), name="register"),
     path("auth/admin/customers/", AdminCustomersView.as_view(), name="admin-customers"),

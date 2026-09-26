@@ -1,6 +1,7 @@
 // Cart.jsx — نسخه یکپارچه (بر اساس شاخه main) — اصلاح‌شده
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { apiRequest, getAssetUrl } from '../api';
+import { notifyCartAdded } from '../cart-notice';
 import './Cart.css';
 import Header from "../components/Header/Header";
 import Footer from "../components/Footer/Footer";
@@ -327,12 +328,12 @@ export default function Cart() {
   const addSuggestedProduct = async (product) => {
     setError('');
     try {
-      setCart(
-        await apiRequest('/cart/items/', {
-          method: 'POST',
-          body: JSON.stringify({ product: product.id, quantity: 1 }),
-        }),
-      );
+      const data = await apiRequest('/cart/items/', {
+        method: 'POST',
+        body: JSON.stringify({ product: product.id, quantity: 1 }),
+      });
+      setCart(data);
+      notifyCartAdded({ added: 1, totalItems: data?.total_items, productName: product.name });
     } catch (err) {
       setError(err.message);
     }
