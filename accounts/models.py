@@ -126,4 +126,22 @@ class OtpCode(models.Model):
     def generate_code(cls):
         return "".join(random.choices(string.digits, k=6))
 
-# Create your models here.
+class PasswordRecovery(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    code_hash = models.CharField(max_length=128)
+    created_at = models.DateTimeField(default=timezone.now)
+    attempts = models.PositiveSmallIntegerField(default=0)
+    verified = models.BooleanField(default=False)
+    consumed = models.BooleanField(default=False)
+
+
+class AdminNotification(models.Model):
+    kind = models.CharField(max_length=24)
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    section = models.CharField(max_length=24, blank=True)
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+    read_by = models.ManyToManyField(User, blank=True, related_name='read_notifications')
+
+    class Meta:
+        ordering = ['-id']
