@@ -7,19 +7,51 @@ import "./Verify.css";
 const CODE_LENGTH = 6;
 const RESEND_SECONDS = 60;
 
-const toEnDigits = (value) =>
-  String(value || "")
-    .replace(/[۰-۹]/g, (c) => "۰۱۲۳۴۵۶۷۸۹".indexOf(c))
-    .replace(/[٠-٩]/g, (c) => "٠١٢٣٤٥٦٧٨٩".indexOf(c));
+
+const authPost = async (path, body) => {
+  const response = await fetch(
+    `${(process.env.REACT_APP_API_URL || "http://localhost:8000/api").replace(/\/$/, "")}/auth/${path}/`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(
+      data.detail || Object.values(data).flat().join(" ") || "درخواست انجام نشد.",
+    );
+    error.retryAfter = data.retry_after;
+    throw error;
+  }
+  return data;
+};
+
 
 const Verify = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // شماره و اطلاعات ثبت‌نام از صفحه Register با route state می‌آید؛
+  // ?identifier= فقط برای ورود مستقیم به این صفحه نگه داشته شده است.
+  const registration = location.state || {};
+  const [phone] = useState(
+    () =>
+      registration.identifier ||
+      (typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("identifier") || ""
+        : ""),
+  );
+
   const [digits, setDigits] = useState(Array(CODE_LENGTH).fill(""));
   const [status, setStatus] = useState("idle"); // idle | loading | success | error
+  const [errorMessage, setErrorMessage] = useState("");
+  const [completionError, setCompletionError] = useState("");
   const [resendSeconds, setResendSeconds] = useState(RESEND_SECONDS);
   const [resending, setResending] = useState(false);
   const inputsRef = useRef([]);
+
 
   // شماره از ثبت‌نام به این صفحه منتقل می‌شود (route state) یا از query خوانده می‌شود
   const identifier =
@@ -27,6 +59,7 @@ const Verify = () => {
     (typeof window !== "undefined"
       ? new URLSearchParams(window.location.search).get("identifier")
       : null);
+
 
   useEffect(() => {
     inputsRef.current[0]?.focus();
@@ -83,28 +116,55 @@ const Verify = () => {
   };
 
   const handleVerify = async (codeOverride) => {
-    const code = toEnDigits(codeOverride ?? digits.join(""));
-    const phone = toEnDigits(identifier || "").replace(/\s/g, "");
-    if (code.length !== CODE_LENGTH) return;
-    if (!/^09\d{9}$/.test(phone)) {
-      setStatus("error");
-      return;
-    }
+
+    const code = codeOverride ?? digits.join("");
+    if (code.length !== CODE_LENGTH || status === "loading") return;
 
     setStatus("loading");
+    setErrorMessage("");
     try {
-      const data = await apiRequest("/auth/verify-otp/", {
-        method: "POST",
-        body: JSON.stringify({ phone, code }),
-      });
-      if (data.access) localStorage.setItem("access", data.access);
+      const data = await authPost("verify-otp", { phone, code });
+
+      // مثل Login توکن‌ها و کاربر ذخیره می‌شوند
+      ["access", "refresh", "access_token", "refresh_token", "user"].forEach((key) =>
+        localStorage.removeItem(key),
+      );
+      localStorage.setItem("access", data.access);
       if (data.refresh) localStorage.setItem("refresh", data.refresh);
-      if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // اگر حساب تازه ساخته شده، نام/ایمیل/رمز فرم ثبت‌نام ذخیره می‌شود
+      if (data.next_step === "complete_registration") {
+        const words = (registration.fullName || "").trim().split(/\s+/).filter(Boolean);
+        if (words.length || registration.email || registration.password) {
+          try {
+            await apiRequest("/auth/complete-registration/", {
+              method: "POST",
+              body: JSON.stringify({
+                first_name: words[0] || "",
+                last_name: words.slice(1).join(" ") || words[0] || "",
+                email: registration.email || "",
+                password: registration.password || undefined,
+                password_confirm: registration.password || undefined,
+              }),
+            });
+          } catch (registrationError) {
+            setCompletionError(
+              registrationError?.message ||
+                "ذخیره اطلاعات ثبت‌نام انجام نشد؛ بعداً از داشبورد تکمیل کنید.",
+            );
+          }
+        }
+      }
+
       setStatus("success");
-      setTimeout(() => {
-        navigate(data.user && data.user.role === "admin" ? "/admin" : "/dashboard");
-      }, 1800);
-    } catch (err) {
+    } catch (requestError) {
+      setErrorMessage(
+        requestError.message === "Failed to fetch"
+          ? "ارتباط با سرور برقرار نشد. دوباره تلاش کنید."
+          : requestError.message,
+      );
+
       setStatus("error");
       inputsRef.current[0]?.focus();
     }
@@ -116,24 +176,27 @@ const Verify = () => {
   };
 
   const handleResend = async () => {
-    const phone = toEnDigits(identifier || "").replace(/\s/g, "");
-    if (!/^09\d{9}$/.test(phone)) return;
+
+    if (resending) return;
     setResending(true);
+    setErrorMessage("");
     try {
-      await apiRequest("/auth/request-otp/", {
-        method: "POST",
-        body: JSON.stringify({ phone }),
-      });
-    } catch (err) {
-      // در صورت خطا تایمر ریست نمی‌شود تا اسپم نشود
+      const data = await authPost("request-otp", { phone });
+      setResendSeconds(data.retry_after || RESEND_SECONDS);
+      setDigits(Array(CODE_LENGTH).fill(""));
+      setStatus("idle");
+      focusInput(0);
+    } catch (requestError) {
+      setErrorMessage(
+        requestError.message === "Failed to fetch"
+          ? "ارتباط با سرور برقرار نشد. دوباره تلاش کنید."
+          : requestError.message,
+      );
+      if (requestError.retryAfter) setResendSeconds(requestError.retryAfter);
+    } finally {
       setResending(false);
-      return;
     }
-    setResending(false);
-    setDigits(Array(CODE_LENGTH).fill(""));
-    setStatus("idle");
-    setResendSeconds(RESEND_SECONDS);
-    focusInput(0);
+
   };
 
   if (status === "success") {
@@ -150,10 +213,22 @@ const Verify = () => {
               <p className="auth-card__subtitle">
                 حساب کاربری شما با موفقیت تأیید شد. اکنون می‌توانید از خرید در شمین گالری لذت ببرید.
               </p>
-              <a href="/dashboard" className="auth-btn auth-btn--primary">
+
+              {completionError && (
+                <p className="verify-message verify-message--error" role="alert">
+                  <FiAlertCircle />
+                  {completionError}
+                </p>
+              )}
+              <button
+                type="button"
+                className="auth-btn auth-btn--primary"
+                onClick={() => navigate("/dashboard")}
+              >
+
                 <FiChevronLeft />
-                ورود به حساب کاربری
-              </a>
+                ورود به داشبورد
+              </button>
             </div>
           </div>
         </div>
@@ -171,7 +246,7 @@ const Verify = () => {
             <h2 className="auth-card__title">تأیید شماره موبایل</h2>
             <p className="auth-card__subtitle">
               کد ۶ رقمی ارسال‌شده به
-              {identifier ? <strong className="verify-identifier"> {identifier} </strong> : " شماره موبایل شما "}
+              {phone ? <strong className="verify-identifier"> {phone} </strong> : " شماره موبایل شما "}
               را وارد کنید.
             </p>
 
@@ -198,10 +273,10 @@ const Verify = () => {
                 ))}
               </div>
 
-              {status === "error" && (
+              {status === "error" && errorMessage && (
                 <p className="verify-message verify-message--error">
                   <FiAlertCircle />
-                  کد وارد شده صحیح نیست. دوباره تلاش کنید.
+                  {errorMessage}
                 </p>
               )}
 

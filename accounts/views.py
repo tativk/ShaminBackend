@@ -9,7 +9,10 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import extend_schema, OpenApiResponse
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.utils import translation
 
 from config.permissions import IsStaffUser
 
@@ -242,20 +245,48 @@ class CompleteRegistrationView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
+        password = data.get("password")
+        if password:
+            if not data.get("password_confirm"):
+                return Response(
+                    {"detail": "تکرار رمز عبور الزامی است."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if password != data["password_confirm"]:
+                return Response(
+                    {"detail": "رمز عبور و تکرار آن یکسان نیستند."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            try:
+                with translation.override("fa"):
+                    validate_password(password, request.user)
+            except ValidationError as error:
+                return Response(
+                    {"detail": " ".join(error.messages)},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
         request.user.first_name = data["first_name"].strip()
         request.user.last_name = data["last_name"].strip()
         request.user.email = data.get("email", "").strip()
-        request.user.save(update_fields=["first_name", "last_name", "email"])
+        if password:
+            request.user.set_password(password)
+        request.user.save(
+            update_fields=["first_name", "last_name", "email"]
+            + (["password"] if password else [])
+        )
 
+        # آدرس اختیاری است؛ فقط اگر فیلدی ارسال شده باشد ذخیره می‌شود
         address_data = {
             field: data[field]
             for field in ("province", "city", "street", "postal_code", "detail")
-            if field in data
+            if data.get(field)
         }
-        Address.objects.update_or_create(
-            user=request.user,
-            defaults=address_data,
-        )
+        if address_data:
+            Address.objects.update_or_create(
+                user=request.user,
+                defaults=address_data,
+            )
         return Response(UserSerializer(request.user).data, status=status.HTTP_200_OK)
 
 

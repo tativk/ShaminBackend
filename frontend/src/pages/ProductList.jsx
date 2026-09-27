@@ -9,7 +9,7 @@ import Header from "../components/Header/Header";
 import Footer from "../components/Footer/Footer";
 import "./Home.css";
 import "./ProductList.css";
-import { isFavorite, toggleFavorite } from "../favorites";
+import { useFavorite } from "../favorites";
 
 const CATEGORY_LABEL = { perfume: "عطر و ادکلن", cosmetic: "لوازم آرایشی", accessory: "اکسسوری" };
 const GENDER_LABEL = { male: "مردانه", female: "زنانه", unisex: "یونیسکس" };
@@ -19,8 +19,7 @@ const formatPrice = (value) => `${new Intl.NumberFormat("fa-IR").format(value)} 
 
 const ProductCard = ({ product }) => {
 
-  const { has, toggle } = useWishlist();
-  const wishlisted = has(product.id);
+  const [favorite, toggleFavorite] = useFavorite(product);
 
 
   return (
@@ -28,14 +27,7 @@ const ProductCard = ({ product }) => {
     <div className="product-list-card__media">
       {product.badge && <span className="product-list-card__badge">{product.badge}</span>}
 
-      <button
-        type="button"
-        className={wishlisted ? "product-list-card__wishlist product-list-card__wishlist--active" : "product-list-card__wishlist"}
-        aria-label={wishlisted ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
-        onClick={() => toggle(product)}
-      >
-        <FiHeart />
-      </button>
+      <button type="button" className={`product-list-card__wishlist ${favorite ? "is-active" : ""}`} onClick={toggleFavorite} aria-label={favorite ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}><FiHeart /></button>
 
       <img src={product.image} alt={product.name} loading="lazy" />
     </div>
