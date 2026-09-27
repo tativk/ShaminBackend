@@ -1,38 +1,52 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FiChevronLeft, FiCheckCircle, FiRefreshCw, FiAlertCircle } from "react-icons/fi";
+import { useLocation, useNavigate } from "react-router-dom";
+import { apiRequest } from "../api";
 import "./Verify.css";
 
 const CODE_LENGTH = 6;
 const RESEND_SECONDS = 60;
 
-// TODO: replace this with a real API call to your backend.
-// It should resolve to `true` when the code is correct and `false` otherwise.
-const verifyCodeWithServer = (code) =>
-  new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(code === "123456"); // demo-only check
-    }, 900);
-  });
-
-// TODO: replace this with a real API call that (re)sends the OTP code.
-const resendCodeToServer = () =>
-  new Promise((resolve) => {
-    setTimeout(() => resolve(true), 600);
-  });
+const authPost = async (path, body) => {
+  const response = await fetch(
+    `${(process.env.REACT_APP_API_URL || "http://localhost:8000/api").replace(/\/$/, "")}/auth/${path}/`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(
+      data.detail || Object.values(data).flat().join(" ") || "درخواست انجام نشد.",
+    );
+    error.retryAfter = data.retry_after;
+    throw error;
+  }
+  return data;
+};
 
 const Verify = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  // شماره و اطلاعات ثبت‌نام از صفحه Register با route state می‌آید؛
+  // ?identifier= فقط برای ورود مستقیم به این صفحه نگه داشته شده است.
+  const registration = location.state || {};
+  const [phone] = useState(
+    () =>
+      registration.identifier ||
+      (typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("identifier") || ""
+        : ""),
+  );
   const [digits, setDigits] = useState(Array(CODE_LENGTH).fill(""));
   const [status, setStatus] = useState("idle"); // idle | loading | success | error
+  const [errorMessage, setErrorMessage] = useState("");
+  const [completionError, setCompletionError] = useState("");
   const [resendSeconds, setResendSeconds] = useState(RESEND_SECONDS);
   const [resending, setResending] = useState(false);
   const inputsRef = useRef([]);
-
-  // Read the phone/email the code was sent to, e.g. /verify?identifier=0912...
-  // If you use React Router, you can instead pass this in via route state or a prop.
-  const identifier =
-    typeof window !== "undefined"
-      ? new URLSearchParams(window.location.search).get("identifier")
-      : null;
 
   useEffect(() => {
     inputsRef.current[0]?.focus();
@@ -90,16 +104,52 @@ const Verify = () => {
 
   const handleVerify = async (codeOverride) => {
     const code = codeOverride ?? digits.join("");
-    if (code.length !== CODE_LENGTH) return;
+    if (code.length !== CODE_LENGTH || status === "loading") return;
 
     setStatus("loading");
-    const isCorrect = await verifyCodeWithServer(code);
+    setErrorMessage("");
+    try {
+      const data = await authPost("verify-otp", { phone, code });
 
-    if (isCorrect) {
+      // مثل Login توکن‌ها و کاربر ذخیره می‌شوند
+      ["access", "refresh", "access_token", "refresh_token", "user"].forEach((key) =>
+        localStorage.removeItem(key),
+      );
+      localStorage.setItem("access", data.access);
+      if (data.refresh) localStorage.setItem("refresh", data.refresh);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // اگر حساب تازه ساخته شده، نام/ایمیل/رمز فرم ثبت‌نام ذخیره می‌شود
+      if (data.next_step === "complete_registration") {
+        const words = (registration.fullName || "").trim().split(/\s+/).filter(Boolean);
+        if (words.length || registration.email || registration.password) {
+          try {
+            await apiRequest("/auth/complete-registration/", {
+              method: "POST",
+              body: JSON.stringify({
+                first_name: words[0] || "",
+                last_name: words.slice(1).join(" ") || words[0] || "",
+                email: registration.email || "",
+                password: registration.password || undefined,
+                password_confirm: registration.password || undefined,
+              }),
+            });
+          } catch (registrationError) {
+            setCompletionError(
+              registrationError?.message ||
+                "ذخیره اطلاعات ثبت‌نام انجام نشد؛ بعداً از داشبورد تکمیل کنید.",
+            );
+          }
+        }
+      }
+
       setStatus("success");
-      // TODO: this is where you'd normally save the auth token / session
-      // and redirect the user onward — see the notes below the component.
-    } else {
+    } catch (requestError) {
+      setErrorMessage(
+        requestError.message === "Failed to fetch"
+          ? "ارتباط با سرور برقرار نشد. دوباره تلاش کنید."
+          : requestError.message,
+      );
       setStatus("error");
       inputsRef.current[0]?.focus();
     }
@@ -111,13 +161,25 @@ const Verify = () => {
   };
 
   const handleResend = async () => {
+    if (resending) return;
     setResending(true);
-    await resendCodeToServer();
-    setResending(false);
-    setDigits(Array(CODE_LENGTH).fill(""));
-    setStatus("idle");
-    setResendSeconds(RESEND_SECONDS);
-    focusInput(0);
+    setErrorMessage("");
+    try {
+      const data = await authPost("request-otp", { phone });
+      setResendSeconds(data.retry_after || RESEND_SECONDS);
+      setDigits(Array(CODE_LENGTH).fill(""));
+      setStatus("idle");
+      focusInput(0);
+    } catch (requestError) {
+      setErrorMessage(
+        requestError.message === "Failed to fetch"
+          ? "ارتباط با سرور برقرار نشد. دوباره تلاش کنید."
+          : requestError.message,
+      );
+      if (requestError.retryAfter) setResendSeconds(requestError.retryAfter);
+    } finally {
+      setResending(false);
+    }
   };
 
   if (status === "success") {
@@ -134,10 +196,20 @@ const Verify = () => {
               <p className="auth-card__subtitle">
                 حساب کاربری شما با موفقیت تأیید شد. اکنون می‌توانید از خرید در شمین گالری لذت ببرید.
               </p>
-              <a href="/" className="auth-btn auth-btn--primary">
+              {completionError && (
+                <p className="verify-message verify-message--error" role="alert">
+                  <FiAlertCircle />
+                  {completionError}
+                </p>
+              )}
+              <button
+                type="button"
+                className="auth-btn auth-btn--primary"
+                onClick={() => navigate("/dashboard")}
+              >
                 <FiChevronLeft />
-                ورود به حساب کاربری
-              </a>
+                ورود به داشبورد
+              </button>
             </div>
           </div>
         </div>
@@ -155,7 +227,7 @@ const Verify = () => {
             <h2 className="auth-card__title">تأیید شماره موبایل</h2>
             <p className="auth-card__subtitle">
               کد ۶ رقمی ارسال‌شده به
-              {identifier ? <strong className="verify-identifier"> {identifier} </strong> : " شماره موبایل شما "}
+              {phone ? <strong className="verify-identifier"> {phone} </strong> : " شماره موبایل شما "}
               را وارد کنید.
             </p>
 
@@ -182,10 +254,10 @@ const Verify = () => {
                 ))}
               </div>
 
-              {status === "error" && (
+              {status === "error" && errorMessage && (
                 <p className="verify-message verify-message--error">
                   <FiAlertCircle />
-                  کد وارد شده صحیح نیست. دوباره تلاش کنید.
+                  {errorMessage}
                 </p>
               )}
 
