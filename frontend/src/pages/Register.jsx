@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   FiPhone,
   FiLock,
   FiEye,
   FiEyeOff,
   FiChevronLeft,
+  FiUser,
+  FiMail,
 } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../api";
