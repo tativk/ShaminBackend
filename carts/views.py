@@ -94,6 +94,26 @@ class CartItemView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class ShippingProvincesView(APIView):
+    """استان‌ها و شهرهای ایران به همراه هزینه ارسال هر استان — برای منوی آبشاری سبد خرید."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        grouped = {}
+        for rate in ShippingRate.objects.all().order_by('city'):
+            province = rate.province or 'سایر'
+            if province not in grouped:
+                grouped[province] = {
+                    'province': province,
+                    'cost': float(rate.cost),
+                    'cities': [],
+                }
+            grouped[province]['cities'].append({'id': rate.id, 'city': rate.city})
+
+        data = sorted(grouped.values(), key=lambda item: item['province'])
+        return Response(data)
+
+
 class ShippingCitiesView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     queryset = ShippingRate.objects.all()

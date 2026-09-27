@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import "./Footer.css";
 
 const FOOTER_SERVICE_LINKS = [
+  { id: "blog", label: "وبلاگ", href: "/blog" },
   { id: "contact", label: "درباره ما", href: "/about-us" },
   { id: "faq", label: "سوالات متداول", href: "/faq" },
 ];
@@ -12,11 +13,10 @@ const FOOTER_SERVICE_LINKS = [
 const SOCIAL_LINKS = [
   { id: "instagram", label: "اینستاگرام", href: "https://instagram.com/shamin_galerri", icon: <FaInstagram /> },
   { id: "telegram", label: "تلگرام", href: "https://t.me/Shamin_Galerri", icon: <FaTelegramPlane /> },
-  /* فایل آیکون این پیام‌رسان‌ها در public موجود نیست؛ تا افزودن فایل، حرف اول نام به‌جای تصویر نمایش داده می‌شود */
-  { id: "bale", label: "بله", href: "https://ble.ir/shamin_galerri", icon: <span className="footer__social-letter">ب</span> },
-  { id: "eitaa", label: "ایتا", href: "https://eitaa.com/Shamin_Galerri", icon: <span className="footer__social-letter">ا</span> },
-  { id: "soroush", label: "سروش", href: "https://splus.ir/Shamin_Galerri", icon: <span className="footer__social-letter">س</span> },
-  { id: "rubika", label: "روبیکا", href: "https://rubika.ir/@shamin_galeri", icon: <span className="footer__social-letter">ر</span> },
+  { id: "bale", label: "بله", href: "https://ble.ir/shamin_galerri", icon: <img src="/bale-icon.png" alt="بله" className="footer__social-img" /> },
+  { id: "eitaa", label: "ایتا", href: "https://eitaa.com/Shamin_Galerri", icon: <img src="/eitaa-icon.png" alt="ایتا" className="footer__social-img" /> },
+  { id: "soroush", label: "سروش", href: "https://splus.ir/Shamin_Galerri", icon: <img src="/soroush-icon.png" alt="سروش" className="footer__social-img" /> },
+  { id: "rubika", label: "روبیکا", href: "https://rubika.ir/@shamin_galeri", icon: <img src="/rubika-icon.png" alt="روبیکا" className="footer__social-img" /> },
 ];
 
 const Footer = () => {

@@ -1,4 +1,6 @@
-from django.shortcuts import render
+from django.contrib.auth import authenticate, get_user_model
+from django.db.models import Count, Q, Sum
+from django.shortcuts import render, get_object_or_404
 
 # Create your views here.
 from rest_framework.views import APIView
@@ -12,16 +14,89 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import translation
 
+from config.permissions import IsStaffUser
+
 from .serializers import (
     AddressSerializer,
     CompleteRegistrationSerializer,
     RequestOtpSerializer,
+    StoreSettingSerializer,
     UserSerializer,
     VerifyOtpSerializer,
+    AdminCustomerSerializer,
 )
 from .services import create_and_send_otp, verify_otp_and_get_user
-from .models import Address
+from .models import Address, StoreSetting
 from orders.models import OrderItem
+
+User = get_user_model()
+
+# سفارش‌هایی که در «مجموع خرید» مشتری حساب می‌شوند
+CUSTOMER_PAID_STATUSES = ("paid", "shipping", "completed")
+
+
+class AdminCustomersView(APIView):
+    """فهرست مشتریان برای پنل ادمین + فعال/مسدودسازی."""
+    permission_classes = [IsStaffUser]
+
+    def get(self, request):
+        users = (
+            User.objects
+            .filter(is_staff=False, is_superuser=False)
+            .annotate(
+                orders_count=Count("orders", distinct=True),
+                total_spent=Sum(
+                    "orders__total_price",
+                    filter=Q(orders__status__in=CUSTOMER_PAID_STATUSES),
+                ),
+            )
+            .order_by("-date_joined")
+        )
+        data = [
+            {
+                "id": u.id,
+                "phone": u.phone,
+                "first_name": u.first_name,
+                "last_name": u.last_name,
+                "email": u.email,
+                "is_active": u.is_active,
+                "date_joined": u.date_joined,
+                "orders_count": u.orders_count or 0,
+                "total_spent": float(u.total_spent or 0),
+            }
+            for u in users
+        ]
+        return Response(AdminCustomerSerializer(data, many=True).data)
+
+    def patch(self, request, pk):
+        user = get_object_or_404(User, pk=pk, is_staff=False, is_superuser=False)
+        is_active = request.data.get("is_active")
+        if is_active is None:
+            return Response(
+                {"detail": "مقدار is_active الزامی است."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        user.is_active = bool(is_active)
+        user.save(update_fields=["is_active"])
+        return Response({"id": user.id, "is_active": user.is_active})
+
+
+class StoreSettingsView(APIView):
+    """تنظیمات فروشگاه — خواندن عمومی، ویرایش فقط ادمین."""
+
+    def get_permissions(self):
+        if self.request.method == "PUT":
+            return [IsStaffUser()]
+        return [AllowAny()]
+
+    def get(self, request):
+        return Response(StoreSettingSerializer(StoreSetting.load()).data)
+
+    def put(self, request):
+        serializer = StoreSettingSerializer(StoreSetting.load(), data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 
 def get_tokens_for_user(user):
@@ -32,6 +107,75 @@ def get_tokens_for_user(user):
         "refresh": str(refresh),
         "access": str(refresh.access_token),
     }
+
+
+class PasswordLoginView(APIView):
+    """ورود با شماره موبایل و رمز عبور — برای کاربرانی که پسورد ست کرده‌اند."""
+
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        summary="ورود با شماره موبایل و رمز عبور",
+        tags=["احراز هویت"],
+    )
+    def post(self, request):
+        phone = str(request.data.get("phone") or "").strip()
+        password = str(request.data.get("password") or "")
+
+        user = authenticate(request, username=phone, password=password)
+        if user is None:
+            return Response(
+                {"detail": "شماره موبایل یا رمز عبور اشتباه است."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        tokens = get_tokens_for_user(user)
+        return Response({
+            **tokens,
+            "user": UserSerializer(user).data,
+            "next_step": "dashboard" if user.is_profile_complete else "complete_registration",
+        }, status=status.HTTP_200_OK)
+
+
+class RegisterView(APIView):
+    """ثبت‌نام با شماره موبایل و رمز عبور — سپس تأیید با کد پیامکی."""
+
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        summary="ثبت‌نام با شماره موبایل و رمز عبور",
+        tags=["احراز هویت"],
+    )
+    def post(self, request):
+        serializer = RequestOtpSerializer(data={"phone": request.data.get("phone", "")})
+        serializer.is_valid(raise_exception=True)
+        phone = serializer.validated_data["phone"]
+        password = str(request.data.get("password") or "")
+
+        if len(password) < 4:
+            return Response(
+                {"detail": "رمز عبور باید حداقل ۴ کاراکتر باشد."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = User.objects.filter(phone=phone).first()
+        if user and user.has_usable_password():
+            return Response(
+                {"detail": "این شماره قبلاً ثبت‌نام کرده است؛ وارد شوید."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if user is None:
+            user = User.objects.create_user(phone=phone)
+        user.set_password(password)
+        user.save()
+
+        # ارسال کد تأیید؛ خطای cooldown گذرنده است چون پسورد ثبت شده
+        success, message = create_and_send_otp(phone)
+        return Response(
+            {"detail": message if not success else "کد تأیید ارسال شد."},
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class RequestOtpView(APIView):

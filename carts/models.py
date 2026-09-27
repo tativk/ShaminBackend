@@ -6,15 +6,16 @@ from django.db import models
 
 
 class ShippingRate(models.Model):
+    province = models.CharField(max_length=50, blank=True, default='')
     city = models.CharField(max_length=100, unique=True)
     cost = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
 
     class Meta:
-        ordering = ['city']
+        ordering = ['province', 'city']
         constraints = [models.CheckConstraint(condition=models.Q(cost__gte=0), name='shipping_cost_nonnegative')]
 
     def __str__(self):
-        return self.city
+        return f'{self.province} — {self.city}'
 
 
 class Cart(models.Model):

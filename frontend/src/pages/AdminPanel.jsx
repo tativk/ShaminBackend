@@ -1,9 +1,16 @@
 import React,{useCallback,useEffect,useRef,useState}from"react";
 import{useNavigate}from"react-router-dom";
-import{FiHome,FiShoppingBag,FiBox,FiUsers,FiGrid,FiTag,FiBarChart2,FiSettings,FiFileText,FiHeadphones,FiLogOut,FiBell,FiSearch,FiMenu,FiX,FiSun,FiMoon,FiCalendar,FiChevronLeft,FiChevronDown,FiUser,FiEye,FiEyeOff,FiCheckCircle,FiAlertCircle,FiShield,FiPhone}from"react-icons/fi";
+
+import{FiHome,FiShoppingBag,FiBox,FiUsers,FiTag,FiBarChart2,FiSettings,FiLogOut,FiBell,FiSearch,FiMenu,FiX,FiSun,FiMoon,FiCalendar,FiChevronLeft,FiChevronDown,FiUser,FiMessageSquare,FiSave,FiEye,FiEyeOff,FiCheckCircle,FiAlertCircle,FiShield,FiPhone}from"react-icons/fi";
 import DashboardOverview from"../components/Dashboard";
+
 import Orders from"../components/Orders";
 import Products from"../components/Products";
+import CustomersSection from"../components/admin/CustomersSection";
+import DiscountsSection from"../components/admin/DiscountsSection";
+import ReportsSection from"../components/admin/ReportsSection";
+import StoreSettingsSection from"../components/admin/StoreSettingsSection";
+import ReviewsSection from"../components/admin/ReviewsSection";
 import{apiRequest,getAssetUrl}from"../api";
 import"./AdminPanel.css";
 import"./AdminNotifications.css";
@@ -11,13 +18,13 @@ const shaminDashboardMenu=[
 {id:"dashboard",title:"پنل ادمین",icon:FiHome},
 {id:"orders",title:"سفارشات",icon:FiShoppingBag},
 {id:"products",title:"محصولات",icon:FiBox},
+{id:"reviews",title:"نظرها",icon:FiMessageSquare},
 {id:"customers",title:"مشتریان",icon:FiUsers},
-{id:"categories",title:"دسته‌بندی‌ها",icon:FiGrid},
 {id:"discounts",title:"تخفیف‌ها و پیشنهادها",icon:FiTag},
 {id:"reports",title:"گزارش‌ها",icon:FiBarChart2},
-{id:"store-settings",title:"تنظیمات فروشگاه",icon:FiSettings},
-{id:"content",title:"مدیریت محتوا",icon:FiFileText},
-{id:"support",title:"پشتیبانی",icon:FiHeadphones}
+
+{id:"store-settings",title:"تنظیمات فروشگاه",icon:FiSettings}
+
 ];
 const shaminExtraSections=[{id:"profile",title:"پروفایل من",icon:FiUser},{id:"account-settings",title:"تنظیمات حساب",icon:FiSettings}];
 const shaminNormalizeText=value=>String(value||"").replace(/ي/g,"ی").replace(/ى/g,"ی").replace(/ك/g,"ک").replace(/\u200c/g," ").replace(/\s+/g," ").toLowerCase().trim();
@@ -287,6 +294,11 @@ if(children){return children}
 if(activeSection==="dashboard"){return<DashboardOverview/>}
 if(activeSection==="orders"){return<Orders/>}
 if(activeSection==="products"){return<Products/>}
+if(activeSection==="reviews"){return<ReviewsSection/>}
+if(activeSection==="customers"){return<CustomersSection/>}
+if(activeSection==="discounts"){return<DiscountsSection/>}
+if(activeSection==="reports"){return<ReportsSection/>}
+if(activeSection==="store-settings"){return<StoreSettingsSection/>}
 if(activeSection==="profile"){return shaminRenderProfile()}
 if(activeSection==="account-settings"){return shaminRenderSettings()}
 return null;
@@ -298,11 +310,9 @@ return(
 <aside className="shamin-dashboard__sidebar">
 <div className="shamin-dashboard__brand">
 <div className="shamin-dashboard__brand-logo">
-<img src="/Asets/Shamin gallery.png" alt="Shamin Gallery" className="shamin-dashboard__brand-image"/>
+<img src="/logo.png" alt="Shamin Gallery" className="shamin-dashboard__brand-image"/>
 </div>
 <div className="shamin-dashboard__brand-text">
-<strong>پنل ادمین</strong>
-<span>Shamin Gallery</span>
 </div>
 <button type="button" className="shamin-dashboard__mobile-close" onClick={()=>setMobileSidebarOpen(false)} aria-label="بستن منو"><FiX/></button>
 </div>
@@ -310,13 +320,7 @@ return(
 <nav className="shamin-dashboard__navigation">{shaminRenderMenu()}</nav>
 </div>
 <div className="shamin-dashboard__sidebar-bottom">
-<div className="shamin-dashboard__support-box">
-<div className="shamin-dashboard__support-icon"><FiHeadphones/></div>
-<div className="shamin-dashboard__support-text">
-<strong>پشتیبانی آنلاین</strong>
-<span>در خدمت مدیران فروشگاه هستیم</span>
-</div>
-</div>
+
 <button type="button" className="shamin-dashboard__logout" onClick={shaminHandleLogout}><FiLogOut/><span>خروج از پنل ادمین</span></button>
 </div>
 </aside>
@@ -384,6 +388,10 @@ return(
 <button type="button" className="shamin-dashboard__admin-dropdown-item" onClick={()=>shaminHandleSectionChange("account-settings")}>
 <span className="shamin-dashboard__admin-dropdown-icon"><FiSettings/></span>
 <span>تنظیمات حساب</span>
+</button>
+<button type="button" className="shamin-dashboard__admin-dropdown-item" onClick={()=>shaminHandleSectionChange("store-settings")}>
+<span className="shamin-dashboard__admin-dropdown-icon"><FiSettings/></span>
+<span>تنظیمات فروشگاه</span>
 </button>
 <div className="shamin-dashboard__admin-dropdown-divider"/>
 <button type="button" className="shamin-dashboard__admin-dropdown-item shamin-dashboard__admin-dropdown-item--logout" onClick={shaminHandleLogout}>

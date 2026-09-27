@@ -12,17 +12,32 @@ import Favorites from "../pages/Favorites";
 
 import Product from "../pages/Product";
 import Verify from "../pages/Verify";
+
+import Blog from "../pages/Blog";
+import BlogPost from "../pages/BlogPost";
+
 import PaymentCallback from "../pages/PaymentCallback";
+
+import AboutUs from "../pages/AboutUs";
+import Faq from "../pages/Faq";
+
+import PaymentCallbackConnected from "../pages/PaymentCallbackConnected";
+
+
 
 
 const AppRoutes = () => {
   return (
     <Routes>
+      <Route path="/faq" element={<Faq />} />
+      <Route path="/about-us" element={<AboutUs />} />
       <Route path="/" element={<Home />} />
       <Route path="/products" element={<ProductList />} />
       <Route path="/ProductList" element={<ProductList />} />
       <Route path="/products/:id" element={<Product />} />
       <Route path="/product/:id" element={<Product />} />
+      <Route path="/blog" element={<Blog />} />
+      <Route path="/blog/:slug" element={<BlogPost />} />
       <Route path="/admin" element={<AdminPanel />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/favorites" element={<Favorites />} />
@@ -32,7 +47,8 @@ const AppRoutes = () => {
       <Route path="/Login" element={<Login />} />
       <Route path="/Register" element={<Register />} />
       <Route path="/Verify" element={<Verify />} />
-      <Route path="/PaymentCallback" element={<PaymentCallback />} />
+      <Route path="/payment/callback" element={<PaymentCallbackConnected />} />
+      <Route path="/PaymentCallback" element={<PaymentCallbackConnected />} />
     </Routes>
   );
 };

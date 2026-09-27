@@ -80,6 +80,30 @@ class Address(models.Model):
         return f"{self.user.phone} — {self.city}"
 
 
+class StoreSetting(models.Model):
+    """تنظیمات تک‌ردیفی فروشگاه — از پنل ادمین ویرایش می‌شود."""
+    store_name = models.CharField("نام فروشگاه", max_length=100, default="گالری شمین")
+    support_phone = models.CharField("تلفن پشتیبانی", max_length=30, blank=True, default="")
+    support_email = models.EmailField("ایمیل پشتیبانی", blank=True, default="")
+    address = models.CharField("آدرس", max_length=255, blank=True, default="")
+    instagram_url = models.URLField("اینستاگرام", blank=True, default="")
+    telegram_url = models.URLField("تلگرام", blank=True, default="")
+    announcement = models.CharField("اعلان سایت", max_length=200, blank=True, default="")
+    updated_at = models.DateTimeField("آخرین تغییر", auto_now=True)
+
+    class Meta:
+        verbose_name = "تنظیمات فروشگاه"
+        verbose_name_plural = "تنظیمات فروشگاه"
+
+    def __str__(self):
+        return self.store_name
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+
 class OtpCode(models.Model):
     phone = models.CharField(max_length=11, verbose_name="موبایل")
     code = models.CharField(max_length=6, verbose_name="کد OTP")

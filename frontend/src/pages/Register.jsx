@@ -1,15 +1,16 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  FiUser,
-  FiMail,
   FiPhone,
   FiLock,
   FiEye,
   FiEyeOff,
   FiChevronLeft,
 } from "react-icons/fi";
+import { Link, useNavigate } from "react-router-dom";
+import { apiRequest } from "../api";
 import "./Register.css";
+
 
 // مثل صفحات ارقام فارسی/عربی را به لاتین تبدیل می‌کند
 const normalizeDigits = (value) =>
@@ -37,11 +38,13 @@ const authPost = async (path, body) => {
   return data;
 };
 
+
 const Register = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [agree, setAgree] = useState(false);
+
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({
@@ -52,6 +55,7 @@ const Register = () => {
     confirmPassword: "",
   });
 
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -59,12 +63,14 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (busy) return;
     setError("");
 
     const phone = normalizeDigits(form.phone.trim()).replace(/\D/g, "");
     if (!/^09[0-9]{9}$/.test(phone)) {
       setError("شماره موبایل معتبر نیست (مثال: 09123456789).");
+
       return;
     }
     if (form.password !== form.confirmPassword) {
@@ -73,6 +79,7 @@ const Register = () => {
     }
     // بدون تیک قوانین کاربر به مرحله بعد (تأیید کد پیامکی) نمی‌رود
     if (!agree) {
+
       setError("برای ادامه ثبت‌نام باید با قوانین و مقررات موافقت کنید.");
       return;
     }
@@ -97,6 +104,7 @@ const Register = () => {
     } finally {
       setBusy(false);
     }
+
   };
 
   return (
@@ -108,12 +116,13 @@ const Register = () => {
 
             <h2 className="auth-card__title">ثبت نام در شمین گالری</h2>
             <p className="auth-card__subtitle">
-              برای دسترسی به حساب کاربری خود، اطلاعات زیر را وارد کنید.
+              شماره موبایل و رمز عبور خود را انتخاب کنید؛ سپس با کد پیامکی حساب شما فعال می‌شود.
             </p>
 
             <form className="auth-form" onSubmit={handleSubmit}>
               <label className="auth-field">
                 <input
+
                   type="text"
                   name="fullName"
                   placeholder="نام و نام خانوادگی"
@@ -137,11 +146,14 @@ const Register = () => {
 
               <label className="auth-field">
                 <input
+
                   type="tel"
                   name="phone"
-                  placeholder="شماره موبایل"
+                  placeholder="شماره موبایل (0912...)"
                   value={form.phone}
                   onChange={handleChange}
+                  inputMode="numeric"
+                  dir="ltr"
                   required
                 />
                 <FiPhone className="auth-field__icon" />
@@ -168,7 +180,7 @@ const Register = () => {
 
               <label className="auth-field">
                 <input
-                  type={showConfirmPassword ? "text" : "password"}
+                  type={showConfirm ? "text" : "password"}
                   name="confirmPassword"
                   placeholder="تکرار رمز عبور"
                   value={form.confirmPassword}
@@ -178,12 +190,10 @@ const Register = () => {
                 <button
                   type="button"
                   className="auth-field__icon auth-field__icon--btn"
-                  onClick={() => setShowConfirmPassword((prev) => !prev)}
-                  aria-label={
-                    showConfirmPassword ? "پنهان کردن رمز عبور" : "نمایش رمز عبور"
-                  }
+                  onClick={() => setShowConfirm((prev) => !prev)}
+                  aria-label={showConfirm ? "پنهان کردن رمز عبور" : "نمایش رمز عبور"}
                 >
-                  {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
+                  {showConfirm ? <FiEyeOff /> : <FiEye />}
                 </button>
               </label>
 
@@ -193,14 +203,17 @@ const Register = () => {
                   <input
                     type="checkbox"
                     checked={agree}
+
                     onChange={(e) => {
                       setAgree(e.target.checked);
                       if (e.target.checked) setError("");
                     }}
+
                   />
                   <span className="auth-checkbox__box" />
                 </label>
               </div>
+
 
               {/* اینپوت چک‌باکس با CSS مخفی است؛ required مرورگر بی‌صدا سابمیت را
                   بلاک می‌کند، پس اعتبارسنجی آن با پیام مرئی همین‌جا انجام می‌شود */}
@@ -213,16 +226,17 @@ const Register = () => {
               <button type="submit" disabled={busy} className="auth-btn auth-btn--primary">
                 <FiChevronLeft />
                 {busy ? "در حال ارسال کد..." : "ثبت نام"}
+
               </button>
 
               <div className="auth-divider">
                 <span>یا</span>
               </div>
 
-              <a href="/login" className="auth-btn auth-btn--ghost">
+              <Link to="/Login" className="auth-btn auth-btn--ghost">
                 <FiLock />
                 قبلاً ثبت نام کرده‌اید؟ وارد شوید
-              </a>
+              </Link>
             </form>
           </div>
         </div>

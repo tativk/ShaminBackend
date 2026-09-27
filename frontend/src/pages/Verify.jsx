@@ -7,6 +7,7 @@ import "./Verify.css";
 const CODE_LENGTH = 6;
 const RESEND_SECONDS = 60;
 
+
 const authPost = async (path, body) => {
   const response = await fetch(
     `${(process.env.REACT_APP_API_URL || "http://localhost:8000/api").replace(/\/$/, "")}/auth/${path}/`,
@@ -27,9 +28,11 @@ const authPost = async (path, body) => {
   return data;
 };
 
+
 const Verify = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
   // شماره و اطلاعات ثبت‌نام از صفحه Register با route state می‌آید؛
   // ?identifier= فقط برای ورود مستقیم به این صفحه نگه داشته شده است.
   const registration = location.state || {};
@@ -40,6 +43,7 @@ const Verify = () => {
         ? new URLSearchParams(window.location.search).get("identifier") || ""
         : ""),
   );
+
   const [digits, setDigits] = useState(Array(CODE_LENGTH).fill(""));
   const [status, setStatus] = useState("idle"); // idle | loading | success | error
   const [errorMessage, setErrorMessage] = useState("");
@@ -47,6 +51,15 @@ const Verify = () => {
   const [resendSeconds, setResendSeconds] = useState(RESEND_SECONDS);
   const [resending, setResending] = useState(false);
   const inputsRef = useRef([]);
+
+
+  // شماره از ثبت‌نام به این صفحه منتقل می‌شود (route state) یا از query خوانده می‌شود
+  const identifier =
+    location.state?.phone ||
+    (typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("identifier")
+      : null);
+
 
   useEffect(() => {
     inputsRef.current[0]?.focus();
@@ -103,6 +116,7 @@ const Verify = () => {
   };
 
   const handleVerify = async (codeOverride) => {
+
     const code = codeOverride ?? digits.join("");
     if (code.length !== CODE_LENGTH || status === "loading") return;
 
@@ -150,6 +164,7 @@ const Verify = () => {
           ? "ارتباط با سرور برقرار نشد. دوباره تلاش کنید."
           : requestError.message,
       );
+
       setStatus("error");
       inputsRef.current[0]?.focus();
     }
@@ -161,6 +176,7 @@ const Verify = () => {
   };
 
   const handleResend = async () => {
+
     if (resending) return;
     setResending(true);
     setErrorMessage("");
@@ -180,6 +196,7 @@ const Verify = () => {
     } finally {
       setResending(false);
     }
+
   };
 
   if (status === "success") {
@@ -196,6 +213,7 @@ const Verify = () => {
               <p className="auth-card__subtitle">
                 حساب کاربری شما با موفقیت تأیید شد. اکنون می‌توانید از خرید در شمین گالری لذت ببرید.
               </p>
+
               {completionError && (
                 <p className="verify-message verify-message--error" role="alert">
                   <FiAlertCircle />
@@ -207,6 +225,7 @@ const Verify = () => {
                 className="auth-btn auth-btn--primary"
                 onClick={() => navigate("/dashboard")}
               >
+
                 <FiChevronLeft />
                 ورود به داشبورد
               </button>

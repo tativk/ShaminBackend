@@ -4,6 +4,7 @@ import { BrowserRouter, Link } from "react-router-dom";
 import { FiAlertCircle, FiShoppingCart, FiX } from "react-icons/fi";
 import AppRoutes from "./routes/AppRoutes";
 import ScrollToTop from "./components/ScrollToTop";
+import { WishlistProvider } from "./context/WishlistContext";
 import { CART_NOTICE_DURATION, CART_NOTICE_EVENT } from "./cart-notice";
 import "./cart-notice.css";
 
@@ -45,13 +46,14 @@ const App = () => {
   }, []);
 
   return (
-    <BrowserRouter>
+    <WishlistProvider>
+      <BrowserRouter>
 
-      <ScrollToTop />
+        <ScrollToTop />
 
-      <div className="App">
-        <AppRoutes />
-      </div>
+        <div className="App">
+          <AppRoutes />
+        </div>
 
       {notice && (
         <div
@@ -130,6 +132,7 @@ const App = () => {
       )}
 
     </BrowserRouter>
+    </WishlistProvider>
   );
 };
 

@@ -3,6 +3,7 @@ import { FiChevronDown, FiFilter, FiHeart, FiSearch, FiSliders, FiX } from "reac
 import { FaStar } from "react-icons/fa";
 import { Link, useSearchParams } from "react-router-dom";
 import { apiRequest, getAssetUrl } from "../api";
+import { useWishlist } from "../context/WishlistContext";
 import { Hero } from "./Home";
 import Header from "../components/Header/Header";
 import Footer from "../components/Footer/Footer";
@@ -17,13 +18,17 @@ const FALLBACK_IMAGE = "/logo.png";
 const formatPrice = (value) => `${new Intl.NumberFormat("fa-IR").format(value)} تومان`;
 
 const ProductCard = ({ product }) => {
+
   const [favorite, toggleFavorite] = useFavorite(product);
+
 
   return (
   <article className="product-list-card">
     <div className="product-list-card__media">
       {product.badge && <span className="product-list-card__badge">{product.badge}</span>}
+
       <button type="button" className={`product-list-card__wishlist ${favorite ? "is-active" : ""}`} onClick={toggleFavorite} aria-label={favorite ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}><FiHeart /></button>
+
       <img src={product.image} alt={product.name} loading="lazy" />
     </div>
     <div className="product-list-card__body">
