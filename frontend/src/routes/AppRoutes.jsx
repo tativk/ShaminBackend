@@ -45,8 +45,11 @@ const AppRoutes = () => {
       <Route path="/Cart" element={<Cart />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/Login" element={<Login />} />
+      <Route path="/login" element={<Login />} />
       <Route path="/Register" element={<Register />} />
+      <Route path="/register" element={<Register />} />
       <Route path="/Verify" element={<Verify />} />
+      <Route path="/verify" element={<Verify />} />
       <Route path="/payment/callback" element={<PaymentCallbackConnected />} />
       <Route path="/PaymentCallback" element={<PaymentCallbackConnected />} />
     </Routes>

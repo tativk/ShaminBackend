@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FiMail, FiUser, FiEye, FiEyeOff, FiChevronLeft } from "react-icons/fi";
 import "./Login.css";
 import "./PasswordRecovery.css";
@@ -183,10 +183,10 @@ const Login = () => {
                 <span>یا</span>
               </div>
 
-              <a href="./Register" className="auth-btn auth-btn--ghost">
+              <Link to="/Register" className="auth-btn auth-btn--ghost">
                 <FiMail />
                 حساب کاربری ندارید؟ ثبت نام کنید
-              </a>
+              </Link>
             </form>
           </div>
         </div>

@@ -38,7 +38,16 @@ const refreshAccessToken = async () => {
   return data.access;
 };
 
-export const apiRequest = async (path, options = {}, canRefresh = true) => {
+// توکن‌های باطل‌شده باید پاک شوند وگرنه همه درخواست‌ها (حتی endpointهای
+// عمومی مثل ثبت‌نام) با 401 تکرار می‌شوند چون DRF با هدر Bearer نامعتبر
+// همان ابتدا خطای token_not_valid می‌دهد.
+const clearTokens = () => {
+  ['access', 'access_token', 'refresh', 'refresh_token', 'user'].forEach((key) =>
+    localStorage.removeItem(key),
+  );
+};
+
+export const apiRequest = async (path, options = {}, canRetry = true) => {
   const headers = new Headers(options.headers || {});
   if (options.body && !(options.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json');
@@ -48,9 +57,12 @@ export const apiRequest = async (path, options = {}, canRefresh = true) => {
   if (access) headers.set('Authorization', `Bearer ${access}`);
 
   const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
-  if (response.status === 401 && canRefresh) {
+  if (response.status === 401 && canRetry) {
     const refreshedAccess = await refreshAccessToken();
-    if (refreshedAccess) return apiRequest(path, options, false);
+    // refresh هم شکست خورد یعنی توکن‌ها دیگر معتبر نیستند؛ پاکشان کن و
+    // یک بار بدون احراز هویت تلاش کن تا endpointهای عمومی درست جواب بدهند.
+    if (!refreshedAccess) clearTokens();
+    return apiRequest(path, options, false);
   }
 
   if (!response.ok) throw new Error(await getErrorMessage(response));
