@@ -22,6 +22,17 @@ const SOCIAL_LINKS = [
 const Footer = () => {
   return (
     <footer className="footer">
+      {/* SVG مخفی برای تعریف گرادیان اینستاگرام */}
+      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
+        <defs>
+          <linearGradient id="instagramGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#F58529" />
+            <stop offset="50%" stopColor="#DD2A7B" />
+            <stop offset="100%" stopColor="#515BD4" />
+          </linearGradient>
+        </defs>
+      </svg>
+
       <div className="container footer__grid">
         <div className="footer__col footer__col--brand">
           <Link to="/" className="header__logo header__logo--footer" aria-label="فروشگاه شمین">
@@ -40,6 +51,7 @@ const Footer = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={social.label}
+                className={`footer__social-link footer__social-link--${social.id}`}
               >
                 {social.icon}
               </a>
@@ -77,7 +89,7 @@ const Footer = () => {
       <div className="footer__bottom">
         <div className="container footer__bottom-inner">
           <span>© تمامی حقوق مادی و معنوی متعلق به فروشگاه شمین است.</span>
-          <a
+          {/*این خط باید ویرایش شود و از حالت کامنت برداشته شود که نام تیم برنامه نویسی نمایش داده شود*/}{/*<a
             href="https://morenacode.ir/"
             target="_blank"
             rel="noopener noreferrer"
@@ -85,7 +97,7 @@ const Footer = () => {
             className="footer__morena"
           >
             طراحی شده توسط تیم برنامه نویسی مورنا کد
-          </a>
+          </a>*/}
         </div>
       </div>
     </footer>

@@ -16,7 +16,7 @@
   --color-text: #1c2620;
   --color-text-soft: #5f6b63;
   --color-gold: #c9a227;
-  --color-gold-soft: #e4c96b;
+  --color-gold-soft: #010101;
   --color-border: #e7e1d3;
 
   --radius-sm: 10px;
@@ -230,11 +230,13 @@ button {
 .hero__content {
   position: relative;
   z-index: 3;
-  max-width: 460px;
-  margin-inline-start: auto; /* pushes content to the right (RTL = visual left) */
+  max-width: 560px;             /* کمی بزرگ‌تر چون متن وسط جا بیشتری می‌خواد */
+  margin-inline: auto;          /* ← این متن رو وسط می‌ذاره */
   display: flex;
   flex-direction: column;
   gap: 14px;
+  align-items: center;          /* ← آیتم‌ها رو افقی وسط‌چین می‌کنه */
+  text-align: center;           /* ← متن‌ها رو وسط‌چین می‌کنه */
 }
 
 .hero__eyebrow {
@@ -260,7 +262,6 @@ button {
 .hero__cta {
   margin-top: 10px;
   width: fit-content;
-  flex-direction: row-reverse;
   background-color:rgba(0, 85, 25, 0.781);
 }
 
@@ -984,8 +985,14 @@ button {
     max-width: 100%;
   }
 
-  .hero__cta {
-    flex-direction: row-reverse;
+   .hero__cta {
+    flex-direction: row;
+    white-space: nowrap;
+     padding: 12px 13px;      /* پیش‌فرض 13px 26px بود */
+    font-size: 0.82rem;     /* پیش‌فرض 0.95rem بود */
+    gap: 6px;               /* فاصله متن و آیکون */
+    margin-top: 6px;
+    transform: translateX(-8px);
   }
 
   /* hero__image-wrap stays position:absolute / inset:0 — no width override */

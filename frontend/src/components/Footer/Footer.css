@@ -83,19 +83,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background var(--transition), border-color var(--transition);
+  transition: background var(--transition), border-color var(--transition),
+    color var(--transition), transform var(--transition);
 }
 
 .footer__social a:hover {
   background: var(--color-gold);
   border-color: var(--color-gold);
   color: var(--color-green-950);
-}
-
-.footer__social-icon {
-  width: 17px;
-  height: 17px;
-  object-fit: contain;
 }
 
 /* آیکون تصویری پیام‌رسان‌های ایرانی (بله، ایتا، سروش، روبیکا) */
@@ -106,12 +101,45 @@
   border-radius: 4px;
 }
 
-/* بج حرفی برای پیام‌رسان‌هایی که فایل آیکون‌شان موجود نیست */
-.footer__social-letter {
-  font-size: 0.9rem;
-  font-weight: 700;
-  line-height: 1;
+/* =========================================================
+   SOCIAL ICONS — COLOR
+   ========================================================= */
+
+/* تلگرام — آبی رسمی */
+.footer__social-link--telegram {
+  color: #229ED9;
 }
+
+.footer__social-link--telegram:hover {
+  background: #229ED9;
+  border-color: #229ED9;
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+/* اینستاگرام — گرادیان رسمی (روش SVG gradient) */
+.footer__social-link--instagram svg {
+  fill: url(#instagramGradient);
+  color: url(#instagramGradient);
+}
+
+.footer__social-link--instagram:hover {
+  background: linear-gradient(
+    45deg,
+    #F58529 0%,
+    #DD2A7B 50%,
+    #8134AF 75%,
+    #515BD4 100%
+  );
+  border-color: transparent;
+  transform: translateY(-2px);
+}
+
+.footer__social-link--instagram:hover svg {
+  fill: #ffffff;
+  color: #ffffff;
+}
+
 
 .footer__bottom {
   border-top: 1px solid rgba(250, 246, 238, 0.12);

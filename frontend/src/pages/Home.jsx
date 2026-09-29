@@ -161,23 +161,25 @@ const Hero = () => {
       </div>
 
       <div className="hero__controls">
-        <button className="hero__arrow" onClick={next} aria-label="اسلاید بعدی">
-          <FiChevronRight />
-        </button>
-        <div className="hero__dots">
-          {HERO_SLIDES.map((_, i) => (
-            <button
-              key={i}
-              className={i === active ? "hero__dot hero__dot--active" : "hero__dot"}
-              onClick={() => goTo(i)}
-              aria-label={`اسلاید ${i + 1}`}
-            />
-          ))}
-        </div>
-        <button className="hero__arrow" onClick={prev} aria-label="اسلاید قبلی">
-          <FiChevronLeft />
-        </button>
-      </div>
+  <button className="hero__arrow" onClick={prev} aria-label="اسلاید قبلی">
+    <FiChevronRight />
+  </button>
+
+  <div className="hero__dots">
+    {HERO_SLIDES.map((_, i) => (
+      <button
+        key={i}
+        className={i === active ? "hero__dot hero__dot--active" : "hero__dot"}
+        onClick={() => goTo(i)}
+        aria-label={`اسلاید ${i + 1}`}
+      />
+    ))}
+  </div>
+
+  <button className="hero__arrow" onClick={next} aria-label="اسلاید بعدی">
+    <FiChevronLeft />
+  </button>
+</div>
     </section>
   );
 };

@@ -2,6 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { FiUser, FiHeart, FiShoppingCart, FiMenu, FiX } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import SearchBox from "../SearchBox/SearchBox";
+import { useCart } from "../../context/CartContext";
+import { useWishlist } from "../../context/WishlistContext";
+
+
 import "./Header.css";
 
 const NAV_LINKS = [
@@ -15,6 +19,8 @@ const NAV_LINKS = [
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const headerRef = useRef(null);
+  const { totalItems } = useCart();
+  const { count } = useWishlist();
 
   /* ارتفاع هدر به‌صورت متغیر CSS در ریشه سند منتشر می‌شود تا
      محتوای صفحه با padding معادل، زیر هدر ثابت پنهان نشود. */
@@ -61,13 +67,22 @@ const Header = () => {
           <Link to="/register" className="header__icon-btn" aria-label="ورود / ثبت نام">
             <FiUser />
           </Link>
-          <button className="header__icon-btn" aria-label="علاقه‌مندی‌ها">
-            <FiHeart />
-          </button>
+          <Link to="/favorites" className="header__icon-btn" aria-label="علاقه‌مندی‌ها">
+  <FiHeart />
+  {count > 0 && (
+    <span className="header__badge">
+      {new Intl.NumberFormat("fa-IR").format(count)}
+    </span>
+  )}
+</Link>
           <Link to="/cart" className="header__icon-btn" aria-label="سبد خرید">
-            <FiShoppingCart />
-            <span className="header__badge">0</span>
-          </Link>
+          <FiShoppingCart />
+          {totalItems > 0 && (
+          <span className="header__badge">
+          {new Intl.NumberFormat("fa-IR").format(totalItems)}
+          </span>
+  )}
+</Link>
         </div>
       </div>
 
