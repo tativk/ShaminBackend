@@ -77,23 +77,19 @@ class CompleteRegistrationSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=50)
     last_name = serializers.CharField(max_length=50)
     email = serializers.EmailField(required=False, allow_blank=True)
-    # آدرس اختیاری است؛ کاربر می‌تواند آن را بعداً در داشبورد تکمیل کند
-    province = serializers.CharField(max_length=100, required=False, allow_blank=True)
-    city = serializers.CharField(max_length=100, required=False, allow_blank=True)
-    street = serializers.CharField(max_length=255, required=False, allow_blank=True)
-    postal_code = serializers.CharField(min_length=10, max_length=10, required=False, allow_blank=True)
+    province = serializers.CharField(max_length=100)
+    city = serializers.CharField(max_length=100)
+    street = serializers.CharField(max_length=255)
+    postal_code = serializers.CharField(min_length=10, max_length=10)
     detail = serializers.CharField(required=False, allow_blank=True)
-    # رمز عبور اختیاری است؛ اگر ارسال شود ست می‌شود تا ورود با رمز هم ممکن باشد
-    password = serializers.CharField(write_only=True, required=False, trim_whitespace=False)
-    password_confirm = serializers.CharField(write_only=True, required=False, trim_whitespace=False)
 
     def validate_postal_code(self, value):
-        if value and not value.isdigit():
+        if not value.isdigit():
             raise serializers.ValidationError("کد پستی باید فقط عدد باشد")
         return value
 
     def validate(self, attrs):
-        for field in ("first_name", "last_name"):
+        for field in ("first_name", "last_name", "province", "city", "street"):
             if not attrs[field].strip():
                 raise serializers.ValidationError({field: "این فیلد الزامی است"})
         return attrs

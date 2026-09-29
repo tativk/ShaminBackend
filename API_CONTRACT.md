@@ -6,8 +6,7 @@
 ## احراز هویت با OTP — اسپرینت ۲
 
 - `POST /api/auth/request-otp/` عمومی است و ورودی آن `{"phone":"09123456789"}` است.
-- `POST /api/auth/verify-otp/` عمومی است و ورودی آن `{"phone":"09123456789","code":"123456"}` است؛ پاسخ موفق شامل `access`، `refresh` و `user` است. اگر کاربر وجود نداشته باشد به‌صورت خودکار ساخته می‌شود و `next_step` برابر `complete_registration` برمی‌گردد.
-- `POST /api/auth/complete-registration/` با هدر `Authorization: Bearer <access-token>` فراخوانی می‌شود. ورودی الزامی آن `first_name` و `last_name` است. آدرس (`province`، `city`، `street`، `postal_code`، `detail`) اختیاری است و فقط فیلدهای ارسالی ذخیره می‌شوند. اگر `password` و `password_confirm` یکسان ارسال شوند، رمز کاربر با اعتبارسنجی‌های جنگو ست می‌شود تا ورود با رمز نیز ممکن باشد.
+- `POST /api/auth/verify-otp/` عمومی است و ورودی آن `{"phone":"09123456789","code":"123456"}` است؛ پاسخ موفق شامل `access`، `refresh` و `user` است.
 - `POST /api/auth/token/refresh/` با ورودی `{"refresh":"<refresh-token>"}` توکن `access` جدید برمی‌گرداند.
 - `GET/PATCH /api/auth/profile/` و `GET/PUT /api/auth/address/` به هدر `Authorization: Bearer <access-token>` نیاز دارند.
 - کد OTP پنج دقیقه اعتبار دارد و یک‌بارمصرف است.

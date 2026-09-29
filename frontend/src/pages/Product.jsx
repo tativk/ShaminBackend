@@ -21,7 +21,6 @@ import { FaStar } from "react-icons/fa";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiRequest, getAssetUrl } from "../api";
 import { notifyCartAdded } from "../cart-notice";
-import { useFavorite } from "../favorites";
 import Header from "../components/Header/Header";
 import Footer from "../components/Footer/Footer";
 import "./Home.css";
@@ -34,16 +33,6 @@ const FALLBACK_IMAGE = "/logo.png";
 const MIN_GRAM = 5;
 
 const formatPrice = (value) => new Intl.NumberFormat("fa-IR").format(value) + " تومان";
-
-/* قالب ذخیره در علاقه‌مندی‌ها — صفحه Favorites بر اساس همین فیلدها (id/name/brand/price/image) رندر می‌کند */
-const toFavoriteItem = (product) => ({
-  id: product.id,
-  name: product.name,
-  brand: product.brand,
-  price: product.price,
-  final_price: product.price,
-  image: product.images?.[0] || product.image || FALLBACK_IMAGE,
-});
 
 const Stars = ({ rating }) => (
   <div className="stars" aria-label={`امتیاز ${rating} از ۵`}>
@@ -60,7 +49,7 @@ const Stars = ({ rating }) => (
 const ProductGallery = ({ product }) => {
   const images = product.images;
   const [activeIndex, setActiveIndex] = useState(0);
-  const [wishlisted, toggleWishlist] = useFavorite(toFavoriteItem(product));
+  const [wishlisted, setWishlisted] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const thumbsRef = useRef(null);
 
@@ -114,8 +103,8 @@ const ProductGallery = ({ product }) => {
               ? "product-gallery__wishlist product-gallery__wishlist--active"
               : "product-gallery__wishlist"
           }
-          onClick={toggleWishlist}
-          aria-label={wishlisted ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
+          onClick={() => setWishlisted((prev) => !prev)}
+          aria-label="افزودن به علاقه‌مندی‌ها"
         >
           <FiHeart />
         </button>
@@ -152,8 +141,7 @@ const ProductInfo = ({ product }) => {
   const [gram, setGram] = useState(MIN_GRAM);
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
-  const [cartMessage, setCartMessage] = useState(null); // {type:'success'|'error', text, action?, actionLabel?}
-  const [favorite, toggleFavoriteItem] = useFavorite(toFavoriteItem(product));
+  const [cartMessage, setCartMessage] = useState(null); // {type:'success'|'error', text}
 
   const handleGramChange = (e) => {
     const raw = e.target.value;
@@ -197,18 +185,8 @@ const ProductInfo = ({ product }) => {
   };
 
   const handleAddToWishlist = () => {
-    // `favorite` مقدار قبل از تغییر است؛ پیام بر اساس همان ساخته می‌شود.
-    setCartMessage(
-      favorite
-        ? { type: "success", text: "از علاقه‌مندی‌ها حذف شد." }
-        : {
-            type: "success",
-            text: "به علاقه‌مندی‌ها اضافه شد.",
-            action: "/favorites",
-            actionLabel: "مشاهده علاقه‌مندی‌ها ←",
-          },
-    );
-    toggleFavoriteItem();
+    // علاقه‌مندی‌ها هنوز بک‌اند ندارد — فعلاً محلی است
+    setCartMessage({ type: "success", text: "به علاقه‌مندی‌ها اضافه شد (محلی)." });
   };
 
   return (
@@ -293,9 +271,7 @@ const ProductInfo = ({ product }) => {
         >
           {cartMessage.text}
           {cartMessage.type === "success" && (
-            <button type="button" onClick={() => navigate(cartMessage.action || "/Cart")}>
-              {cartMessage.actionLabel || "مشاهده سبد خرید ←"}
-            </button>
+            <button type="button" onClick={() => navigate("/Cart")}>مشاهده سبد خرید ←</button>
           )}
         </p>
       )}
@@ -309,7 +285,7 @@ const ProductInfo = ({ product }) => {
         <FiShoppingCart />
       </button>
       <button className="product-info__wishlist-btn" onClick={handleAddToWishlist}>
-        {favorite ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
+        افزودن به علاقه‌مندی‌ها
         <FiHeart />
       </button>
     </div>
@@ -529,7 +505,7 @@ const ProductReviews = ({ productId, averageRating }) => {
    ========================================================= */
 
 const RelatedProductCard = ({ product }) => {
-  const [wishlisted, toggleWishlist] = useFavorite(product);
+  const [wishlisted, setWishlisted] = useState(false);
 
   return (
     <Link to={`/products/${product.id}`} className="related-card">
@@ -540,9 +516,9 @@ const RelatedProductCard = ({ product }) => {
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          toggleWishlist();
+          setWishlisted((prev) => !prev);
         }}
-        aria-label={wishlisted ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
+        aria-label="افزودن به علاقه‌مندی‌ها"
       >
         <FiHeart />
       </button>

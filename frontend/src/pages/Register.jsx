@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   FiPhone,
   FiLock,
@@ -11,100 +10,55 @@ import { Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../api";
 import "./Register.css";
 
-
-// مثل صفحات ارقام فارسی/عربی را به لاتین تبدیل می‌کند
-const normalizeDigits = (value) =>
-  value.replace(/[۰-۹٠-٩]/g, (digit) =>
-    String(digit.charCodeAt(0) - (digit >= "۰" ? 1776 : 1632)),
-  );
-
-const authPost = async (path, body) => {
-  const response = await fetch(
-    `${(process.env.REACT_APP_API_URL || "http://localhost:8000/api").replace(/\/$/, "")}/auth/${path}/`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    },
-  );
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const error = new Error(
-      data.detail || Object.values(data).flat().join(" ") || "درخواست انجام نشد.",
-    );
-    error.retryAfter = data.retry_after;
-    throw error;
-  }
-  return data;
-};
-
+const toEnDigits = (value) =>
+  String(value || "")
+    .replace(/[۰-۹]/g, (c) => "۰۱۲۳۴۵۶۷۸۹".indexOf(c))
+    .replace(/[٠-٩]/g, (c) => "٠١٢٣٤٥٦٧٨٩".indexOf(c));
 
 const Register = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [agree, setAgree] = useState(false);
-
-  const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    password: "",
-    confirmPassword: "",
-  });
-
+  const [form, setForm] = useState({ phone: "", password: "", confirmPassword: "" });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (busy) return;
-    setError("");
-
-    const phone = normalizeDigits(form.phone.trim()).replace(/\D/g, "");
-    if (!/^09[0-9]{9}$/.test(phone)) {
-      setError("شماره موبایل معتبر نیست (مثال: 09123456789).");
-
+    const phone = toEnDigits(form.phone).replace(/\s/g, "");
+    if (!/^09\d{9}$/.test(phone)) {
+      setError("شماره موبایل معتبر نیست (مثال: 09123456789)");
+      return;
+    }
+    if (form.password.length < 4) {
+      setError("رمز عبور باید حداقل ۴ کاراکتر باشد.");
       return;
     }
     if (form.password !== form.confirmPassword) {
       setError("رمز عبور و تکرار آن یکسان نیستند.");
       return;
     }
-    // بدون تیک قوانین کاربر به مرحله بعد (تأیید کد پیامکی) نمی‌رود
     if (!agree) {
-
-      setError("برای ادامه ثبت‌نام باید با قوانین و مقررات موافقت کنید.");
+      setError("لطفاً با قوانین و مقررات موافقت کنید.");
       return;
     }
-
-    setBusy(true);
-    try {
-      await authPost("request-otp", { phone });
-      navigate("/Verify", {
-        state: {
-          identifier: phone,
-          fullName: form.fullName.trim(),
-          email: form.email.trim(),
-          password: form.password,
-        },
-      });
-    } catch (requestError) {
-      setError(
-        requestError.message === "Failed to fetch"
-          ? "ارتباط با سرور برقرار نشد. دوباره تلاش کنید."
-          : requestError.message,
-      );
-    } finally {
-      setBusy(false);
-    }
-
+    setLoading(true);
+    setError("");
+    apiRequest("/auth/register/", {
+      method: "POST",
+      body: JSON.stringify({ phone, password: form.password }),
+    })
+      .then(() => {
+        navigate("/Verify", { state: { phone } });
+      })
+      .catch((err) => setError(err.message || "ثبت‌نام ناموفق بود."))
+      .finally(() => setLoading(false));
   };
 
   return (
@@ -122,31 +76,6 @@ const Register = () => {
             <form className="auth-form" onSubmit={handleSubmit}>
               <label className="auth-field">
                 <input
-
-                  type="text"
-                  name="fullName"
-                  placeholder="نام و نام خانوادگی"
-                  value={form.fullName}
-                  onChange={handleChange}
-                  required
-                />
-                <FiUser className="auth-field__icon" />
-              </label>
-
-              <label className="auth-field">
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="ایمیل (اختیاری)"
-                  value={form.email}
-                  onChange={handleChange}
-                />
-                <FiMail className="auth-field__icon" />
-              </label>
-
-              <label className="auth-field">
-                <input
-
                   type="tel"
                   name="phone"
                   placeholder="شماره موبایل (0912...)"
@@ -203,30 +132,21 @@ const Register = () => {
                   <input
                     type="checkbox"
                     checked={agree}
-
-                    onChange={(e) => {
-                      setAgree(e.target.checked);
-                      if (e.target.checked) setError("");
-                    }}
-
+                    onChange={(e) => setAgree(e.target.checked)}
                   />
                   <span className="auth-checkbox__box" />
                 </label>
               </div>
 
+              {error && <p className="auth-form__error">{error}</p>}
 
-              {/* اینپوت چک‌باکس با CSS مخفی است؛ required مرورگر بی‌صدا سابمیت را
-                  بلاک می‌کند، پس اعتبارسنجی آن با پیام مرئی همین‌جا انجام می‌شود */}
-              {error && (
-                <p className="auth-form__error" role="alert">
-                  {error}
-                </p>
-              )}
-
-              <button type="submit" disabled={busy} className="auth-btn auth-btn--primary">
+              <button
+                type="submit"
+                className="auth-btn auth-btn--primary"
+                disabled={loading}
+              >
                 <FiChevronLeft />
-                {busy ? "در حال ارسال کد..." : "ثبت نام"}
-
+                {loading ? "در حال ثبت..." : "ثبت نام و دریافت کد"}
               </button>
 
               <div className="auth-divider">

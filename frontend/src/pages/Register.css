@@ -151,17 +151,6 @@
   margin-top: -4px;
 }
 
-.auth-form__error {
-  padding: 10px 14px;
-  border: 1px solid #ecc9c3;
-  border-radius: 12px;
-  background: #fff5f2;
-  color: #9c3424;
-  font-size: 13px;
-  line-height: 1.9;
-  text-align: right;
-}
-
 .auth-form__row--single {
   justify-content: flex-start;
 }
