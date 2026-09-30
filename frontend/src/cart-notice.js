@@ -11,6 +11,9 @@ const dispatchCartNotice = (detail) => {
 // پاسخ POST /cart/items/ شامل total_items است؛ همان را پاس بدهید
 export const notifyCartAdded = ({ added = 1, totalItems, productName = "" } = {}) => {
   dispatchCartNotice({ type: "success", added, totalItems, productName });
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("cart:updated"));
+  }
 };
 
 export const notifyCartError = (message) => {

@@ -6,18 +6,13 @@ import Cart from "../pages/Cart";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import ProductList from "../pages/ProductList";
-
 import Dashboard from "../pages/Dashboard";
 import Favorites from "../pages/Favorites";
-
 import Product from "../pages/Product";
 import Verify from "../pages/Verify";
-
 import Blog from "../pages/Blog";
 import BlogPost from "../pages/BlogPost";
-
 import PaymentCallback from "../pages/PaymentCallback";
-
 import AboutUs from "../pages/AboutUs";
 import Faq from "../pages/Faq";
 

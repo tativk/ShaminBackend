@@ -5,6 +5,7 @@ import { FiAlertCircle, FiShoppingCart, FiX } from "react-icons/fi";
 import AppRoutes from "./routes/AppRoutes";
 import ScrollToTop from "./components/ScrollToTop";
 import { WishlistProvider } from "./context/WishlistContext";
+import { CartProvider } from "./context/CartContext";
 import { CART_NOTICE_DURATION, CART_NOTICE_EVENT } from "./cart-notice";
 import "./cart-notice.css";
 
@@ -46,6 +47,7 @@ const App = () => {
   }, []);
 
   return (
+    <CartProvider>
     <WishlistProvider>
       <BrowserRouter>
 
@@ -133,6 +135,7 @@ const App = () => {
 
     </BrowserRouter>
     </WishlistProvider>
+    </CartProvider>
   );
 };
 

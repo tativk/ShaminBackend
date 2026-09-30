@@ -120,9 +120,9 @@ function Faq() {
   };
 
   return (
-    <main>
+    <main dir="rtl">
     <Header />
-    <div className="shamin-faq" dir="rtl">
+    <div className="shamin-faq" >
       
       <div className="shamin-faq__container">
         
@@ -133,7 +133,7 @@ function Faq() {
 
           <h1 className="shamin-faq__title">سؤالات متداول</h1>
 
-          <p className="shamin-faq__subtitle">
+          <p className="shamin-faq__subtitle" >
             پاسخ سؤالاتی که بیشتر درباره سفارش، ارسال و محصولات شمین گالری
             پرسیده می‌شوند.
           </p>
@@ -253,22 +253,6 @@ function Faq() {
               </button>
             </div>
           )}
-        </section>
-
-        <section className="shamin-faq__support">
-          <div className="shamin-faq__support-icon">
-            <FiMessageCircle />
-          </div>
-
-          <div className="shamin-faq__support-content">
-            <span>پاسخ سؤالتان را پیدا نکردید؟</span>
-            <strong>ما اینجا هستیم تا کمکتان کنیم.</strong>
-          </div>
-
-          <a href="/support" className="shamin-faq__support-button">
-            تماس با پشتیبانی
-            <FiArrowLeft />
-          </a>
         </section>
 
         <footer className="shamin-faq__footer">
