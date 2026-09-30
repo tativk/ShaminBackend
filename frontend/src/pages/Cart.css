@@ -22,11 +22,16 @@
   padding-bottom: 72px;
 }
 
+.cart-page:not(.cart-state) {
+  padding-top: calc(var(--header-h, 76px) + 16px);
+}
+
 /* ── بنر بالای صفحه ─────────────────────────────────────────── */
 
 .cart-hero {
   position: relative;
   height: 340px;
+  border-radius: var(--radius-xl, 24px);
   overflow: hidden;
 }
 

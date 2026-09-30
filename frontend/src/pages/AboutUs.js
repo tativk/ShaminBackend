@@ -11,6 +11,8 @@ import {
   FiInstagram,
 } from "react-icons/fi";
 import "./AboutUs.css";
+import Header from "../components/Header/Header";
+import Footer from "../components/Footer/Footer";
 
 function AboutUs() {
   const shaminValues = [
@@ -38,7 +40,9 @@ function AboutUs() {
   ];
 
   return (
-    <main className="shamin-about" dir="rtl">
+    <div className="shamin-about-page" dir="rtl">
+      <Header />
+    <main className="shamin-about">
       <div className="shamin-about__container">
         <header className="shamin-about__header">
           <a href="/" className="shamin-about__logo" aria-label="Shamin Gallery">
@@ -330,13 +334,10 @@ function AboutUs() {
           </a>
         </section>
 
-        <footer className="shamin-about__footer">
-          <span>© Shamin Gallery</span>
-          <span className="shamin-about__footer-dot" />
-          <span>فروشگاهی برای انتخاب رایحه‌ای ماندگار</span>
-        </footer>
       </div>
     </main>
+      <Footer />
+    </div>
   );
 }
 
