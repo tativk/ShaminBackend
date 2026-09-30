@@ -147,6 +147,7 @@ export default function Cart() {
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedCityId, setSelectedCityId] = useState('');
   const [products, setProducts] = useState([]);
+  const [cartProductImages, setCartProductImages] = useState({});
   const [province, setProvince] = useState('');
   const [address, setAddress] = useState('');
   const [postalCode, setPostalCode] = useState('');
@@ -158,6 +159,38 @@ export default function Cart() {
   const sliderRef = useRef(null);
 
   const items = useMemo(() => cart?.items ?? [], [cart?.items]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const missingIds = [...new Set(items
+      .filter((item) => !item.main_image && !item.image
+        && !products.some((product) => product.id === item.product)
+        && !Object.prototype.hasOwnProperty.call(cartProductImages, item.product))
+      .map((item) => item.product))];
+
+    if (missingIds.length) {
+      Promise.all(missingIds.map(async (id) => {
+        try {
+          const product = await apiRequest(`/products/${id}/`);
+          return [id, product.main_image || product.images?.[0]?.image || null];
+        } catch {
+          return [id, null];
+        }
+      })).then((entries) => {
+        if (!cancelled) {
+          setCartProductImages((current) => ({ ...current, ...Object.fromEntries(entries) }));
+        }
+      });
+    }
+    return () => { cancelled = true; };
+  }, [items, products, cartProductImages]);
+
+  const getCartProductImage = (item) => {
+    const image = item.main_image || item.image
+      || products.find((product) => product.id === item.product)?.main_image
+      || cartProductImages[item.product];
+    return image ? getAssetUrl(image) : undefined;
+  };
 
   const provinceData = useMemo(
     () => provinces.find((p) => p.province === selectedProvince) || null,
@@ -392,7 +425,10 @@ export default function Cart() {
               {items.map((item) => (
                 <article className="cart-item" key={item.id}>
                   <div className="cart-item__media">
-                    <img src={getAssetUrl(item.main_image || item.image || null)} alt={item.name} />
+                    <img
+                      src={getCartProductImage(item)}
+                      alt={item.name}
+                    />
                   </div>
                   <div className="cart-item__body">
                     <h3 className="cart-item__name">{item.name}</h3>
