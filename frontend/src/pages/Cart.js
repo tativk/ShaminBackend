@@ -443,6 +443,12 @@ export default function Cart() {
                     <div className="cart-item__meta">
                       <span>تعداد : {toFa(item.quantity)}</span>
                       <span className="cart-item__meta-divider">|</span>
+                      {item.weight_grams != null && (
+                        <>
+                          <span>حجم : {toFa(item.weight_grams)} گرم</span>
+                          <span className="cart-item__meta-divider">|</span>
+                        </>
+                      )}
                       <span>محصول : {item.product ?? '—'}</span>
                     </div>
                     <div className="cart-item__price">
@@ -498,7 +504,11 @@ export default function Cart() {
                 <li className="cart-summary__row">
                   <span>هزینه ارسال</span>
                   <span className={cart?.shipping_cost == null ? '' : 'cart-summary__free'}>
-                    {cart?.shipping_cost == null ? 'انتخاب شهر' : `${formatPrice(totals.shipping)} تومان`}
+                    {cart?.shipping_cost == null
+                      ? 'انتخاب شهر'
+                      : totals.shipping === 0
+                        ? 'رایگان (عطر بالای ۳۰ میل)'
+                        : `${formatPrice(totals.shipping)} تومان`}
                   </span>
                 </li>
                 <li className="cart-summary__row"><span>تخفیف</span><span>{toFa(0)} تومان</span></li>

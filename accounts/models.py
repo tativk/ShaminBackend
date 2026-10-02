@@ -112,6 +112,8 @@ class OtpCode(models.Model):
     code = models.CharField(max_length=6, verbose_name="کد OTP")
     created_at = models.DateTimeField(auto_now_add=True)
     is_used = models.BooleanField(default=False, verbose_name="استفاده شده")
+    # سقف تلاش‌های نادرست — ضد حمله حدس زدن کد (brute force)
+    attempts = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         verbose_name = "کد OTP"

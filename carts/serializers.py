@@ -13,10 +13,11 @@ class CartItemSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='product.name', read_only=True)
     unit_price = serializers.DecimalField(source='product.final_price', max_digits=14, decimal_places=2, read_only=True)
     line_total = serializers.DecimalField(max_digits=24, decimal_places=2, read_only=True)
+    weight_grams = serializers.IntegerField(read_only=True, allow_null=True)
 
     class Meta:
         model = CartItem
-        fields = ['id', 'product', 'name', 'quantity', 'unit_price', 'line_total']
+        fields = ['id', 'product', 'name', 'quantity', 'weight_grams', 'unit_price', 'line_total']
 
 
 class CartSerializer(serializers.ModelSerializer):
@@ -47,3 +48,8 @@ class QuantitySerializer(serializers.Serializer):
 
 class AddItemSerializer(QuantitySerializer):
     product = serializers.IntegerField(min_value=1)
+    # حجم انتخابی عطر — فقط مقادیر مجاز پذیرفته می‌شود
+    weight_grams = serializers.IntegerField(required=False, allow_null=True)
+
+
+ALLOWED_WEIGHTS = (15, 20, 30, 50, 100)

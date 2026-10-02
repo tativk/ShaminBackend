@@ -96,11 +96,14 @@ class CreateOrderView(APIView):
                 product=item.product,
                 quantity=item.quantity,
                 price=item.product.final_price,
+                weight_grams=item.weight_grams,
             ))
-            # کاهش موجودی با F expression برای جلوگیری از race condition
-            item.product.__class__.objects.filter(pk=item.product.pk).update(
-                stock=F('stock') - item.quantity
-            )
+            # کاهش موجودی با F expression + شرط موجودی کافی (جلوگیری از منفی شدن در رقابت)
+            updated = item.product.__class__.objects.filter(
+                pk=item.product.pk, stock__gte=item.quantity
+            ).update(stock=F('stock') - item.quantity)
+            if updated == 0:
+                raise ValueError(f'موجودی «{item.product.name}» کافی نیست.')
             # QuerySet.update bypasses model signals; record this stock change explicitly.
             from accounts.models import AdminNotification
             AdminNotification.objects.create(

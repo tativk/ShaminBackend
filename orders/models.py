@@ -62,6 +62,11 @@ class OrderItem(models.Model):
         decimal_places=2,
         verbose_name=_('قیمت لحظه خرید'),
     )  # snapshot — تغییر قیمت بعداً روی سفارش تأثیر نمی‌ذاره
+    weight_grams = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name=_('حجم (گرم)'),
+    )  # snapshot — حجم انتخابی برای عطرها
 
     class Meta:
         verbose_name        = _('آیتم سفارش')

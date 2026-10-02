@@ -9,6 +9,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from products.models import Product
 from .models import Cart, CartItem, ShippingRate
+from .serializers import ALLOWED_WEIGHTS
 from .serializers import (AddItemSerializer, CartCitySerializer, CartSerializer,
                           QuantitySerializer, ShippingRateSerializer)
 
@@ -56,14 +57,22 @@ class CartItemsView(APIView):
         serializer.is_valid(raise_exception=True)
         cart = locked_cart(request.user)
         product = get_object_or_404(Product.objects.select_for_update(), pk=serializer.validated_data['product'])
-        item = CartItem.objects.filter(cart=cart, product=product).first()
+        weight = serializer.validated_data.get('weight_grams')
+        if product.category == 'perfume':
+            # عطر باید با یکی از حجم‌های مجاز سفارش داده شود
+            if weight not in ALLOWED_WEIGHTS:
+                raise ValidationError({'weight_grams': 'حجم باید یکی از ۱۵، ۲۰، ۳۰، ۵۰ یا ۱۰۰ گرم باشد.'})
+        else:
+            weight = None
+        # همان محصول با همان حجم آیتم واحد است؛ حجم متفاوت ردیف جداگانه می‌گیرد
+        item = CartItem.objects.filter(cart=cart, product=product, weight_grams=weight).first()
         quantity = serializer.validated_data['quantity'] + (item.quantity if item else 0)
         validate_stock(product, quantity)
         if item:
             item.quantity = quantity
             item.save(update_fields=['quantity'])
         else:
-            CartItem.objects.create(cart=cart, product=product, quantity=quantity)
+            CartItem.objects.create(cart=cart, product=product, quantity=quantity, weight_grams=weight)
         return Response(CartSerializer(cart).data, status=status.HTTP_200_OK if item else status.HTTP_201_CREATED)
 
 

@@ -37,7 +37,7 @@ class ProductListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'brand', 'category', 'gender', 'description',
             'price', 'discount_percent', 'final_price',
-            'main_image', 'is_active',
+            'main_image', 'is_active', 'is_best_seller',
         ]
 
 
@@ -99,7 +99,7 @@ class AdminProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = [
             'id', 'name', 'brand', 'brand_name', 'category', 'gender',
-            'description', 'price', 'discount_percent', 'stock', 'is_active',
+            'description', 'price', 'discount_percent', 'stock', 'is_active', 'is_best_seller',
             'created_at', 'images', 'new_images', 'keep_image_ids',
             'main_image_id', 'main_new_index',
         ]

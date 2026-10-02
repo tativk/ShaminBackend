@@ -6,6 +6,7 @@ from .recovery import RequestPasswordResetView, VerifyPasswordResetView, ResetPa
 
 from .views import (
     AdminCustomersView,
+    AdminStaffView,
     AddressView,
     CompleteRegistrationView,
     PasswordLoginView,
@@ -28,6 +29,8 @@ urlpatterns = [
     path("auth/register/", RegisterView.as_view(), name="register"),
     path("auth/admin/customers/", AdminCustomersView.as_view(), name="admin-customers"),
     path("auth/admin/customers/<int:pk>/", AdminCustomersView.as_view(), name="admin-customer-detail"),
+    path("auth/admin/staff/", AdminStaffView.as_view(), name="admin-staff"),
+    path("auth/admin/staff/<int:pk>/", AdminStaffView.as_view(), name="admin-staff-detail"),
     path("store/settings/", StoreSettingsView.as_view(), name="store-settings"),
     path("auth/request-otp/", RequestOtpView.as_view(), name="request-otp"),
     path("auth/verify-otp/", VerifyOtpView.as_view(), name="verify-otp"),

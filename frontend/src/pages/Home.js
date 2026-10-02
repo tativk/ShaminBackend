@@ -336,10 +336,21 @@ const BestSellingProducts = () => {
 
   useEffect(() => {
     let ignore = false;
-    apiRequest("/products/")
+    apiRequest("/products/?best_seller=true")
       .then((data) => {
         if (ignore) return;
-        const rows = Array.isArray(data) ? data : data?.results || [];
+        let rows = Array.isArray(data) ? data : data?.results || [];
+        // اگر ادمین هنوز پرفروشی انتخاب نکرده، محصولات عمومی نمایش داده می‌شود
+        const fallback = rows.length
+          ? Promise.resolve(null)
+          : apiRequest("/products/").then((d2) => {
+              rows = Array.isArray(d2) ? d2 : d2?.results || [];
+              return null;
+            });
+        return fallback.then(() => rows);
+      })
+      .then((rows) => {
+        if (ignore || !rows) return;
         setProducts(rows.map((product) => ({
           id: product.id,
           name: product.name,

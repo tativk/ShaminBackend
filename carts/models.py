@@ -29,7 +29,12 @@ class Cart(models.Model):
     @property
     def shipping_cost(self):
         # An unset city has no quoted shipping cost, never an implicit free rate.
-        return self.city.cost if self.city_id else None
+        if not self.city_id:
+            return None
+        # عطر بالای ۳۰ میل — ارسال رایگان
+        if self.items.filter(weight_grams__gt=30).exists():
+            return Decimal('0.00')
+        return self.city.cost
 
     @property
     def total(self):
@@ -40,11 +45,13 @@ class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey('products.Product', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    # حجم/وزن انتخابی برای عطرها (۱۵/۲۰/۳۰/۵۰/۱۰۰) — برای سایر محصولات null است
+    weight_grams = models.PositiveIntegerField(null=True, blank=True)
 
     class Meta:
         ordering = ['id']
         constraints = [
-            models.UniqueConstraint(fields=['cart', 'product'], name='unique_cart_product'),
+            models.UniqueConstraint(fields=['cart', 'product', 'weight_grams'], name='unique_cart_product_weight'),
             models.CheckConstraint(condition=models.Q(quantity__gte=1), name='cart_quantity_positive'),
         ]
 

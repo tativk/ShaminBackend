@@ -10,7 +10,7 @@ const SP_STATUS={active:{label:"فعال",icon:FiCheckCircle},low:{label:"موج
 const SP_CATEGORY_LABEL={perfume:"عطر",cosmetic:"لوازم آرایشی",accessory:"اکسسوری"};
 const SP_GENDER_LABEL={male:"مردانه",female:"زنانه",unisex:"یونیسکس"};
 const SP_STATUS_OF=stock=>Number(stock||0)<=0?"out":Number(stock||0)<=5?"low":"active";
-const SP_EMPTY_FORM={name:"",brand:"",category:"perfume",gender:"unisex",price:"",discount_percent:"0",stock:"",description:""};
+const SP_EMPTY_FORM={name:"",brand:"",category:"perfume",gender:"unisex",price:"",discount_percent:"0",stock:"",description:"",is_best_seller:false};
 const SP_PRICE=value=>Number(value||0).toLocaleString("fa-IR");
 const SP_NORMALIZE=value=>String(value||"").replace(/ي/g,"ی").replace(/ى/g,"ی").replace(/ك/g,"ک").toLowerCase().trim();
 
@@ -29,6 +29,7 @@ discountPercent:Number(product.discount_percent||0),
 finalPrice:Number((product.final_price!=null?product.final_price:product.price)||0),
 stock:Number(product.stock||0),
 isActive:product.is_active!==false,
+isBestSeller:!!product.is_best_seller,
 description:product.description||"",
 status:SP_STATUS_OF(product.stock),
 image:main?main.url:SP_FALLBACK_IMAGE,
@@ -75,7 +76,7 @@ const visibleProducts=filteredProducts.slice((currentPage-1)*perPage,currentPage
 const openMenu=(id,event)=>{if(menuId===id){setMenuId(null);setMenuPos(null);return}const rect=event.currentTarget.getBoundingClientRect();const width=175,height=142,gap=7;let top=rect.bottom+gap,left=rect.left;if(top+height>window.innerHeight-12)top=rect.top-height-gap;if(left+width>window.innerWidth-12)left=window.innerWidth-width-12;if(left<12)left=12;setMenuId(id);setMenuPos({top,left})};
 const closeMenu=()=>{setMenuId(null);setMenuPos(null)};
 const openAddModal=()=>{closeMenu();setEditingProduct(null);setForm(SP_EMPTY_FORM);setProductImages([]);setImageUrl("");setShowModal(true)};
-const openEditModal=product=>{closeMenu();setEditingProduct(product);setForm({name:product.name,brand:product.brandId?String(product.brandId):"",category:product.category,gender:product.gender,price:String(product.price),discount_percent:String(product.discountPercent||0),stock:String(product.stock),description:product.description});setProductImages(product.images.map(img=>({...img})));setImageUrl("");setShowModal(true)};
+const openEditModal=product=>{closeMenu();setEditingProduct(product);setForm({name:product.name,brand:product.brandId?String(product.brandId):"",category:product.category,gender:product.gender,price:String(product.price),discount_percent:String(product.discountPercent||0),stock:String(product.stock),description:product.description,is_best_seller:!!product.isBestSeller});setProductImages(product.images.map(img=>({...img})));setImageUrl("");setShowModal(true)};
 const closeModal=()=>{setShowModal(false);setEditingProduct(null);setForm(SP_EMPTY_FORM);productImages.forEach(img=>{if(img.file)URL.revokeObjectURL(img.url)});setProductImages([]);setImageUrl("")};
 const changeForm=(field,value)=>setForm(prev=>({...prev,[field]:value}));
 const handleProductImages=e=>{const files=Array.from(e.target.files||[]);const remaining=Math.max(0,6-productImages.length);const newImages=files.slice(0,remaining).map(file=>({id:`${file.name}-${file.lastModified}-${Math.random()}`,file,url:URL.createObjectURL(file)}));setProductImages(prev=>[...prev,...newImages]);e.target.value=""};
@@ -99,6 +100,7 @@ payload.append("price",String(price));
 payload.append("discount_percent",String(discount));
 payload.append("stock",String(stock));
 payload.append("description",form.description.trim());
+payload.append("is_best_seller",form.is_best_seller?"true":"false");
 if(form.brand)payload.append("brand",form.brand);
 
 const keepIds=productImages.filter(img=>img.serverId).map(img=>img.serverId);
@@ -228,6 +230,7 @@ return(
 </div>
 </div>
 <span className={`sp-stock-badge sp-stock-${product.status}`}><StatusIcon/>{statusInfo.label}</span>
+{product.isBestSeller&&<span className="sp-best-badge">پرفروش</span>}
 </div>
 <div className="sp-product-body">
 <div className="sp-product-brand">{product.brand}</div>
@@ -324,6 +327,7 @@ return(
 <label className="sp-field"><span>درصد تخفیف</span><div className="sp-input-unit"><input type="text" inputMode="numeric" value={form.discount_percent} onChange={event=>changeForm("discount_percent",event.target.value.replace(/[^\d]/g,""))} placeholder="۰"/><span>٪</span></div></label>
 <label className="sp-field"><span>موجودی</span><input type="text" inputMode="numeric" value={form.stock} onChange={event=>changeForm("stock",event.target.value.replace(/[^\d]/g,""))} placeholder="10"/>
 </label>
+<label className="sp-field sp-field-checkbox"><span>محصول پرفروش (نمایش در صفحه اصلی)</span><input type="checkbox" checked={form.is_best_seller} onChange={event=>changeForm("is_best_seller",event.target.checked)}/></label>
 <label className="sp-field sp-field-full"><span>توضیحات کوتاه</span><textarea value={form.description} onChange={event=>changeForm("description",event.target.value)} placeholder="توضیحات کوتاه درباره محصول..." rows={3}/></label>
 </div>
 <div className="sp-modal-footer">

@@ -61,6 +61,13 @@ def verify_otp_and_get_user(phone: str, code: str) -> tuple[User | None, str]:
         return None, "کد منقضی شده یا قبلاً استفاده شده است"
 
     if otp.code != code:
+        # ضد حدس زدن کد — بعد از ۵ تلاش نادرست کد باطل می‌شود
+        otp.attempts += 1
+        if otp.attempts >= 5:
+            otp.is_used = True
+        otp.save(update_fields=["attempts", "is_used"])
+        if otp.is_used:
+            return None, "تعداد تلاش‌های ناموفق بیش از حد مجاز است؛ کد جدید درخواست کنید."
         return None, "کد وارد شده اشتباه است"
 
     otp.is_used = True

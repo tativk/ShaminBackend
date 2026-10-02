@@ -30,7 +30,8 @@ const CATEGORY_LABEL = { perfume: "عطر و ادکلن", cosmetic: "لوازم 
 const GENDER_LABEL = { male: "مردانه", female: "زنانه", unisex: "یونیسکس" };
 const FALLBACK_IMAGE = "/logo.png";
 
-const MIN_GRAM = 5;
+// حجم‌های مجاز عطر — بالای ۳۰ میل ارسال رایگان است
+const PERFUME_SIZES = [15, 20, 30, 50, 100];
 
 const formatPrice = (value) => new Intl.NumberFormat("fa-IR").format(value) + " تومان";
 
@@ -138,29 +139,10 @@ const ProductInfo = ({ product }) => {
   const navigate = useNavigate();
   const isPerfume = product.category === "perfume";
   const outOfStock = product.stock <= 0;
-  const [gram, setGram] = useState(MIN_GRAM);
+  const [size, setSize] = useState(15);
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
   const [cartMessage, setCartMessage] = useState(null); // {type:'success'|'error', text}
-
-  const handleGramChange = (e) => {
-    const raw = e.target.value;
-    if (raw === "") {
-      setGram("");
-      return;
-    }
-    const value = Number(raw);
-    if (!Number.isNaN(value)) {
-      setGram(value);
-    }
-  };
-
-  const handleGramBlur = () => {
-    setGram((prev) => {
-      const value = Number(prev);
-      return !prev || Number.isNaN(value) || value < MIN_GRAM ? MIN_GRAM : value;
-    });
-  };
 
   const handleAddToCart = async () => {
     if (outOfStock || adding) return;
@@ -177,10 +159,13 @@ const ProductInfo = ({ product }) => {
     setAdding(true);
     setCartMessage(null);
     try {
-      // نکته: فروش گرمی هنوز در بک‌اند پشتیبانی نمی‌شود؛ هر کلیک یک عدد اضافه می‌کند.
       const data = await apiRequest("/cart/items/", {
         method: "POST",
-        body: JSON.stringify({ product: product.id, quantity: isPerfume ? 1 : quantity }),
+        body: JSON.stringify({
+          product: product.id,
+          quantity: isPerfume ? 1 : quantity,
+          ...(isPerfume ? { weight_grams: size } : {}),
+        }),
       });
       notifyCartAdded({
         added: isPerfume ? 1 : quantity,
@@ -241,17 +226,25 @@ const ProductInfo = ({ product }) => {
 
       {isPerfume ? (
         <div className="product-info__field">
-          <span className="product-info__field-label">گرم مورد نظر خود را وارد کنید (حداقل {MIN_GRAM} گرم)</span>
-          <input
-            type="number"
-            min={MIN_GRAM}
-            step={1}
-            inputMode="numeric"
-            value={gram}
-            onChange={handleGramChange}
-            onBlur={handleGramBlur}
-            className="product-info__gram-input"
-          />
+          <span className="product-info__field-label">حجم (گرم)</span>
+          <div className="product-info__sizes">
+            {PERFUME_SIZES.map((option) => (
+              <button
+                key={option}
+                type="button"
+                className={
+                  size === option
+                    ? "product-info__size product-info__size--active"
+                    : "product-info__size"
+                }
+                onClick={() => setSize(option)}
+                aria-pressed={size === option}
+              >
+                {option.toLocaleString("fa-IR")} گرم
+                {option > 30 && <small>ارسال رایگان</small>}
+              </button>
+            ))}
+          </div>
         </div>
       ) : (
         <div className="product-info__field">

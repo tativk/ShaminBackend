@@ -1,7 +1,7 @@
 import React,{useCallback,useEffect,useRef,useState}from"react";
 import{useNavigate}from"react-router-dom";
 
-import{FiHome,FiShoppingBag,FiBox,FiUsers,FiTag,FiBarChart2,FiSettings,FiLogOut,FiBell,FiSearch,FiMenu,FiX,FiSun,FiMoon,FiCalendar,FiChevronLeft,FiChevronDown,FiUser,FiMessageSquare,FiSave,FiEye,FiEyeOff,FiCheckCircle,FiAlertCircle,FiShield,FiPhone,FiCamera,FiTrash2}from"react-icons/fi";
+import{FiHome,FiShoppingBag,FiBox,FiUsers,FiTag,FiBarChart2,FiSettings,FiLogOut,FiBell,FiSearch,FiMenu,FiX,FiSun,FiMoon,FiCalendar,FiChevronLeft,FiChevronDown,FiUser,FiMessageSquare,FiSave,FiEye,FiEyeOff,FiCheckCircle,FiAlertCircle,FiShield,FiPhone,FiCamera,FiTrash2,FiGlobe}from"react-icons/fi";
 import DashboardOverview from"../components/Dashboard";
 
 import Orders from"../components/Orders";
@@ -10,6 +10,7 @@ import CustomersSection from"../components/admin/CustomersSection";
 import DiscountsSection from"../components/admin/DiscountsSection";
 import ReportsSection from"../components/admin/ReportsSection";
 import StoreSettingsSection from"../components/admin/StoreSettingsSection";
+import ManagersSection from"../components/admin/ManagersSection";
 import ReviewsSection from"../components/admin/ReviewsSection";
 import{apiRequest,getAssetUrl}from"../api";
 import"./AdminPanel.css";
@@ -27,7 +28,6 @@ const shaminDashboardMenu=[
 
 ];
 const shaminExtraSections=[{id:"profile",title:"پروفایل من",icon:FiUser},{id:"account-settings",title:"تنظیمات حساب",icon:FiSettings}];
-const shaminSearchableSections=[...shaminDashboardMenu,...shaminExtraSections];
 const shaminMaxAvatarSize=5*1024*1024;
 const shaminNormalizeText=value=>String(value||"").replace(/ي/g,"ی").replace(/ى/g,"ی").replace(/ك/g,"ک").replace(/\u200c/g," ").replace(/\s+/g," ").toLowerCase().trim();
 function AdminPanel({children}){
@@ -233,7 +233,9 @@ const shaminSearchQuery=searchValue.trim();
 const shaminSectionMatches=shaminSearchQuery?shaminSearchableSections.filter(item=>shaminNormalizeText(item.title).includes(shaminNormalizeText(shaminSearchQuery))).slice(0,4):[];
 const shaminHasAnyResult=shaminSectionMatches.length>0||searchResults.products.length>0||searchResults.orders.length>0;
 const shaminGoToSection=id=>{shaminHandleSectionChange(id);shaminHandleSearchClear()};
-const shaminRenderMenu=()=>shaminDashboardMenu.map(item=>{
+const shaminMenu=adminUser?.is_superuser?[...shaminDashboardMenu,{id:"managers",title:"مدیران",icon:FiShield}]:shaminDashboardMenu;
+const shaminSearchableSections=[...shaminMenu,...shaminExtraSections];
+const shaminRenderMenu=()=>shaminMenu.map(item=>{
 const Icon=item.icon;
 const isActive=activeSection===item.id;
 return(
@@ -364,6 +366,7 @@ if(activeSection==="customers"){return<CustomersSection/>}
 if(activeSection==="discounts"){return<DiscountsSection/>}
 if(activeSection==="reports"){return<ReportsSection/>}
 if(activeSection==="store-settings"){return<StoreSettingsSection/>}
+if(activeSection==="managers"){return<ManagersSection/>}
 if(activeSection==="profile"){return shaminRenderProfile()}
 if(activeSection==="account-settings"){return shaminRenderSettings()}
 return null;
@@ -386,6 +389,7 @@ return(
 </div>
 <div className="shamin-dashboard__sidebar-bottom">
 
+<a className="shamin-dashboard__home-link" href="/"><FiGlobe/><span>صفحه اصلی فروشگاه</span></a>
 <button type="button" className="shamin-dashboard__logout" onClick={shaminHandleLogout}><FiLogOut/><span>خروج از پنل ادمین</span></button>
 </div>
 </aside>

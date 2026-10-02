@@ -12,7 +12,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from django.db import transaction
 
-from config.permissions import IsStaffUser
+from config.permissions import IsStaffUser, IsSuperUser
 
 from .serializers import (
     AddressSerializer,
@@ -22,6 +22,8 @@ from .serializers import (
     UserSerializer,
     VerifyOtpSerializer,
     AdminCustomerSerializer,
+    AdminStaffCreateSerializer,
+    AdminStaffSerializer,
 )
 from .services import create_and_send_otp, verify_otp_and_get_user
 from .models import Address, PendingRegistration, StoreSetting
@@ -77,6 +79,67 @@ class AdminCustomersView(APIView):
         user.is_active = bool(is_active)
         user.save(update_fields=["is_active"])
         return Response({"id": user.id, "is_active": user.is_active})
+
+
+class AdminStaffView(APIView):
+    """مدیریت مدیران پنل — افزودن و حذف (سلب دسترسی) مدیر، فقط توسط ادمین اصلی.
+
+    حذف به معنای اخراج از مدیریت است (is_staff=False)؛ رکورد کاربر و
+    تاریخچه سفارش‌هایش حفظ می‌شود و ابروزرها قابل حذف نیستند.
+    """
+
+    permission_classes = [IsSuperUser]
+
+    def get(self, request):
+        staff = (
+            User.objects
+            .filter(is_staff=True)
+            .order_by("date_joined")
+        )
+        return Response(AdminStaffSerializer(staff, many=True).data)
+
+    def post(self, request):
+        serializer = AdminStaffCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        if User.objects.filter(phone=data["phone"]).exists():
+            return Response(
+                {"detail": "این شماره موبایل قبلاً در سیستم ثبت شده است."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = User(
+            phone=data["phone"],
+            first_name=data["first_name"].strip(),
+            last_name=data["last_name"].strip(),
+            email=data.get("email", "").strip(),
+            is_staff=True,
+        )
+        user.set_password(data["password"])
+        user.save()
+        return Response(AdminStaffSerializer(user).data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, pk):
+        admin = get_object_or_404(User, pk=pk)
+        if admin.is_superuser:
+            return Response(
+                {"detail": "ادمین اصلی قابل حذف نیست."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if admin.id == request.user.id:
+            return Response(
+                {"detail": "نمی‌توانید دسترسی مدیریتی حساب خودتان را بگیرید."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not admin.is_staff:
+            return Response(
+                {"detail": "این کاربر مدیر نیست."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        admin.is_staff = False
+        admin.save(update_fields=["is_staff"])
+        return Response({"id": admin.id, "detail": "دسترسی مدیریتی این کاربر گرفته شد."})
 
 
 class StoreSettingsView(APIView):
@@ -284,6 +347,7 @@ class PurchasedProductsView(APIView):
                 "product_id": item.product_id,
                 "product_name": item.product.name,
                 "quantity": item.quantity,
+                "weight_grams": item.weight_grams,
                 "unit_price": item.price,
                 "order_id": item.order_id,
                 "purchased_at": item.order.created_at,

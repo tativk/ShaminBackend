@@ -37,6 +37,8 @@ class Product(models.Model):
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
     stock = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    # انتخاب ادمین — محصولات پرفروشِ نمایش‌داده‌شده در صفحه اصلی
+    is_best_seller = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     @property
