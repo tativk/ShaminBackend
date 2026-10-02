@@ -32,17 +32,25 @@ class VerifyOtpSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
     is_profile_complete = serializers.ReadOnlyField()
+    profile_image = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
             "id", "phone", "first_name", "last_name", "email",
-            "role", "is_profile_complete",
+            "profile_image", "role", "is_profile_complete",
         ]
         read_only_fields = ["id", "phone"]
 
     def get_role(self, obj):
         return "admin" if obj.is_staff or obj.is_superuser else "customer"
+
+    def get_profile_image(self, obj):
+        request = self.context.get("request")
+        if not obj.profile_image:
+            return None
+        url = obj.profile_image.url
+        return request.build_absolute_uri(url) if request else url
 
 
 class StoreSettingSerializer(serializers.ModelSerializer):

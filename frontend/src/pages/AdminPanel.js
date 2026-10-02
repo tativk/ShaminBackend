@@ -1,7 +1,7 @@
 import React,{useCallback,useEffect,useRef,useState}from"react";
 import{useNavigate}from"react-router-dom";
 
-import{FiHome,FiShoppingBag,FiBox,FiUsers,FiTag,FiBarChart2,FiSettings,FiLogOut,FiBell,FiSearch,FiMenu,FiX,FiSun,FiMoon,FiCalendar,FiChevronLeft,FiChevronDown,FiUser,FiMessageSquare,FiSave,FiEye,FiEyeOff,FiCheckCircle,FiAlertCircle,FiShield,FiPhone}from"react-icons/fi";
+import{FiHome,FiShoppingBag,FiBox,FiUsers,FiTag,FiBarChart2,FiSettings,FiLogOut,FiBell,FiSearch,FiMenu,FiX,FiSun,FiMoon,FiCalendar,FiChevronLeft,FiChevronDown,FiUser,FiMessageSquare,FiSave,FiEye,FiEyeOff,FiCheckCircle,FiAlertCircle,FiShield,FiPhone,FiCamera,FiTrash2}from"react-icons/fi";
 import DashboardOverview from"../components/Dashboard";
 
 import Orders from"../components/Orders";
@@ -27,6 +27,8 @@ const shaminDashboardMenu=[
 
 ];
 const shaminExtraSections=[{id:"profile",title:"پروفایل من",icon:FiUser},{id:"account-settings",title:"تنظیمات حساب",icon:FiSettings}];
+const shaminSearchableSections=[...shaminDashboardMenu,...shaminExtraSections];
+const shaminMaxAvatarSize=5*1024*1024;
 const shaminNormalizeText=value=>String(value||"").replace(/ي/g,"ی").replace(/ى/g,"ی").replace(/ك/g,"ک").replace(/\u200c/g," ").replace(/\s+/g," ").toLowerCase().trim();
 function AdminPanel({children}){
 const navigate=useNavigate();
@@ -47,7 +49,9 @@ const[passwordForm,setPasswordForm]=useState({current_password:"",password:"",pa
 const[passwordSaving,setPasswordSaving]=useState(false);
 const[passwordFeedback,setPasswordFeedback]=useState(null);
 const[passwordVisible,setPasswordVisible]=useState(false);
+const[avatarSaving,setAvatarSaving]=useState(false);
 const shaminAdminRef=useRef(null);
+const shaminSearchRef=useRef(null);
 const notificationRef=useRef(null);
 const notificationButtonRef=useRef(null);
 const notificationRequest=useRef(0);
@@ -115,6 +119,32 @@ setAdminUser(user);
 .catch(()=>{if(!ignore)navigate("/Login")});
 return()=>{ignore=true};
 },[navigate]);
+// جستجوی سربرگ — با تاخیر ۳۵۰ms در بخش‌ها، محصولات و سفارش‌ها جستجو می‌کند
+useEffect(()=>{
+const query=searchValue.trim();
+if(!query){setSearchResults({products:[],orders:[]});setSearchError("");setSearchLoading(false);return}
+const timer=setTimeout(async()=>{
+setSearchLoading(true);setSearchError("");
+try{
+const[productData,orderData]=await Promise.all([
+apiRequest(`/products/?search=${encodeURIComponent(query)}`),
+apiRequest(`/orders/admin/?search=${encodeURIComponent(query)}`),
+]);
+setSearchResults({
+products:(Array.isArray(productData)?productData:productData?.results||[]).slice(0,4),
+orders:(Array.isArray(orderData)?orderData:orderData?.results||[]).slice(0,4),
+});
+setSearchError("");
+}catch(error){setSearchError("جستجو ناموفق بود. دوباره تلاش کنید.")}
+finally{setSearchLoading(false)}
+},350);
+return()=>clearTimeout(timer);
+},[searchValue]);
+useEffect(()=>{
+const handler=event=>{if(shaminSearchRef.current&&!shaminSearchRef.current.contains(event.target))setSearchOpen(false)};
+document.addEventListener("mousedown",handler);
+return()=>document.removeEventListener("mousedown",handler);
+},[]);
 useEffect(()=>{
 const shaminHandleOutsideClick=event=>{if(shaminAdminRef.current&&!shaminAdminRef.current.contains(event.target)){setAdminMenuOpen(false)}};
 const shaminHandleEscape=event=>{if(event.key==="Escape"){setAdminMenuOpen(false)}};
@@ -128,6 +158,30 @@ navigate("/Login");
 };
 const shaminAdminName=adminUser?[adminUser.first_name,adminUser.last_name].filter(Boolean).join(" ")||"مدیر سایت":"مدیر سایت";
 const shaminAdminPhone=adminUser?adminUser.phone:"";
+const shaminAdminAvatar=adminUser?.profile_image?<img src={adminUser.profile_image} alt={shaminAdminName}/>:<span>{shaminAdminName.charAt(0)}</span>;
+const shaminUploadAvatar=async file=>{
+if(!file)return;
+if(!file.type.startsWith("image/")){setProfileFeedback({type:"error",text:"فقط فایل تصویری مجاز است."});return}
+if(file.size>shaminMaxAvatarSize){setProfileFeedback({type:"error",text:"حجم عکس نباید بیشتر از ۵ مگابایت باشد."});return}
+setAvatarSaving(true);setProfileFeedback(null);
+try{
+const formData=new FormData();formData.append("image",file);
+const user=await apiRequest("/auth/profile/image/",{method:"POST",body:formData});
+setAdminUser(user);
+setProfileFeedback({type:"success",text:"عکس پروفایل با موفقیت به‌روزرسانی شد."});
+}catch(error){setProfileFeedback({type:"error",text:error.message||"آپلود عکس پروفایل ناموفق بود."})}
+finally{setAvatarSaving(false)}
+};
+const shaminRemoveAvatar=async()=>{
+if(avatarSaving)return;
+setAvatarSaving(true);setProfileFeedback(null);
+try{
+const user=await apiRequest("/auth/profile/image/",{method:"DELETE"});
+setAdminUser(user);
+setProfileFeedback({type:"success",text:"عکس پروفایل حذف شد."});
+}catch(error){setProfileFeedback({type:"error",text:error.message||"حذف عکس پروفایل ناموفق بود."})}
+finally{setAvatarSaving(false)}
+};
 const shaminTodayLabel=new Intl.DateTimeFormat("fa-IR",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date());
 const shaminTimeLabel=new Intl.DateTimeFormat("fa-IR",{hour:"2-digit",minute:"2-digit"}).format(new Date());
 const shaminHandleSectionChange=id=>{
@@ -174,7 +228,11 @@ finally{setPasswordSaving(false)}
 };
 const shaminHandleAdminMenu=()=>{setAdminMenuOpen(previous=>!previous);setNotificationsOpen(false)};
 const shaminHandleThemeChange=()=>{setDarkMode(previous=>!previous)};
-const shaminHandleSearchClear=()=>{setSearchValue("")};
+const shaminHandleSearchClear=()=>{setSearchValue("");setSearchOpen(false)};
+const shaminSearchQuery=searchValue.trim();
+const shaminSectionMatches=shaminSearchQuery?shaminSearchableSections.filter(item=>shaminNormalizeText(item.title).includes(shaminNormalizeText(shaminSearchQuery))).slice(0,4):[];
+const shaminHasAnyResult=shaminSectionMatches.length>0||searchResults.products.length>0||searchResults.orders.length>0;
+const shaminGoToSection=id=>{shaminHandleSectionChange(id);shaminHandleSearchClear()};
 const shaminRenderMenu=()=>shaminDashboardMenu.map(item=>{
 const Icon=item.icon;
 const isActive=activeSection===item.id;
@@ -194,7 +252,14 @@ const shaminRenderProfile=()=>(
 </header>
 <div className="shamin-account__grid">
 <aside className="shamin-account__card shamin-account__identity">
-<div className="shamin-account__avatar"><span>{shaminAdminName.charAt(0)}</span></div>
+<div className="shamin-account__avatar">{shaminAdminAvatar}</div>
+<div className="shamin-account__avatar-controls">
+<label className={`shamin-account__avatar-upload ${avatarSaving?"shamin-account__avatar-upload--busy":""}`}>
+<input type="file" accept="image/*" disabled={avatarSaving} onChange={event=>{shaminUploadAvatar(event.target.files?.[0]);event.target.value=""}}/>
+<FiCamera/>{adminUser?.profile_image?"تغییر عکس":"افزودن عکس"}
+</label>
+{adminUser?.profile_image&&<button type="button" className="shamin-account__avatar-remove" disabled={avatarSaving} onClick={shaminRemoveAvatar}><FiTrash2/>حذف</button>}
+</div>
 <strong className="shamin-account__identity-name">{shaminAdminName}</strong>
 <span className="shamin-account__identity-phone" dir="ltr">{shaminAdminPhone||"—"}</span>
 <span className="shamin-account__role-badge">حساب مدیریت فروشگاه</span>
@@ -291,7 +356,7 @@ const shaminRenderSettings=()=>(
 );
 const shaminRenderContent=()=>{
 if(children){return children}
-if(activeSection==="dashboard"){return<DashboardOverview/>}
+if(activeSection==="dashboard"){return<DashboardOverview onNavigate={shaminHandleSectionChange}/>}
 if(activeSection==="orders"){return<Orders/>}
 if(activeSection==="products"){return<Products/>}
 if(activeSection==="reviews"){return<ReviewsSection/>}
@@ -328,10 +393,41 @@ return(
 <header className="shamin-dashboard__topbar">
 <button type="button" className="shamin-dashboard__mobile-menu" onClick={()=>setMobileSidebarOpen(true)} aria-label="باز کردن منو"><FiMenu/></button>
 <div className="shamin-dashboard__topbar-center">
-<div className="shamin-dashboard__search">
+<div className="shamin-dashboard__search" ref={shaminSearchRef}>
 <span className="shamin-dashboard__search-icon"><FiSearch/></span>
-<input type="text" value={searchValue} onChange={event=>setSearchValue(event.target.value)} placeholder="جستجو در بخش‌های مختلف..." aria-label="جستجو"/>
+<input type="text" value={searchValue} onChange={event=>{setSearchValue(event.target.value);setSearchOpen(true)}} onFocus={()=>setSearchOpen(true)} onKeyDown={event=>{if(event.key==="Escape")setSearchOpen(false)}} placeholder="جستجو در بخش‌ها، محصولات و سفارش‌ها..." aria-label="جستجو"/>
 {searchValue&&(<button type="button" className="shamin-dashboard__search-clear" onClick={shaminHandleSearchClear} aria-label="پاک کردن جستجو"><FiX/></button>)}
+{searchOpen&&shaminSearchQuery&&(
+<div className="shamin-dashboard__search-results">
+{searchLoading&&<div className="shamin-search-state">در حال جستجو...</div>}
+{!searchLoading&&searchError&&<div className="shamin-search-state shamin-search-state--error">{searchError}</div>}
+{!searchLoading&&!searchError&&!shaminHasAnyResult&&<div className="shamin-search-state">نتیجه‌ای برای «{shaminSearchQuery}» پیدا نشد.</div>}
+{shaminSectionMatches.length>0&&<div className="shamin-search-group-title">بخش‌های پنل</div>}
+{shaminSectionMatches.map(item=>{const Icon=item.icon;return(
+<button key={`section-${item.id}`} type="button" className="shamin-search-item" onClick={()=>shaminGoToSection(item.id)}>
+<span className="shamin-search-item-icon"><Icon/></span>
+<span className="shamin-search-item-body"><strong>{item.title}</strong><small>رفتن به این بخش</small></span>
+<FiChevronLeft className="shamin-search-item-arrow"/>
+</button>
+)})}
+{searchResults.products.length>0&&<div className="shamin-search-group-title">محصولات</div>}
+{searchResults.products.map(product=>(
+<button key={`product-${product.id}`} type="button" className="shamin-search-item" onClick={()=>shaminGoToSection("products")}>
+<span className="shamin-search-item-icon"><FiBox/></span>
+<span className="shamin-search-item-body"><strong>{product.name}</strong><small>{product.brand_name||"محصول فروشگاه"}</small></span>
+<FiChevronLeft className="shamin-search-item-arrow"/>
+</button>
+))}
+{searchResults.orders.length>0&&<div className="shamin-search-group-title">سفارش‌ها</div>}
+{searchResults.orders.map(order=>(
+<button key={`order-${order.id}`} type="button" className="shamin-search-item" onClick={()=>shaminGoToSection("orders")}>
+<span className="shamin-search-item-icon"><FiShoppingBag/></span>
+<span className="shamin-search-item-body"><strong>سفارش #{order.id}</strong><small>{order.customer||"مشتری"}</small></span>
+<FiChevronLeft className="shamin-search-item-arrow"/>
+</button>
+))}
+</div>
+)}
 </div>
 </div>
 <div className="shamin-dashboard__topbar-left">
@@ -365,7 +461,7 @@ return(
 </div>
 <div className="shamin-dashboard__admin-wrapper" ref={shaminAdminRef}>
 <button type="button" className={`shamin-dashboard__admin ${adminMenuOpen?"shamin-dashboard__admin--open":""}`} onClick={shaminHandleAdminMenu} aria-expanded={adminMenuOpen} aria-haspopup="true">
-<div className="shamin-dashboard__admin-avatar"><span>{shaminAdminName.charAt(0)}</span></div>
+<div className="shamin-dashboard__admin-avatar">{shaminAdminAvatar}</div>
 <div className="shamin-dashboard__admin-info">
 <strong>{shaminAdminName}</strong>
 <span>{shaminAdminPhone||"admin"}</span>
@@ -374,7 +470,7 @@ return(
 </button>
 <div className={`shamin-dashboard__admin-dropdown ${adminMenuOpen?"shamin-dashboard__admin-dropdown--open":""}`}>
 <div className="shamin-dashboard__admin-dropdown-head">
-<div className="shamin-dashboard__admin-dropdown-avatar">{shaminAdminName.charAt(0)}</div>
+<div className="shamin-dashboard__admin-dropdown-avatar">{shaminAdminAvatar}</div>
 <div>
 <strong>{shaminAdminName}</strong>
 <span>حساب مدیریت فروشگاه</span>

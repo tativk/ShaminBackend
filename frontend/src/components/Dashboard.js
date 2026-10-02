@@ -72,7 +72,7 @@ const pointLabel = (point, index) => {
 // برچسب بازه جاری برای ساخت لیبل نقاط نمودار — قبل از رندر ست می‌شود
 let PERIOD_CURRENT = "این هفته";
 
-function Dashboard() {
+function Dashboard({ onNavigate }) {
   const [shaminOpenStatMenu, setShaminOpenStatMenu] = useState(null);
   const [shaminChartHover, setShaminChartHover] = useState(null);
   const [shaminPeriodOpen, setShaminPeriodOpen] = useState(false);
@@ -323,7 +323,10 @@ function Dashboard() {
                     <div className="shamin-overview__stat-menu">
                       <button
                         type="button"
-                        onClick={() => setShaminOpenStatMenu(null)}
+                        onClick={() => {
+                          setShaminOpenStatMenu(null);
+                          onNavigate?.(item.id === "products" ? "products" : "orders");
+                        }}
                       >
                         <FiEye />
                         <span>مشاهده جزئیات</span>
@@ -331,7 +334,10 @@ function Dashboard() {
 
                       <button
                         type="button"
-                        onClick={() => setShaminOpenStatMenu(null)}
+                        onClick={() => {
+                          setShaminOpenStatMenu(null);
+                          onNavigate?.("reports");
+                        }}
                       >
                         <FiBarChart2 />
                         <span>مشاهده گزارش</span>
@@ -630,6 +636,7 @@ function Dashboard() {
               type="button"
               className="shamin-overview__round-button"
               aria-label="مشاهده سفارش‌ها"
+              onClick={() => onNavigate?.("orders")}
             >
               <FiArrowLeft />
             </button>
@@ -772,6 +779,13 @@ function Dashboard() {
                 key={order.id}
                 role="button"
                 tabIndex={0}
+                onClick={() => onNavigate?.("orders")}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onNavigate?.("orders");
+                  }
+                }}
               >
                 <div className="shamin-overview__order-id">
                   <strong>{order.id}</strong>
@@ -835,6 +849,7 @@ function Dashboard() {
               type="button"
               className="shamin-overview__round-button"
               aria-label="مشاهده محصولات"
+              onClick={() => onNavigate?.("products")}
             >
               <FiArrowLeft />
             </button>

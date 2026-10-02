@@ -32,6 +32,9 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=50, blank=True, verbose_name="نام")
     last_name = models.CharField(max_length=50, blank=True, verbose_name="نام خانوادگی")
     email = models.EmailField(blank=True, verbose_name="ایمیل")
+    profile_image = models.ImageField(
+        upload_to="profile_images/", blank=True, null=True, verbose_name="عکس پروفایل"
+    )
     is_active = models.BooleanField(default=True)
 
     USERNAME_FIELD = "phone"
@@ -125,6 +128,24 @@ class OtpCode(models.Model):
     @classmethod
     def generate_code(cls):
         return "".join(random.choices(string.digits, k=6))
+
+
+class PendingRegistration(models.Model):
+    """ثبت‌نام در انتظار تأیید پیامک — تا قبل از تأیید کد، کاربر ساخته نمی‌شود.
+
+    پسورد به‌صورت هش‌شده (make_password) نگه داشته می‌شود و فقط پس از
+    تأیید موفق کد پیامکی به کاربر تازه‌ساخته‌شده منتقل می‌گردد.
+    """
+    phone = models.CharField(max_length=11, unique=True, verbose_name="موبایل")
+    password = models.CharField(max_length=128, verbose_name="هش رمز عبور")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "ثبت‌نام در انتظار تأیید"
+        verbose_name_plural = "ثبت‌نام‌های در انتظار تأیید"
+
+    def __str__(self):
+        return self.phone
 
 class PasswordRecovery(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

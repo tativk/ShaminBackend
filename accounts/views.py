@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth.hashers import make_password
 from django.db.models import Count, Q, Sum
 from django.shortcuts import render, get_object_or_404
 
@@ -23,7 +24,7 @@ from .serializers import (
     AdminCustomerSerializer,
 )
 from .services import create_and_send_otp, verify_otp_and_get_user
-from .models import Address, StoreSetting
+from .models import Address, PendingRegistration, StoreSetting
 from orders.models import OrderItem
 
 User = get_user_model()
@@ -135,7 +136,11 @@ class PasswordLoginView(APIView):
 
 
 class RegisterView(APIView):
-    """ثبت‌نام با شماره موبایل و رمز عبور — سپس تأیید با کد پیامکی."""
+    """ثبت‌نام با شماره موبایل و رمز عبور — سپس تأیید با کد پیامکی.
+
+    تا قبل از تأیید کد پیامکی، هیچ کاربری ساخته یا ذخیره نمی‌شود؛
+    رمز عبور به‌صورت هش‌شده در PendingRegistration نگه داشته می‌شود.
+    """
 
     permission_classes = [AllowAny]
 
@@ -162,10 +167,12 @@ class RegisterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if user is None:
-            user = User.objects.create_user(phone=phone)
-        user.set_password(password)
-        user.save()
+        # رمز عبور هش می‌شود و فعلاً فقط در صف ثبت‌نام ذخیره می‌گردد؛
+        # ساخت کاربر فقط پس از تأیید موفق کد پیامکی انجام می‌شود.
+        PendingRegistration.objects.update_or_create(
+            phone=phone,
+            defaults={"password": make_password(password)},
+        )
 
         # ارسال کد تأیید؛ خطای cooldown گذرنده است چون پسورد ثبت شده
         success, message = create_and_send_otp(phone)
@@ -291,15 +298,62 @@ class ProfileView(APIView):
 
     @extend_schema(summary="دریافت پروفایل", tags=["کاربر"])
     def get(self, request):
-        return Response(UserSerializer(request.user).data)
+        return Response(UserSerializer(request.user, context={"request": request}).data)
 
     @extend_schema(request=UserSerializer, summary="ویرایش پروفایل", tags=["کاربر"])
     def patch(self, request):
-        serializer = UserSerializer(request.user, data=request.data, partial=True)
+        serializer = UserSerializer(
+            request.user, data=request.data, partial=True, context={"request": request}
+        )
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
         return Response(serializer.data)
+
+
+class ProfileImageView(APIView):
+    """آپلود/حذف عکس پروفایل کاربر — ورودی multipart با فیلد image."""
+
+    permission_classes = [IsAuthenticated]
+    MAX_IMAGE_SIZE = 5 * 1024 * 1024  # ۵ مگابایت
+
+    @extend_schema(summary="آپلود عکس پروفایل", tags=["کاربر"])
+    def post(self, request):
+        image = request.FILES.get("image")
+        if not image:
+            return Response(
+                {"detail": "فایل عکس ارسال نشده است (فیلد image)."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if image.size > self.MAX_IMAGE_SIZE:
+            return Response(
+                {"detail": "حجم عکس نباید بیشتر از ۵ مگابایت باشد."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not image.content_type or not image.content_type.startswith("image/"):
+            return Response(
+                {"detail": "فقط فایل تصویری مجاز است."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        # حذف فایل قبلی برای جلوگیری از انباشت فایل روی سرور
+        if request.user.profile_image:
+            request.user.profile_image.delete(save=False)
+        request.user.profile_image = image
+        request.user.save(update_fields=["profile_image"])
+        return Response(
+            UserSerializer(request.user, context={"request": request}).data,
+            status=status.HTTP_200_OK,
+        )
+
+    @extend_schema(summary="حذف عکس پروفایل", tags=["کاربر"])
+    def delete(self, request):
+        if request.user.profile_image:
+            request.user.profile_image.delete(save=False)
+            request.user.save(update_fields=["profile_image"])
+        return Response(
+            UserSerializer(request.user, context={"request": request}).data,
+            status=status.HTTP_200_OK,
+        )
 
 
 class AddressView(APIView):

@@ -9,6 +9,7 @@ from .views import (
     AddressView,
     CompleteRegistrationView,
     PasswordLoginView,
+    ProfileImageView,
     ProfileView,
     PurchasedProductsView,
     RegisterView,
@@ -33,6 +34,7 @@ urlpatterns = [
     path("auth/complete-registration/", CompleteRegistrationView.as_view(), name="complete-registration"),
     path("auth/token/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("auth/profile/", ProfileView.as_view(), name="profile"),
+    path("auth/profile/image/", ProfileImageView.as_view(), name="profile-image"),
     path("auth/address/", AddressView.as_view(), name="address"),
     path("auth/purchased-products/", PurchasedProductsView.as_view(), name="purchased-products"),
 ]

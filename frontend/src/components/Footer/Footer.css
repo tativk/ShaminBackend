@@ -11,7 +11,7 @@
 /* Specificity بالاتر از .container در Home.css تا padding عمودی صفر نشود */
 .footer .footer__grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  grid-template-columns: 1.4fr 1fr 1fr;
   gap: 32px;
   padding: 52px 24px 36px;
 }
@@ -178,24 +178,100 @@
    FOOTER RESPONSIVE
    ========================================================= */
 
-/* Tablet */
+/* Tablet — برند تمام‌عرض و دو ستون برای لینک‌ها و تماس */
 @media (max-width: 1024px) {
   .footer .footer__grid {
     grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    padding: 46px 24px 32px;
+  }
+
+  .footer__col--brand {
+    grid-column: 1 / -1;
   }
 }
 
-/* Mobile */
+/* Mobile — تک‌ستون با محتوای برند وسط‌چین */
 @media (max-width: 640px) {
   .footer .footer__grid {
     grid-template-columns: 1fr;
-    gap: 28px;
-    padding: 40px 16px 28px;
+    gap: 26px;
+    padding: 36px 16px 24px;
+    text-align: center;
+  }
+
+  .footer__col--brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .footer__col--brand p {
+    margin: 12px auto 16px;
+    max-width: 40ch;
+  }
+
+  .footer__social {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .footer__col h4 {
+    margin: 0 0 12px;
+    font-size: 0.95rem;
+  }
+
+  .footer__col ul {
+    gap: 2px;
+    font-size: 0.9rem;
+  }
+
+  /* هدف لمسی راحت‌تر برای لینک‌ها */
+  .footer__col ul a {
+    display: inline-block;
+    padding: 6px 10px;
+  }
+
+  .footer__contact li {
+    justify-content: center;
+    gap: 6px;
+  }
+
+  /* جلوگیری از سرریز ایمیل و شماره‌های بلند */
+  .footer__contact li a {
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .footer .footer__bottom-inner {
     flex-direction: column;
+    justify-content: center;
     text-align: center;
-    padding: 16px;
+    gap: 6px;
+    padding: 14px 16px;
+    font-size: 0.72rem;
+    line-height: 1.8;
+  }
+}
+
+/* موبایل باریک */
+@media (max-width: 380px) {
+  .footer .footer__grid {
+    gap: 22px;
+    padding: 30px 14px 20px;
+  }
+
+  .footer__social a {
+    width: 32px;
+    height: 32px;
+  }
+
+  .footer__social-img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .footer__col ul {
+    font-size: 0.86rem;
   }
 }
