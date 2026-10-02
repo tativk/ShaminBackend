@@ -164,6 +164,16 @@ const ProductInfo = ({ product }) => {
 
   const handleAddToCart = async () => {
     if (outOfStock || adding) return;
+    // کاربر مهمان اجازه افزودن به سبد ندارد — باید ابتدا ثبت‌نام کند
+    if (!isLoggedIn()) {
+      setCartMessage({
+        type: "error",
+        text: "برای افزودن محصول به سبد خرید، ابتدا ثبت‌نام خود را انجام دهید.",
+        link: "/Register",
+        linkText: "رفتن به صفحه ثبت‌نام ←",
+      });
+      return;
+    }
     setAdding(true);
     setCartMessage(null);
     try {
@@ -272,6 +282,9 @@ const ProductInfo = ({ product }) => {
           {cartMessage.text}
           {cartMessage.type === "success" && (
             <button type="button" onClick={() => navigate("/Cart")}>مشاهده سبد خرید ←</button>
+          )}
+          {cartMessage.type === "error" && cartMessage.link && (
+            <Link to={cartMessage.link}>{cartMessage.linkText}</Link>
           )}
         </p>
       )}

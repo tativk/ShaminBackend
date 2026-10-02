@@ -252,6 +252,12 @@ const ProductCard = ({ product }) => {
     e.preventDefault();
     e.stopPropagation();
     if (adding) return;
+    // کاربر مهمان اجازه افزودن به سبد ندارد — باید ابتدا ثبت‌نام کند
+    const isLoggedIn = Boolean(localStorage.getItem("access") || localStorage.getItem("access_token"));
+    if (!isLoggedIn) {
+      notifyCartError("برای افزودن محصول به سبد خرید، ابتدا ثبت‌نام خود را انجام دهید.");
+      return;
+    }
     setAdding(true);
     try {
       const data = await apiRequest("/cart/items/", {

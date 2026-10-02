@@ -1,6 +1,6 @@
 from django.utils import timezone
 from datetime import timedelta
-from .models import OtpCode, User
+from .models import OtpCode, PendingRegistration, User
 from .sms import send_otp
 
 
@@ -44,7 +44,8 @@ def create_and_send_otp(phone: str) -> tuple[bool, str]:
 def verify_otp_and_get_user(phone: str, code: str) -> tuple[User | None, str]:
     """
     تأیید کد OTP.
-    اگر کاربر وجود نداشت، ثبت‌نام خودکار انجام می‌شود.
+    کاربر فقط زمانی ساخته می‌شود که قبلاً ثبت‌نام انجام شده باشد
+    (PendingRegistration موجود باشد)؛ در غیر این صورت مشتری شناسایی نمی‌شود.
     Returns: (user_or_None, error_message)
     """
     try:
@@ -65,5 +66,23 @@ def verify_otp_and_get_user(phone: str, code: str) -> tuple[User | None, str]:
     otp.is_used = True
     otp.save(update_fields=["is_used"])
 
-    user, _ = User.objects.get_or_create(phone=phone)
+    user = User.objects.filter(phone=phone).first()
+    pending = PendingRegistration.objects.filter(phone=phone).first()
+
+    if user is None:
+        if pending is None:
+            # شماره ثبت‌نام نکرده است — بدون ثبت‌نام مشتری ساخته نمی‌شود
+            return None, "ابتدا ثبت‌نام را انجام دهید."
+        user = User(phone=phone)
+        user.password = pending.password
+        user.save()
+        pending.delete()
+        return user, ""
+
+    # کاربر قدیمی بدون پسورد (ثبت‌نام OTP قبلی) — پسورد ثبت‌نام جدید اعمال می‌شود
+    if pending is not None:
+        if not user.has_usable_password():
+            user.password = pending.password
+            user.save(update_fields=["password"])
+        pending.delete()
     return user, ""

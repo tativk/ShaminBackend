@@ -335,7 +335,8 @@
   color: #a34b4b;
 }
 
-.product-info__cart-msg button {
+.product-info__cart-msg button,
+.product-info__cart-msg a {
   background: none;
   border: none;
   padding: 0;

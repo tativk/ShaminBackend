@@ -17,6 +17,12 @@ const Favorites = () => {
   const [notice, setNotice] = useState("");
 
   const addToCart = async (product) => {
+    // کاربر مهمان اجازه افزودن به سبد ندارد — باید ابتدا ثبت‌نام کند
+    const isLoggedIn = Boolean(localStorage.getItem("access") || localStorage.getItem("access_token"));
+    if (!isLoggedIn) {
+      setNotice("برای افزودن محصول به سبد خرید، ابتدا ثبت‌نام خود را انجام دهید.");
+      return;
+    }
     try {
       const data = await apiRequest("/cart/items/", {
         method: "POST",

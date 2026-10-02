@@ -203,8 +203,10 @@ export default function Cart() {
 
   const totals = useMemo(() => {
     const count = items.reduce((sum, item) => sum + item.quantity, 0);
-    const subtotal = items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
-    const shipping = cart?.shipping_cost ?? 0;
+    // unit_price و shipping_cost از API به‌صورت رشته می‌آیند — باید عددی شوند
+    // وگرنه + جاوااسکریپت آن‌ها را به هم می‌چسباند
+    const subtotal = items.reduce((sum, item) => sum + Number(item.unit_price) * item.quantity, 0);
+    const shipping = Number(cart?.shipping_cost ?? 0);
     return { count, subtotal, shipping, discount: 0, payable: subtotal + shipping };
   }, [items, cart?.shipping_cost]);
 
@@ -360,6 +362,12 @@ export default function Cart() {
 
   const addSuggestedProduct = async (product) => {
     setError('');
+    // کاربر مهمان اجازه افزودن به سبد ندارد — باید ابتدا ثبت‌نام کند
+    const isLoggedIn = Boolean(localStorage.getItem('access') || localStorage.getItem('access_token'));
+    if (!isLoggedIn) {
+      setError('برای افزودن محصول به سبد خرید، ابتدا ثبت‌نام خود را انجام دهید.');
+      return;
+    }
     try {
       const data = await apiRequest('/cart/items/', {
         method: 'POST',
