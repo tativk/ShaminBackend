@@ -1152,3 +1152,11 @@ button {
   text-decoration: underline;
   cursor: pointer;
 }
+@media (min-width: 1025px) {
+  .hero__content {
+    margin-right: auto;   /* فاصله از راست → هل بده چپ */
+    margin-left: 0;
+    align-items: flex-start;
+    text-align: left;
+  }
+}
