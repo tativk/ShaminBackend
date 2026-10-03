@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { FiArrowLeft, FiCamera, FiCheck, FiEdit3, FiGlobe, FiHeart, FiHome, FiLogOut, FiMapPin, FiMenu, FiPackage, FiPlus, FiSave, FiShoppingBag, FiTrash2, FiUser, FiX } from "react-icons/fi";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { FiArrowLeft, FiCamera, FiCheck, FiEdit3, FiGlobe, FiHeart, FiHome, FiLogOut, FiMapPin, FiMenu, FiPackage, FiPlus, FiSave, FiSearch, FiShoppingBag, FiTrash2, FiUser, FiX } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import { apiRequest, getAssetUrl } from "../api";
 import { getFavorites } from "../favorites";
@@ -29,6 +29,11 @@ const Dashboard = () => {
   const [addrForm, setAddrForm] = useState(null); // null = نمایش لیست
   const [addrEditingId, setAddrEditingId] = useState(null);
   const [addrSaving, setAddrSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchRef = useRef(null);
 
   useEffect(() => {
     let active = true;
@@ -48,6 +53,27 @@ const Dashboard = () => {
   }, [navigate]);
 
   const productById = useMemo(() => new Map(products.map((product) => [product.id, product])), [products]);
+
+  // سرچ محصولات — با تاخیر ۳۵۰ms روی API فروشگاه
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (!query) { setSearchResults([]); setSearchLoading(false); return; }
+    const timer = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const data = await apiRequest(`/products/?search=${encodeURIComponent(query)}`);
+        setSearchResults((Array.isArray(data) ? data : data?.results || []).slice(0, 5));
+      } catch { setSearchResults([]); }
+      finally { setSearchLoading(false); }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const handler = (event) => { if (searchRef.current && !searchRef.current.contains(event.target)) setSearchOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
   const uniquePurchases = useMemo(() => Array.from(new Map(purchases.map((item) => [item.product_id, item])).values()), [purchases]);
   const name = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "کاربر شمین";
   const profileProgress = [profile.first_name, profile.last_name, profile.email, address.city, address.street, address.postal_code].filter(Boolean).length;
@@ -143,9 +169,9 @@ const Dashboard = () => {
 
   if (loading) return <div className="user-dashboard user-dashboard--state" dir="rtl"><FiUser /><p>در حال آماده‌سازی حساب شما...</p></div>;
   return <div className="user-dashboard" dir="rtl">
-    <aside className={`user-dashboard__sidebar ${mobileMenu ? "is-open" : ""}`}><div className="user-dashboard__brand"><span>ش</span><div><strong>گالری شمین</strong><small>حساب کاربری</small></div><button onClick={() => setMobileMenu(false)} aria-label="بستن منو"><FiX /></button></div><nav>{menu.map(([id, label, Icon]) => <button key={id} className={section === id ? "is-active" : ""} onClick={() => chooseSection(id)}><Icon /><span>{label}</span><FiArrowLeft /></button>)}</nav><div className="user-dashboard__sidebar-bottom"><Link to="/"><FiGlobe /> صفحه اصلی فروشگاه</Link><Link to="/favorites"><FiHeart /> علاقه‌مندی‌های من</Link><button onClick={logout}><FiLogOut /> خروج از حساب</button></div></aside>
+    <aside className={`user-dashboard__sidebar ${mobileMenu ? "is-open" : ""}`}><div className="user-dashboard__brand"><img src="/logo.png" alt="گالری شمین" className="user-dashboard__brand-logo" /><div><strong>گالری شمین</strong><small>حساب کاربری</small></div><button onClick={() => setMobileMenu(false)} aria-label="بستن منو"><FiX /></button></div><nav>{menu.map(([id, label, Icon]) => <button key={id} className={section === id ? "is-active" : ""} onClick={() => chooseSection(id)}><Icon /><span>{label}</span><FiArrowLeft /></button>)}</nav><div className="user-dashboard__sidebar-bottom"><Link to="/"><FiGlobe /> صفحه اصلی فروشگاه</Link><Link to="/favorites"><FiHeart /> علاقه‌مندی‌های من</Link><button onClick={logout}><FiLogOut /> خروج از حساب</button></div></aside>
     {mobileMenu && <button className="user-dashboard__backdrop" onClick={() => setMobileMenu(false)} aria-label="بستن منو" />}
-    <main className="user-dashboard__main"><header className="user-dashboard__header"><button className="user-dashboard__menu-button" onClick={() => setMobileMenu(true)} aria-label="باز کردن منو"><FiMenu /></button><div><span>حساب کاربری</span><h1>{section === "overview" ? `سلام ${name}` : menu.find(([id]) => id === section)?.[1]}</h1></div><div className="user-dashboard__header-user">{renderAvatar("user-dashboard__header-avatar")}<strong>{name}</strong></div></header>
+    <main className="user-dashboard__main"><header className="user-dashboard__header"><button className="user-dashboard__menu-button" onClick={() => setMobileMenu(true)} aria-label="باز کردن منو"><FiMenu /></button><div><span>حساب کاربری</span><h1>{section === "overview" ? `سلام ${name}` : menu.find(([id]) => id === section)?.[1]}</h1></div><div className="user-dashboard__header-search" ref={searchRef}><span className="user-dashboard__search-icon"><FiSearch /></span><input type="text" value={searchQuery} onChange={(event) => { setSearchQuery(event.target.value); setSearchOpen(true); }} onFocus={() => setSearchOpen(true)} onKeyDown={(event) => { if (event.key === "Escape") setSearchOpen(false); }} placeholder="جستجوی محصولات..." aria-label="جستجوی محصولات" />{searchOpen && searchQuery.trim() && (<div className="user-dashboard__search-results">{searchLoading && <div className="user-dashboard__search-state">در حال جستجو...</div>}{!searchLoading && !searchResults.length && <div className="user-dashboard__search-state">محصولی پیدا نشد.</div>}{searchResults.map((product) => (<button key={product.id} type="button" className="user-dashboard__search-item" onClick={() => { setSearchOpen(false); setSearchQuery(""); navigate(`/product/${product.id}`); }}><img src={getAssetUrl(product.main_image)} alt="" /><div><strong>{product.name}</strong><small>{toPrice(product.final_price ?? product.price)}</small></div></button>))}</div>)}</div><div className="user-dashboard__header-user">{renderAvatar("user-dashboard__header-avatar")}<strong>{name}</strong></div></header>
       {(error || message) && <div className={`user-dashboard__notice ${error ? "is-error" : ""}`}>{error || message}</div>}
       <div className="user-dashboard__content">
         {section === "overview" && <><section className="user-dashboard__welcome"><div><span>داشبورد شما</span><h2>همه چیز برای خرید بعدی آماده است</h2><p>سفارش‌ها، اطلاعات حساب و علاقه‌مندی‌هایتان را از همین‌جا مدیریت کنید.</p></div><div className="user-dashboard__welcome-mark"><FiPackage /></div></section><div className="user-dashboard__stats"><div><FiShoppingBag /><strong>{uniquePurchases.length.toLocaleString("fa-IR")}</strong><span>محصول خریداری‌شده</span></div><div><FiHeart /><strong>{getFavorites().length.toLocaleString("fa-IR")}</strong><span>علاقه‌مندی</span></div><div><FiCheck /><strong>{profileProgress.toLocaleString("fa-IR")} / ۶</strong><span>تکمیل اطلاعات</span></div></div><div className="user-dashboard__columns"><section className="user-dashboard__panel"><div className="user-dashboard__panel-title"><h2>آخرین خریدها</h2><button onClick={() => chooseSection("purchases")}>مشاهده همه <FiArrowLeft /></button></div>{uniquePurchases.length ? uniquePurchases.slice(0, 3).map(renderPurchase) : <p className="user-dashboard__empty">هنوز خریدی ثبت نشده است.</p>}</section><section className="user-dashboard__panel user-dashboard__completion"><div className="user-dashboard__panel-title"><h2>وضعیت حساب</h2><FiUser /></div><div className="user-dashboard__progress"><span style={{ width: `${(profileProgress / 6) * 100}%` }} /></div><strong>{Math.round((profileProgress / 6) * 100).toLocaleString("fa-IR")}٪ تکمیل شده</strong><p>با تکمیل اطلاعات، ثبت سفارش سریع‌تر انجام می‌شود.</p><button onClick={() => chooseSection("profile")}>تکمیل اطلاعات <FiArrowLeft /></button></section></div></>}

@@ -230,11 +230,11 @@ const shaminHandleAdminMenu=()=>{setAdminMenuOpen(previous=>!previous);setNotifi
 const shaminHandleThemeChange=()=>{setDarkMode(previous=>!previous)};
 const shaminHandleSearchClear=()=>{setSearchValue("");setSearchOpen(false)};
 const shaminSearchQuery=searchValue.trim();
+const shaminMenu=adminUser?.is_superuser?[...shaminDashboardMenu,{id:"managers",title:"مدیران",icon:FiShield}]:shaminDashboardMenu;
+const shaminSearchableSections=[...shaminMenu,...shaminExtraSections];
 const shaminSectionMatches=shaminSearchQuery?shaminSearchableSections.filter(item=>shaminNormalizeText(item.title).includes(shaminNormalizeText(shaminSearchQuery))).slice(0,4):[];
 const shaminHasAnyResult=shaminSectionMatches.length>0||searchResults.products.length>0||searchResults.orders.length>0;
 const shaminGoToSection=id=>{shaminHandleSectionChange(id);shaminHandleSearchClear()};
-const shaminMenu=adminUser?.is_superuser?[...shaminDashboardMenu,{id:"managers",title:"مدیران",icon:FiShield}]:shaminDashboardMenu;
-const shaminSearchableSections=[...shaminMenu,...shaminExtraSections];
 const shaminRenderMenu=()=>shaminMenu.map(item=>{
 const Icon=item.icon;
 const isActive=activeSection===item.id;
