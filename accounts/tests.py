@@ -64,7 +64,7 @@ class RegistrationApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.user.refresh_from_db()
         self.assertTrue(self.user.is_profile_complete)
-        self.assertEqual(self.user.address.postal_code, '1234567890')
+        self.assertEqual(self.user.addresses.first().postal_code, '1234567890')
         self.assertEqual(response.data['role'], 'customer')
         self.assertTrue(response.data['is_profile_complete'])
 

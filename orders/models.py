@@ -26,6 +26,8 @@ class Order(models.Model):
         verbose_name=_('وضعیت'),
     )
     total_price = models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('مبلغ کل'))
+    discount_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name=_('مبلغ تخفیف'))
+    coupon_code = models.CharField(max_length=32, blank=True, default='', verbose_name=_('کد تخفیف'))
     address     = models.TextField(verbose_name=_('آدرس تحویل'))
 
     # فیلدهای درگاه — الان با Mock پر می‌شن، بعداً واقعی

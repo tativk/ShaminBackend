@@ -151,6 +151,7 @@ export default function Cart() {
   const [province, setProvince] = useState('');
   const [address, setAddress] = useState('');
   const [postalCode, setPostalCode] = useState('');
+  const [savedAddresses, setSavedAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -207,8 +208,9 @@ export default function Cart() {
     // وگرنه + جاوااسکریپت آن‌ها را به هم می‌چسباند
     const subtotal = items.reduce((sum, item) => sum + Number(item.unit_price) * item.quantity, 0);
     const shipping = Number(cart?.shipping_cost ?? 0);
-    return { count, subtotal, shipping, discount: 0, payable: subtotal + shipping };
-  }, [items, cart?.shipping_cost]);
+    const discount = Number(cart?.discount_amount ?? 0);
+    return { count, subtotal, shipping, discount, payable: subtotal - discount + shipping };
+  }, [items, cart?.shipping_cost, cart?.discount_amount]);
 
   /* ── بارگذاری اولیه ─────────────────────────────────────── */
   useEffect(() => {
@@ -224,6 +226,10 @@ export default function Cart() {
         setProducts(productData.results ?? productData);
         try {
           const addressData = await apiRequest('/auth/address/');
+          try {
+            const list = await apiRequest('/auth/addresses/');
+            setSavedAddresses(Array.isArray(list) ? list : []);
+          } catch { /* لیست آدرس اختیاری است */ }
           setProvince(addressData.province ?? '');
           setAddress([addressData.street, addressData.detail].filter(Boolean).join('، '));
           setPostalCode(addressData.postal_code ?? '');
@@ -278,6 +284,33 @@ export default function Cart() {
     try {
       await apiRequest(`/cart/items/${itemId}/`, { method: 'DELETE' });
       await refreshCart();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const applyCoupon = async () => {
+    setError('');
+    if (!couponCode.trim()) return setError('کد تخفیف را وارد کنید.');
+    try {
+      const updated = await apiRequest('/cart/coupon/', {
+        method: 'POST',
+        body: JSON.stringify({ code: couponCode.trim() }),
+      });
+      setCart(updated);
+      setNotice('کد تخفیف اعمال شد.');
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const removeCoupon = async () => {
+    setError('');
+    try {
+      const updated = await apiRequest('/cart/coupon/', { method: 'DELETE' });
+      setCart(updated);
+      setCouponCode('');
+      setNotice('کد تخفیف حذف شد.');
     } catch (err) {
       setError(err.message);
     }
@@ -397,6 +430,24 @@ export default function Cart() {
     );
   }
 
+  /* ── سبد خالی — صفحه سبد باز و نمایش داده نمی‌شود ── */
+  if (!items.length) {
+    return (
+      <main>
+        <div dir="rtl"><Header /></div>
+        <div className="cart-page" dir="rtl">
+          <section className="cart-empty-state">
+            <span className="cart-empty-state__icon"><CartIcon size={44} /></span>
+            <h1>سبد خرید شما خالی است</h1>
+            <p>برای مشاهده سبد خرید، ابتدا محصولی از فروشگاه به سبد اضافه کنید.</p>
+            <a href="/products" className="cart-empty-state__cta">مشاهده محصولات</a>
+          </section>
+        </div>
+        <div dir="rtl"><Footer /></div>
+      </main>
+    );
+  }
+
   /* ── رندر اصلی ─────────────────────────────────────────── */
   return (
     <main>
@@ -483,7 +534,7 @@ export default function Cart() {
                   onChange={(e) => setCouponCode(e.target.value)}
                   placeholder="ــــــــــــــ"
                 />
-                <button type="button" className="cart-coupon__btn">اعمال کد</button>
+                <button type="button" className="cart-coupon__btn" onClick={applyCoupon}>اعمال کد</button>
               </div>
               <button type="button" className="cart-clear" onClick={clearAll}>
                 حذف همه موارد <TrashIcon size={16} />
@@ -511,7 +562,15 @@ export default function Cart() {
                         : `${formatPrice(totals.shipping)} تومان`}
                   </span>
                 </li>
-                <li className="cart-summary__row"><span>تخفیف</span><span>{toFa(0)} تومان</span></li>
+                <li className="cart-summary__row">
+                  <span>
+                    تخفیف {cart?.coupon_code ? `(${cart.coupon_code} — ${toFa(cart.discount_percent)}٪)` : ''}
+                    {cart?.coupon_code && (
+                      <button type="button" className="cart-coupon__remove" onClick={removeCoupon} aria-label="حذف کد تخفیف">حذف</button>
+                    )}
+                  </span>
+                  <span>{totals.discount > 0 ? `${formatPrice(totals.discount)} تومان` : toFa(0)}</span>
+                </li>
               </ul>
               <div className="cart-summary__payable">
                 <span>مبلغ قابل پرداخت</span>
@@ -522,6 +581,30 @@ export default function Cart() {
 
               {/* فرم ارسال */}
               <div className="cart-shipping-form">
+                {savedAddresses.length > 0 && (
+                  <div className="cart-shipping-form__field">
+                    <label htmlFor="saved-addresses">آدرس‌های ذخیره‌شده من</label>
+                    <select
+                      id="saved-addresses"
+                      defaultValue=""
+                      onChange={(e) => {
+                        const chosen = savedAddresses.find((a) => String(a.id) === e.target.value);
+                        if (!chosen) return;
+                        setProvince(chosen.province || '');
+                        if (!selectedProvince) setSelectedProvince(provinces.find((p) => p.province === chosen.province)?.province || '');
+                        setAddress([chosen.street, chosen.detail].filter(Boolean).join('، '));
+                        setPostalCode(chosen.postal_code || '');
+                      }}
+                    >
+                      <option value="">انتخاب آدرس ذخیره‌شده (اختیاری)</option>
+                      {savedAddresses.map((a) => (
+                        <option key={a.id} value={String(a.id)}>
+                          {a.province}، {a.city} — {a.street}{a.is_default ? ' (پیش‌فرض)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div className="cart-shipping-form__field">
                   <label htmlFor="shipping-province">استان</label>
                   <select

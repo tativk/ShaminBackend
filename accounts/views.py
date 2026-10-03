@@ -322,10 +322,17 @@ class CompleteRegistrationView(APIView):
             for field in ("province", "city", "street", "postal_code", "detail")
             if field in data
         }
-        Address.objects.update_or_create(
-            user=request.user,
-            defaults=address_data,
+        # تکمیل ثبت‌نام، آدرس پیش‌فرض (یا اولین) را به‌روز می‌کند؛ آدرس‌های دیگر دست‌نخورده می‌مانند
+        address = (
+            request.user.addresses.filter(is_default=True).first()
+            or request.user.addresses.first()
         )
+        if address:
+            for field, value in address_data.items():
+                setattr(address, field, value)
+            address.save(update_fields=list(address_data.keys()))
+        else:
+            Address.objects.create(user=request.user, is_default=True, **address_data)
         return Response(UserSerializer(request.user).data, status=status.HTTP_200_OK)
 
 
@@ -420,27 +427,86 @@ class ProfileImageView(APIView):
         )
 
 
-class AddressView(APIView):
+class AddressListView(APIView):
+    """فهرست و ایجاد آدرس‌ها — هر کاربر می‌تواند چند آدرس داشته باشد."""
+
     serializer_class = AddressSerializer
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(summary="دریافت آدرس", tags=["کاربر"])
+    @extend_schema(summary="فهرست آدرس‌ها", tags=["کاربر"])
     def get(self, request):
-        try:
-            address = request.user.address
-            return Response(AddressSerializer(address).data)
-        except Address.DoesNotExist:
-            return Response({}, status=status.HTTP_200_OK)
+        addresses = request.user.addresses.order_by("-is_default", "id")
+        return Response(AddressSerializer(addresses, many=True).data)
 
-    @extend_schema(request=AddressSerializer, summary="ذخیره/ویرایش آدرس", tags=["کاربر"])
+    @extend_schema(request=AddressSerializer, summary="افزودن آدرس", tags=["کاربر"])
+    def post(self, request):
+        serializer = AddressSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # اولین آدرس کاربر، پیش‌فرض می‌شود
+        is_first = not request.user.addresses.exists()
+        address = serializer.save(user=request.user, is_default=is_first)
+        return Response(AddressSerializer(address).data, status=status.HTTP_201_CREATED)
+
+
+class AddressDetailView(APIView):
+    """ویرایش/حذف آدرس — فقط آدرس متعلق به خود کاربر."""
+
+    serializer_class = AddressSerializer
+    permission_classes = [IsAuthenticated]
+
+    def _get_own(self, request, pk):
+        return get_object_or_404(Address, pk=pk, user=request.user)
+
+    @extend_schema(summary="ویرایش آدرس", tags=["کاربر"])
+    def patch(self, request, pk):
+        address = self._get_own(request, pk)
+        serializer = AddressSerializer(address, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        # پیش‌فرض باید فقط یک آدرس باشد
+        if serializer.validated_data.get("is_default"):
+            Address.objects.filter(user=request.user).exclude(pk=address.pk).update(is_default=False)
+        return Response(serializer.data)
+
+    @extend_schema(summary="حذف آدرس", tags=["کاربر"])
+    def delete(self, request, pk):
+        address = self._get_own(request, pk)
+        was_default = address.is_default
+        address.delete()
+        # اگر آدرس پیش‌فرض حذف شد، اولین آدرس باقی‌مانده پیش‌فرض می‌شود
+        if was_default:
+            next_address = request.user.addresses.order_by("id").first()
+            if next_address:
+                next_address.is_default = True
+                next_address.save(update_fields=["is_default"])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AddressView(APIView):
+    """میان‌بر آدرس پیش‌فرض — سازگار با کدهای قبلی (گرفتن و ذخیره آدرس پیش‌فرض)."""
+
+    serializer_class = AddressSerializer
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(summary="دریافت آدرس پیش‌فرض", tags=["کاربر"])
+    def get(self, request):
+        address = request.user.addresses.filter(is_default=True).first() or request.user.addresses.first()
+        if not address:
+            return Response({}, status=status.HTTP_200_OK)
+        return Response(AddressSerializer(address).data)
+
+    @extend_schema(request=AddressSerializer, summary="ذخیره/ویرایش آدرس پیش‌فرض", tags=["کاربر"])
     def put(self, request):
-        try:
-            address = request.user.address
+        address = request.user.addresses.filter(is_default=True).first() or request.user.addresses.first()
+        if address:
             serializer = AddressSerializer(address, data=request.data)
-        except Address.DoesNotExist:
+        else:
             serializer = AddressSerializer(data=request.data)
 
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        serializer.save(user=request.user)
+        is_first = not request.user.addresses.exists()
+        serializer.save(user=request.user, is_default=True if (address or is_first) else False)
         return Response(serializer.data)

@@ -7,6 +7,8 @@ from .recovery import RequestPasswordResetView, VerifyPasswordResetView, ResetPa
 from .views import (
     AdminCustomersView,
     AdminStaffView,
+    AddressDetailView,
+    AddressListView,
     AddressView,
     CompleteRegistrationView,
     PasswordLoginView,
@@ -39,5 +41,7 @@ urlpatterns = [
     path("auth/profile/", ProfileView.as_view(), name="profile"),
     path("auth/profile/image/", ProfileImageView.as_view(), name="profile-image"),
     path("auth/address/", AddressView.as_view(), name="address"),
+    path("auth/addresses/", AddressListView.as_view(), name="addresses"),
+    path("auth/addresses/<int:pk>/", AddressDetailView.as_view(), name="address-detail"),
     path("auth/purchased-products/", PurchasedProductsView.as_view(), name="purchased-products"),
 ]

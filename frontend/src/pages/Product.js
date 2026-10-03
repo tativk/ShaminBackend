@@ -21,6 +21,7 @@ import { FaStar } from "react-icons/fa";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiRequest, getAssetUrl } from "../api";
 import { notifyCartAdded } from "../cart-notice";
+import { useWishlist } from "../context/WishlistContext";
 import Header from "../components/Header/Header";
 import Footer from "../components/Footer/Footer";
 import "./Home.css";
@@ -49,10 +50,13 @@ const Stars = ({ rating }) => (
 
 const ProductGallery = ({ product }) => {
   const images = product.images;
+  const { has, toggle } = useWishlist();
+  const wishlisted = has(product.id);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [wishlisted, setWishlisted] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const thumbsRef = useRef(null);
+
+  const handleWishlist = () => toggle(product);
 
   useEffect(() => {
     setActiveIndex(0);
@@ -104,8 +108,8 @@ const ProductGallery = ({ product }) => {
               ? "product-gallery__wishlist product-gallery__wishlist--active"
               : "product-gallery__wishlist"
           }
-          onClick={() => setWishlisted((prev) => !prev)}
-          aria-label="افزودن به علاقه‌مندی‌ها"
+          onClick={handleWishlist}
+          aria-label={wishlisted ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
         >
           <FiHeart />
         </button>
@@ -137,10 +141,18 @@ const ProductGallery = ({ product }) => {
 
 const ProductInfo = ({ product }) => {
   const navigate = useNavigate();
+  const { has, toggle } = useWishlist();
+  const wishlisted = has(product.id);
   const isPerfume = product.category === "perfume";
   const outOfStock = product.stock <= 0;
   const [size, setSize] = useState(15);
   const [quantity, setQuantity] = useState(1);
+  // قیمت هر حجم — اگر ادمین قیمت اختصاصی نداده باشد، قیمت پایه استفاده می‌شود
+  const currentSizePrice = (isPerfume && product.sizePrices?.[size]) || product.price;
+  const currentSizeOldPrice =
+    product.oldPrice && (isPerfume && product.sizePrices?.[size])
+      ? Math.round(product.sizePrices[size] * 100 / (100 - (product.discountPercent || 0)))
+      : product.oldPrice;
   const [adding, setAdding] = useState(false);
   const [cartMessage, setCartMessage] = useState(null); // {type:'success'|'error', text}
 
@@ -180,8 +192,11 @@ const ProductInfo = ({ product }) => {
   };
 
   const handleAddToWishlist = () => {
-    // علاقه‌مندی‌ها هنوز بک‌اند ندارد — فعلاً محلی است
-    setCartMessage({ type: "success", text: "به علاقه‌مندی‌ها اضافه شد (محلی)." });
+    const added = toggle(product);
+    setCartMessage({
+      type: "success",
+      text: added ? "به علاقه‌مندی‌ها اضافه شد." : "از علاقه‌مندی‌ها حذف شد.",
+    });
   };
 
   return (
@@ -203,10 +218,10 @@ const ProductInfo = ({ product }) => {
       <p className="product-info__desc">{product.description || "توضیحی برای این محصول ثبت نشده است."}</p>
 
       <div className="product-info__price">
-        {product.oldPrice && (
-          <span className="product-info__price-old">{formatPrice(product.oldPrice)}</span>
+        {currentSizeOldPrice && (
+          <span className="product-info__price-old">{formatPrice(currentSizeOldPrice)}</span>
         )}
-        {formatPrice(product.price)}
+        {formatPrice(currentSizePrice)}
       </div>
 
       <div className="product-info__trust">
@@ -291,7 +306,7 @@ const ProductInfo = ({ product }) => {
         <FiShoppingCart />
       </button>
       <button className="product-info__wishlist-btn" onClick={handleAddToWishlist}>
-        افزودن به علاقه‌مندی‌ها
+        {wishlisted ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
         <FiHeart />
       </button>
     </div>
@@ -612,6 +627,10 @@ const Product = () => {
           longDescription: data.description || "",
           price: Number(data.final_price ?? data.price ?? 0),
           oldPrice: Number(data.discount_percent || 0) > 0 ? Number(data.price) : null,
+          discountPercent: Number(data.discount_percent || 0),
+          sizePrices: data.size_prices
+            ? Object.fromEntries(Object.entries(data.size_prices).map(([k, v]) => [Number(k), Number(v)]))
+            : null,
           images: images.length ? images : [FALLBACK_IMAGE],
           specs: [
             { label: "نوع محصول", value: CATEGORY_LABEL[data.category] || data.category },

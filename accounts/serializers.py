@@ -79,7 +79,7 @@ class AdminCustomerSerializer(serializers.Serializer):
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
-        fields = ["id", "province", "city", "street", "postal_code", "detail"]
+        fields = ["id", "province", "city", "street", "postal_code", "detail", "is_default"]
 
 
 class CompleteRegistrationSerializer(serializers.Serializer):

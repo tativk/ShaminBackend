@@ -41,10 +41,28 @@ class Product(models.Model):
     is_best_seller = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # قیمت اختصاصی هر حجم عطر — اگر خالی باشد قیمت پایه لحاظ می‌شود
+    price_15 = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    price_20 = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    price_30 = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    price_50 = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    price_100 = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+
     @property
     def final_price(self):
 
         return (self.price * (Decimal('100') - self.discount_percent) / Decimal('100')).quantize(
+            Decimal('0.01'), rounding=ROUND_HALF_UP
+        )
+
+    def price_for_weight(self, weight) -> Decimal:
+        """قیمت پایه یک حجم مشخص — حجم بدون قیمت اختصاصی از قیمت پایه استفاده می‌کند."""
+        field = f'price_{weight}' if weight in (15, 20, 30, 50, 100) else None
+        specific = getattr(self, field) if field else None
+        return specific if specific is not None else self.price
+
+    def final_price_for_weight(self, weight) -> Decimal:
+        return (self.price_for_weight(weight) * (Decimal('100') - self.discount_percent) / Decimal('100')).quantize(
             Decimal('0.01'), rounding=ROUND_HALF_UP
         )
 

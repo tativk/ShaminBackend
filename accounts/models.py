@@ -48,9 +48,8 @@ class User(AbstractUser):
             return True
         if not self.first_name.strip() or not self.last_name.strip():
             return False
-        try:
-            address = self.address
-        except Address.DoesNotExist:
+        address = self.addresses.first()
+        if not address:
             return False
         return all([
             address.province.strip(),
@@ -68,12 +67,13 @@ class User(AbstractUser):
 
 
 class Address(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="address", verbose_name="کاربر")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="addresses", verbose_name="کاربر")
     province = models.CharField(max_length=100, verbose_name="استان")
     city = models.CharField(max_length=100, verbose_name="شهر")
     street = models.CharField(max_length=255, verbose_name="خیابان")
     postal_code = models.CharField(max_length=10, blank=True, verbose_name="کد پستی")
     detail = models.TextField(blank=True, verbose_name="جزئیات آدرس")
+    is_default = models.BooleanField(default=False, verbose_name="آدرس پیش‌فرض")
 
     class Meta:
         verbose_name = "آدرس"

@@ -8,9 +8,9 @@ from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from products.models import Product
-from .models import Cart, CartItem, ShippingRate
+from .models import Cart, CartItem, Coupon, ShippingRate
 from .serializers import ALLOWED_WEIGHTS
-from .serializers import (AddItemSerializer, CartCitySerializer, CartSerializer,
+from .serializers import (AddItemSerializer, CartCitySerializer, CartSerializer, CouponApplySerializer,
                           QuantitySerializer, ShippingRateSerializer)
 
 
@@ -101,6 +101,32 @@ class CartItemView(APIView):
         item = get_object_or_404(CartItem, cart=cart, pk=pk)
         item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CartCouponView(APIView):
+    """اعمال یا حذف کد تخفیف روی سبد کاربر."""
+
+    permission_classes = [IsAuthenticated]
+
+    @transaction.atomic
+    def post(self, request):
+        serializer = CouponApplySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        code = serializer.validated_data['code'].strip()
+        coupon = Coupon.objects.filter(code__iexact=code).first()
+        if not coupon or not coupon.is_active:
+            return Response({'detail': 'کد تخفیف معتبر نیست.'}, status=status.HTTP_400_BAD_REQUEST)
+        cart = locked_cart(request.user)
+        cart.coupon = coupon
+        cart.save(update_fields=['coupon'])
+        return Response(CartSerializer(cart).data)
+
+    @transaction.atomic
+    def delete(self, request):
+        cart = locked_cart(request.user)
+        cart.coupon = None
+        cart.save(update_fields=['coupon'])
+        return Response(CartSerializer(cart).data)
 
 
 class ShippingProvincesView(APIView):
