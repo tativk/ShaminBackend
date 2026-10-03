@@ -75,14 +75,14 @@ const Header = () => {
     </span>
   )}
 </Link>
-          <Link to="/cart" className="header__icon-btn" aria-label="سبد خرید">
-          <FiShoppingCart />
           {totalItems > 0 && (
-          <span className="header__badge">
-          {new Intl.NumberFormat("fa-IR").format(totalItems)}
-          </span>
-  )}
-</Link>
+            <Link to="/cart" className="header__icon-btn" aria-label="سبد خرید">
+              <FiShoppingCart />
+              <span className="header__badge">
+                {new Intl.NumberFormat("fa-IR").format(totalItems)}
+              </span>
+            </Link>
+          )}
         </div>
       </div>
 

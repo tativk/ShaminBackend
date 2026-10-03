@@ -144,6 +144,15 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# پرچم‌های امنیتی production — همه از متغیر محیطی و فقط وقتی DEBUG=False
+if not DEBUG:
+    SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
+    SESSION_COOKIE_SECURE = env.bool('SESSION_COOKIE_SECURE', default=False)
+    CSRF_COOKIE_SECURE = env.bool('CSRF_COOKIE_SECURE', default=False)
+    SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
+    if env.bool('BEHIND_PROXY_SSL', default=False):
+        SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 SMS_PROVIDER = os.getenv('SMS_PROVIDER', 'console' if DEBUG else 'kavenegar').lower()
 KAVENEGAR_API_KEY = os.getenv('KAVENEGAR_API_KEY', os.getenv('SMS_API_KEY', ''))
 KAVENEGAR_TEMPLATE = os.getenv('KAVENEGAR_TEMPLATE', os.getenv('SMS_OTP_TEMPLATE', ''))

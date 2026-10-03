@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { FiArrowLeft, FiCamera, FiCheck, FiEdit3, FiHeart, FiHome, FiLogOut, FiMapPin, FiMenu, FiPackage, FiSave, FiShoppingBag, FiTrash2, FiUser, FiX } from "react-icons/fi";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { FiArrowLeft, FiCamera, FiCheck, FiEdit3, FiGlobe, FiHeart, FiHome, FiLogOut, FiMapPin, FiMenu, FiPackage, FiPlus, FiSave, FiSearch, FiShoppingBag, FiTrash2, FiUser, FiX } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import { apiRequest, getAssetUrl } from "../api";
 import { getFavorites } from "../favorites";
@@ -25,17 +25,27 @@ const Dashboard = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [addresses, setAddresses] = useState([]);
+  const [addrForm, setAddrForm] = useState(null); // null = نمایش لیست
+  const [addrEditingId, setAddrEditingId] = useState(null);
+  const [addrSaving, setAddrSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchRef = useRef(null);
 
   useEffect(() => {
     let active = true;
-    Promise.all([apiRequest("/auth/profile/"), apiRequest("/auth/address/"), apiRequest("/auth/purchased-products/"), apiRequest("/products/?page_size=100")])
-      .then(([user, savedAddress, bought, productData]) => {
+    Promise.all([apiRequest("/auth/profile/"), apiRequest("/auth/address/"), apiRequest("/auth/purchased-products/"), apiRequest("/products/?page_size=100"), apiRequest("/auth/addresses/")])
+      .then(([user, savedAddress, bought, productData, addressList]) => {
         if (!active) return;
         if (user.role === "admin") return navigate("/admin");
         setProfile({ ...emptyProfile, ...user });
         setAddress({ ...emptyAddress, ...(savedAddress || {}) });
         setPurchases(Array.isArray(bought) ? bought : []);
         setProducts(productData.results || productData || []);
+        setAddresses(Array.isArray(addressList) ? addressList : []);
       })
       .catch((requestError) => { if (active) setError(requestError.message || "اطلاعات حساب دریافت نشد."); })
       .finally(() => active && setLoading(false));
@@ -43,6 +53,27 @@ const Dashboard = () => {
   }, [navigate]);
 
   const productById = useMemo(() => new Map(products.map((product) => [product.id, product])), [products]);
+
+  // سرچ محصولات — با تاخیر ۳۵۰ms روی API فروشگاه
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (!query) { setSearchResults([]); setSearchLoading(false); return; }
+    const timer = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const data = await apiRequest(`/products/?search=${encodeURIComponent(query)}`);
+        setSearchResults((Array.isArray(data) ? data : data?.results || []).slice(0, 5));
+      } catch { setSearchResults([]); }
+      finally { setSearchLoading(false); }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const handler = (event) => { if (searchRef.current && !searchRef.current.contains(event.target)) setSearchOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
   const uniquePurchases = useMemo(() => Array.from(new Map(purchases.map((item) => [item.product_id, item])).values()), [purchases]);
   const name = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "کاربر شمین";
   const profileProgress = [profile.first_name, profile.last_name, profile.email, address.city, address.street, address.postal_code].filter(Boolean).length;
@@ -60,6 +91,56 @@ const Dashboard = () => {
     catch (requestError) { setError(requestError.message); } finally { setSaving(false); }
   };
   const logout = () => { ["access", "refresh", "access_token", "refresh_token", "user"].forEach((key) => localStorage.removeItem(key)); navigate("/Login"); };
+  const openNewAddress = () => {
+    setAddrEditingId(null);
+    setAddrForm({ province: "", city: "", street: "", postal_code: "", detail: "" });
+  };
+  const openEditAddress = (item) => {
+    setAddrEditingId(item.id);
+    setAddrForm({ province: item.province, city: item.city, street: item.street, postal_code: item.postal_code, detail: item.detail || "" });
+  };
+  const saveAddressForm = async (event) => {
+    event.preventDefault();
+    if (addrSaving || !addrForm) return;
+    setAddrSaving(true); setError(""); setMessage("");
+    try {
+      if (addrEditingId) {
+        const updated = await apiRequest(`/auth/addresses/${addrEditingId}/`, { method: "PATCH", body: JSON.stringify(addrForm) });
+        setAddresses((previous) => previous.map((item) => (item.id === addrEditingId ? updated : item)));
+        setMessage("آدرس ویرایش شد.");
+      } else {
+        const created = await apiRequest("/auth/addresses/", { method: "POST", body: JSON.stringify(addrForm) });
+        setAddresses((previous) => [...previous, created]);
+        setMessage("آدرس جدید اضافه شد.");
+      }
+      setAddrForm(null); setAddrEditingId(null);
+    } catch (requestError) { setError(requestError.message || "ذخیره آدرس ناموفق بود."); }
+    finally { setAddrSaving(false); }
+  };
+  const deleteAddress = async (item) => {
+    if (!window.confirm("این آدرس حذف شود؟")) return;
+    setError(""); setMessage("");
+    try {
+      await apiRequest(`/auth/addresses/${item.id}/`, { method: "DELETE" });
+      setAddresses((previous) => {
+        const next = previous.filter((row) => row.id !== item.id);
+        // اگر پیش‌فرض حذف شد، سرور اولین آدرس باقی‌مانده را پیش‌فرض می‌کند
+        if (item.is_default && next.length) {
+          return next.map((row, index) => (index === 0 ? { ...row, is_default: true } : row));
+        }
+        return next;
+      });
+      setMessage("آدرس حذف شد.");
+    } catch (requestError) { setError(requestError.message || "حذف آدرس ناموفق بود."); }
+  };
+  const makeDefaultAddress = async (item) => {
+    setError(""); setMessage("");
+    try {
+      const updated = await apiRequest(`/auth/addresses/${item.id}/`, { method: "PATCH", body: JSON.stringify({ is_default: true }) });
+      setAddresses((previous) => previous.map((row) => (row.id === item.id ? updated : { ...row, is_default: false })));
+      setMessage("آدرس پیش‌فرض تغییر کرد.");
+    } catch (requestError) { setError(requestError.message || "تغییر آدرس پیش‌فرض ناموفق بود."); }
+  };
   const uploadProfileImage = async (file) => {
     if (!file) return;
     if (!file.type.startsWith("image/")) { setError("فقط فایل تصویری مجاز است."); return; }
@@ -84,19 +165,19 @@ const Dashboard = () => {
     finally { setUploadingImage(false); }
   };
   const renderAvatar = (className) => <span className={className}>{profile.profile_image ? <img src={profile.profile_image} alt={name} /> : name.charAt(0)}</span>;
-  const renderPurchase = (item) => { const product = productById.get(item.product_id); return <article className="user-dashboard__purchase" key={`${item.order_id}-${item.product_id}`}><div className="user-dashboard__purchase-image"><img src={getAssetUrl(product?.main_image)} alt={item.product_name} /></div><div><strong>{item.product_name}</strong><span>{item.quantity.toLocaleString("fa-IR")} عدد · سفارش #{item.order_id.toLocaleString("fa-IR")}</span><small>{toPrice(item.unit_price)}</small></div><FiCheck className="user-dashboard__purchase-check" /></article>; };
+  const renderPurchase = (item) => { const product = productById.get(item.product_id); return <article className="user-dashboard__purchase" key={`${item.order_id}-${item.product_id}`}><div className="user-dashboard__purchase-image"><img src={getAssetUrl(product?.main_image)} alt={item.product_name} /></div><div><strong>{item.product_name}</strong><span>{item.quantity.toLocaleString("fa-IR")} عدد{item.weight_grams ? ` · ${item.weight_grams.toLocaleString("fa-IR")} گرم` : ""} · سفارش #{item.order_id.toLocaleString("fa-IR")}</span><small>{toPrice(item.unit_price)}</small></div><FiCheck className="user-dashboard__purchase-check" /></article>; };
 
   if (loading) return <div className="user-dashboard user-dashboard--state" dir="rtl"><FiUser /><p>در حال آماده‌سازی حساب شما...</p></div>;
   return <div className="user-dashboard" dir="rtl">
-    <aside className={`user-dashboard__sidebar ${mobileMenu ? "is-open" : ""}`}><div className="user-dashboard__brand"><span>ش</span><div><strong>گالری شمین</strong><small>حساب کاربری</small></div><button onClick={() => setMobileMenu(false)} aria-label="بستن منو"><FiX /></button></div><nav>{menu.map(([id, label, Icon]) => <button key={id} className={section === id ? "is-active" : ""} onClick={() => chooseSection(id)}><Icon /><span>{label}</span><FiArrowLeft /></button>)}</nav><div className="user-dashboard__sidebar-bottom"><Link to="/favorites"><FiHeart /> علاقه‌مندی‌های من</Link><button onClick={logout}><FiLogOut /> خروج از حساب</button></div></aside>
+    <aside className={`user-dashboard__sidebar ${mobileMenu ? "is-open" : ""}`}><div className="user-dashboard__brand"><img src="/logo.png" alt="گالری شمین" className="user-dashboard__brand-logo" /><div><strong>گالری شمین</strong><small>حساب کاربری</small></div><button onClick={() => setMobileMenu(false)} aria-label="بستن منو"><FiX /></button></div><nav>{menu.map(([id, label, Icon]) => <button key={id} className={section === id ? "is-active" : ""} onClick={() => chooseSection(id)}><Icon /><span>{label}</span><FiArrowLeft /></button>)}</nav><div className="user-dashboard__sidebar-bottom"><Link to="/"><FiGlobe /> صفحه اصلی فروشگاه</Link><Link to="/favorites"><FiHeart /> علاقه‌مندی‌های من</Link><button onClick={logout}><FiLogOut /> خروج از حساب</button></div></aside>
     {mobileMenu && <button className="user-dashboard__backdrop" onClick={() => setMobileMenu(false)} aria-label="بستن منو" />}
-    <main className="user-dashboard__main"><header className="user-dashboard__header"><button className="user-dashboard__menu-button" onClick={() => setMobileMenu(true)} aria-label="باز کردن منو"><FiMenu /></button><div><span>حساب کاربری</span><h1>{section === "overview" ? `سلام ${name}` : menu.find(([id]) => id === section)?.[1]}</h1></div><div className="user-dashboard__header-user">{renderAvatar("user-dashboard__header-avatar")}<strong>{name}</strong></div></header>
+    <main className="user-dashboard__main"><header className="user-dashboard__header"><button className="user-dashboard__menu-button" onClick={() => setMobileMenu(true)} aria-label="باز کردن منو"><FiMenu /></button><div><span>حساب کاربری</span><h1>{section === "overview" ? `سلام ${name}` : menu.find(([id]) => id === section)?.[1]}</h1></div><div className="user-dashboard__header-search" ref={searchRef}><span className="user-dashboard__search-icon"><FiSearch /></span><input type="text" value={searchQuery} onChange={(event) => { setSearchQuery(event.target.value); setSearchOpen(true); }} onFocus={() => setSearchOpen(true)} onKeyDown={(event) => { if (event.key === "Escape") setSearchOpen(false); }} placeholder="جستجوی محصولات..." aria-label="جستجوی محصولات" />{searchOpen && searchQuery.trim() && (<div className="user-dashboard__search-results">{searchLoading && <div className="user-dashboard__search-state">در حال جستجو...</div>}{!searchLoading && !searchResults.length && <div className="user-dashboard__search-state">محصولی پیدا نشد.</div>}{searchResults.map((product) => (<button key={product.id} type="button" className="user-dashboard__search-item" onClick={() => { setSearchOpen(false); setSearchQuery(""); navigate(`/product/${product.id}`); }}><img src={getAssetUrl(product.main_image)} alt="" /><div><strong>{product.name}</strong><small>{toPrice(product.final_price ?? product.price)}</small></div></button>))}</div>)}</div><div className="user-dashboard__header-user">{renderAvatar("user-dashboard__header-avatar")}<strong>{name}</strong></div></header>
       {(error || message) && <div className={`user-dashboard__notice ${error ? "is-error" : ""}`}>{error || message}</div>}
       <div className="user-dashboard__content">
         {section === "overview" && <><section className="user-dashboard__welcome"><div><span>داشبورد شما</span><h2>همه چیز برای خرید بعدی آماده است</h2><p>سفارش‌ها، اطلاعات حساب و علاقه‌مندی‌هایتان را از همین‌جا مدیریت کنید.</p></div><div className="user-dashboard__welcome-mark"><FiPackage /></div></section><div className="user-dashboard__stats"><div><FiShoppingBag /><strong>{uniquePurchases.length.toLocaleString("fa-IR")}</strong><span>محصول خریداری‌شده</span></div><div><FiHeart /><strong>{getFavorites().length.toLocaleString("fa-IR")}</strong><span>علاقه‌مندی</span></div><div><FiCheck /><strong>{profileProgress.toLocaleString("fa-IR")} / ۶</strong><span>تکمیل اطلاعات</span></div></div><div className="user-dashboard__columns"><section className="user-dashboard__panel"><div className="user-dashboard__panel-title"><h2>آخرین خریدها</h2><button onClick={() => chooseSection("purchases")}>مشاهده همه <FiArrowLeft /></button></div>{uniquePurchases.length ? uniquePurchases.slice(0, 3).map(renderPurchase) : <p className="user-dashboard__empty">هنوز خریدی ثبت نشده است.</p>}</section><section className="user-dashboard__panel user-dashboard__completion"><div className="user-dashboard__panel-title"><h2>وضعیت حساب</h2><FiUser /></div><div className="user-dashboard__progress"><span style={{ width: `${(profileProgress / 6) * 100}%` }} /></div><strong>{Math.round((profileProgress / 6) * 100).toLocaleString("fa-IR")}٪ تکمیل شده</strong><p>با تکمیل اطلاعات، ثبت سفارش سریع‌تر انجام می‌شود.</p><button onClick={() => chooseSection("profile")}>تکمیل اطلاعات <FiArrowLeft /></button></section></div></>}
         {section === "purchases" && <section className="user-dashboard__panel user-dashboard__wide-panel"><div className="user-dashboard__panel-title"><h2>محصولات خریداری‌شده</h2><span>{purchases.length.toLocaleString("fa-IR")} مورد</span></div>{purchases.length ? purchases.map(renderPurchase) : <p className="user-dashboard__empty">هنوز محصول خریداری‌شده‌ای ندارید.</p>}</section>}
         {section === "profile" && <section className="user-dashboard__panel user-dashboard__form-panel"><div className="user-dashboard__panel-title"><h2>اطلاعات حساب</h2>{!editingProfile && <button onClick={() => setEditingProfile(true)}><FiEdit3 /> ویرایش</button>}</div><div className="user-dashboard__avatar-card">{renderAvatar("user-dashboard__avatar")}<div className="user-dashboard__avatar-actions"><strong>{name}</strong><div><label className={`user-dashboard__avatar-upload ${uploadingImage ? "is-busy" : ""}`}><input type="file" accept="image/*" disabled={uploadingImage} onChange={(event) => { uploadProfileImage(event.target.files?.[0]); event.target.value = ""; }} /><FiCamera /> {uploadingImage ? "در حال آپلود..." : profile.profile_image ? "تغییر عکس پروفایل" : "افزودن عکس پروفایل"}</label>{profile.profile_image && <button type="button" className="user-dashboard__avatar-remove" onClick={removeProfileImage} disabled={uploadingImage}><FiTrash2 /> حذف عکس</button>}</div></div></div>{editingProfile ? <form onSubmit={saveProfile} className="user-dashboard__form"><label>نام<input value={profile.first_name} onChange={(event) => setProfile({ ...profile, first_name: event.target.value })} /></label><label>نام خانوادگی<input value={profile.last_name} onChange={(event) => setProfile({ ...profile, last_name: event.target.value })} /></label><label>ایمیل<input type="email" value={profile.email} onChange={(event) => setProfile({ ...profile, email: event.target.value })} /></label><label>شماره موبایل<input value={profile.phone} disabled /></label><button className="user-dashboard__save" disabled={saving}><FiSave /> {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}</button></form> : <div className="user-dashboard__details"><div><span>نام و نام خانوادگی</span><strong>{name}</strong></div><div><span>شماره موبایل</span><strong dir="ltr">{profile.phone || "ثبت نشده"}</strong></div><div><span>ایمیل</span><strong>{profile.email || "ثبت نشده"}</strong></div></div>}</section>}
-        {section === "address" && <section className="user-dashboard__panel user-dashboard__form-panel"><div className="user-dashboard__panel-title"><h2>آدرس ارسال</h2>{!editingAddress && <button onClick={() => setEditingAddress(true)}><FiEdit3 /> ویرایش</button>}</div>{editingAddress ? <form onSubmit={saveAddress} className="user-dashboard__form"><label>استان<input value={address.province} onChange={(event) => setAddress({ ...address, province: event.target.value })} required /></label><label>شهر<input value={address.city} onChange={(event) => setAddress({ ...address, city: event.target.value })} required /></label><label className="user-dashboard__form-full">نشانی<input value={address.street} onChange={(event) => setAddress({ ...address, street: event.target.value })} required /></label><label>کد پستی<input inputMode="numeric" value={address.postal_code} onChange={(event) => setAddress({ ...address, postal_code: event.target.value })} required /></label><label>جزئیات بیشتر<input value={address.detail} onChange={(event) => setAddress({ ...address, detail: event.target.value })} /></label><button className="user-dashboard__save" disabled={saving}><FiSave /> {saving ? "در حال ذخیره..." : "ذخیره آدرس"}</button></form> : <div className="user-dashboard__address"><FiMapPin /><div><strong>{address.city && address.province ? `${address.province}، ${address.city}` : "آدرسی ثبت نشده است"}</strong><p>{address.street || "برای ارسال سریع، آدرس خود را اضافه کنید."}{address.detail && `، ${address.detail}`}</p>{address.postal_code && <small>کد پستی: {address.postal_code}</small>}</div></div>}</section>}
+        {section === "address" && <section className="user-dashboard__panel user-dashboard__form-panel"><div className="user-dashboard__panel-title"><h2>آدرس‌های من</h2><button onClick={openNewAddress}><FiPlus /> آدرس جدید</button></div>{addrForm && <form onSubmit={saveAddressForm} className="user-dashboard__form"><label>استان<input value={addrForm.province} onChange={(event) => setAddrForm({ ...addrForm, province: event.target.value })} required /></label><label>شهر<input value={addrForm.city} onChange={(event) => setAddrForm({ ...addrForm, city: event.target.value })} required /></label><label className="user-dashboard__form-full">نشانی<input value={addrForm.street} onChange={(event) => setAddrForm({ ...addrForm, street: event.target.value })} required /></label><label>کد پستی<input inputMode="numeric" value={addrForm.postal_code} onChange={(event) => setAddrForm({ ...addrForm, postal_code: event.target.value })} required /></label><label>جزئیات بیشتر<input value={addrForm.detail} onChange={(event) => setAddrForm({ ...addrForm, detail: event.target.value })} /></label><button className="user-dashboard__save" disabled={addrSaving}><FiSave /> {addrSaving ? "در حال ذخیره..." : addrEditingId ? "ذخیره ویرایش" : "افزودن آدرس"}</button><button type="button" className="user-dashboard__address-cancel" onClick={() => { setAddrForm(null); setAddrEditingId(null); }}>انصراف</button></form>}{!addrForm && (addresses.length ? <div className="user-dashboard__address-list">{addresses.map((item) => <div className="user-dashboard__address" key={item.id}><FiMapPin /><div><strong>{item.province}، {item.city}{item.is_default && <span className="user-dashboard__address-badge">پیش‌فرض</span>}</strong><p>{item.street}{item.detail && `، ${item.detail}`}</p>{item.postal_code && <small>کد پستی: {item.postal_code}</small>}<div className="user-dashboard__address-actions"><button type="button" onClick={() => openEditAddress(item)}><FiEdit3 /> ویرایش</button><button type="button" onClick={() => deleteAddress(item)}><FiTrash2 /> حذف</button>{!item.is_default && <button type="button" onClick={() => makeDefaultAddress(item)}><FiCheck /> پیش‌فرض</button>}</div></div></div>)}</div> : <p className="user-dashboard__empty">هنوز آدرسی ثبت نکرده‌اید؛ با دکمه «آدرس جدید» اولین آدرس را اضافه کنید.</p>)}</section>}
       </div></main>
   </div>;
 };

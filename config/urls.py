@@ -1,12 +1,13 @@
 from django.contrib import admin
 
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 
 from config.views import health
+from django.views.static import serve as media_serve
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -17,7 +18,10 @@ urlpatterns = [
     path('api/', include('carts.urls')),
     path('api/', include('orders.urls')),
     path('api/', include('reviews.urls')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # سرو فایل‌های media در همه حالت‌ها — static() فقط در DEBUG=True کار می‌کند
+    # و همین باعث می‌شد در نسخه آنلاین (DEBUG=False) عکس محصولات آپلودی ۴۰۴ شود
+    re_path(r'^media/(?P<path>.*)$', media_serve, {'document_root': settings.MEDIA_ROOT}),
+]
 
 if settings.DEBUG:
     urlpatterns += [

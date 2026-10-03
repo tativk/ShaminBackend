@@ -21,6 +21,7 @@ import { FaStar } from "react-icons/fa";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiRequest, getAssetUrl } from "../api";
 import { notifyCartAdded } from "../cart-notice";
+import { useWishlist } from "../context/WishlistContext";
 import Header from "../components/Header/Header";
 import Footer from "../components/Footer/Footer";
 import "./Home.css";
@@ -30,7 +31,8 @@ const CATEGORY_LABEL = { perfume: "عطر و ادکلن", cosmetic: "لوازم 
 const GENDER_LABEL = { male: "مردانه", female: "زنانه", unisex: "یونیسکس" };
 const FALLBACK_IMAGE = "/logo.png";
 
-const MIN_GRAM = 5;
+// حجم‌های مجاز عطر — بالای ۳۰ میل ارسال رایگان است
+const PERFUME_SIZES = [15, 20, 30, 50, 100];
 
 const formatPrice = (value) => new Intl.NumberFormat("fa-IR").format(value) + " تومان";
 
@@ -48,10 +50,13 @@ const Stars = ({ rating }) => (
 
 const ProductGallery = ({ product }) => {
   const images = product.images;
+  const { has, toggle } = useWishlist();
+  const wishlisted = has(product.id);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [wishlisted, setWishlisted] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const thumbsRef = useRef(null);
+
+  const handleWishlist = () => toggle(product);
 
   useEffect(() => {
     setActiveIndex(0);
@@ -103,8 +108,8 @@ const ProductGallery = ({ product }) => {
               ? "product-gallery__wishlist product-gallery__wishlist--active"
               : "product-gallery__wishlist"
           }
-          onClick={() => setWishlisted((prev) => !prev)}
-          aria-label="افزودن به علاقه‌مندی‌ها"
+          onClick={handleWishlist}
+          aria-label={wishlisted ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
         >
           <FiHeart />
         </button>
@@ -136,31 +141,20 @@ const ProductGallery = ({ product }) => {
 
 const ProductInfo = ({ product }) => {
   const navigate = useNavigate();
+  const { has, toggle } = useWishlist();
+  const wishlisted = has(product.id);
   const isPerfume = product.category === "perfume";
   const outOfStock = product.stock <= 0;
-  const [gram, setGram] = useState(MIN_GRAM);
+  const [size, setSize] = useState(15);
   const [quantity, setQuantity] = useState(1);
+  // قیمت هر حجم — اگر ادمین قیمت اختصاصی نداده باشد، قیمت پایه استفاده می‌شود
+  const currentSizePrice = (isPerfume && product.sizePrices?.[size]) || product.price;
+  const currentSizeOldPrice =
+    product.oldPrice && (isPerfume && product.sizePrices?.[size])
+      ? Math.round(product.sizePrices[size] * 100 / (100 - (product.discountPercent || 0)))
+      : product.oldPrice;
   const [adding, setAdding] = useState(false);
   const [cartMessage, setCartMessage] = useState(null); // {type:'success'|'error', text}
-
-  const handleGramChange = (e) => {
-    const raw = e.target.value;
-    if (raw === "") {
-      setGram("");
-      return;
-    }
-    const value = Number(raw);
-    if (!Number.isNaN(value)) {
-      setGram(value);
-    }
-  };
-
-  const handleGramBlur = () => {
-    setGram((prev) => {
-      const value = Number(prev);
-      return !prev || Number.isNaN(value) || value < MIN_GRAM ? MIN_GRAM : value;
-    });
-  };
 
   const handleAddToCart = async () => {
     if (outOfStock || adding) return;
@@ -177,10 +171,13 @@ const ProductInfo = ({ product }) => {
     setAdding(true);
     setCartMessage(null);
     try {
-      // نکته: فروش گرمی هنوز در بک‌اند پشتیبانی نمی‌شود؛ هر کلیک یک عدد اضافه می‌کند.
       const data = await apiRequest("/cart/items/", {
         method: "POST",
-        body: JSON.stringify({ product: product.id, quantity: isPerfume ? 1 : quantity }),
+        body: JSON.stringify({
+          product: product.id,
+          quantity: isPerfume ? 1 : quantity,
+          ...(isPerfume ? { weight_grams: size } : {}),
+        }),
       });
       notifyCartAdded({
         added: isPerfume ? 1 : quantity,
@@ -195,8 +192,11 @@ const ProductInfo = ({ product }) => {
   };
 
   const handleAddToWishlist = () => {
-    // علاقه‌مندی‌ها هنوز بک‌اند ندارد — فعلاً محلی است
-    setCartMessage({ type: "success", text: "به علاقه‌مندی‌ها اضافه شد (محلی)." });
+    const added = toggle(product);
+    setCartMessage({
+      type: "success",
+      text: added ? "به علاقه‌مندی‌ها اضافه شد." : "از علاقه‌مندی‌ها حذف شد.",
+    });
   };
 
   return (
@@ -218,10 +218,10 @@ const ProductInfo = ({ product }) => {
       <p className="product-info__desc">{product.description || "توضیحی برای این محصول ثبت نشده است."}</p>
 
       <div className="product-info__price">
-        {product.oldPrice && (
-          <span className="product-info__price-old">{formatPrice(product.oldPrice)}</span>
+        {currentSizeOldPrice && (
+          <span className="product-info__price-old">{formatPrice(currentSizeOldPrice)}</span>
         )}
-        {formatPrice(product.price)}
+        {formatPrice(currentSizePrice)}
       </div>
 
       <div className="product-info__trust">
@@ -241,17 +241,25 @@ const ProductInfo = ({ product }) => {
 
       {isPerfume ? (
         <div className="product-info__field">
-          <span className="product-info__field-label">گرم مورد نظر خود را وارد کنید (حداقل {MIN_GRAM} گرم)</span>
-          <input
-            type="number"
-            min={MIN_GRAM}
-            step={1}
-            inputMode="numeric"
-            value={gram}
-            onChange={handleGramChange}
-            onBlur={handleGramBlur}
-            className="product-info__gram-input"
-          />
+          <span className="product-info__field-label">حجم (گرم)</span>
+          <div className="product-info__sizes">
+            {PERFUME_SIZES.map((option) => (
+              <button
+                key={option}
+                type="button"
+                className={
+                  size === option
+                    ? "product-info__size product-info__size--active"
+                    : "product-info__size"
+                }
+                onClick={() => setSize(option)}
+                aria-pressed={size === option}
+              >
+                {option.toLocaleString("fa-IR")} گرم
+                {option > 30 && <small>ارسال رایگان</small>}
+              </button>
+            ))}
+          </div>
         </div>
       ) : (
         <div className="product-info__field">
@@ -298,7 +306,7 @@ const ProductInfo = ({ product }) => {
         <FiShoppingCart />
       </button>
       <button className="product-info__wishlist-btn" onClick={handleAddToWishlist}>
-        افزودن به علاقه‌مندی‌ها
+        {wishlisted ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
         <FiHeart />
       </button>
     </div>
@@ -619,6 +627,10 @@ const Product = () => {
           longDescription: data.description || "",
           price: Number(data.final_price ?? data.price ?? 0),
           oldPrice: Number(data.discount_percent || 0) > 0 ? Number(data.price) : null,
+          discountPercent: Number(data.discount_percent || 0),
+          sizePrices: data.size_prices
+            ? Object.fromEntries(Object.entries(data.size_prices).map(([k, v]) => [Number(k), Number(v)]))
+            : null,
           images: images.length ? images : [FALLBACK_IMAGE],
           specs: [
             { label: "نوع محصول", value: CATEGORY_LABEL[data.category] || data.category },

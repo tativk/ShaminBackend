@@ -9,3 +9,13 @@ class IsStaffUser(BasePermission):
     def has_permission(self, request, view):
         user = request.user
         return bool(user and user.is_authenticated and (user.is_staff or user.is_superuser))
+
+
+class IsSuperUser(BasePermission):
+    """دسترسی فقط برای ابروزر (ادمین اصلی) — مدیریت مدیران پنل."""
+
+    message = 'Only the main admin (superuser) can access this endpoint.'
+
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(user and user.is_authenticated and user.is_superuser)

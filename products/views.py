@@ -36,6 +36,9 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         if search:
             queryset = queryset.filter(build_product_search_q(search))
 
+        if self.request.query_params.get('best_seller') in ('true', '1'):
+            queryset = queryset.filter(is_best_seller=True)
+
         return queryset.order_by('-created_at')
 
     def get_serializer_class(self):

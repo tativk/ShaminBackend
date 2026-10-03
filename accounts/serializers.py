@@ -33,12 +33,13 @@ class UserSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
     is_profile_complete = serializers.ReadOnlyField()
     profile_image = serializers.SerializerMethodField()
+    is_superuser = serializers.ReadOnlyField()
 
     class Meta:
         model = User
         fields = [
             "id", "phone", "first_name", "last_name", "email",
-            "profile_image", "role", "is_profile_complete",
+            "profile_image", "role", "is_profile_complete", "is_superuser",
         ]
         read_only_fields = ["id", "phone"]
 
@@ -78,7 +79,7 @@ class AdminCustomerSerializer(serializers.Serializer):
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
-        fields = ["id", "province", "city", "street", "postal_code", "detail"]
+        fields = ["id", "province", "city", "street", "postal_code", "detail", "is_default"]
 
 
 class CompleteRegistrationSerializer(serializers.Serializer):
@@ -101,3 +102,24 @@ class CompleteRegistrationSerializer(serializers.Serializer):
             if not attrs[field].strip():
                 raise serializers.ValidationError({field: "این فیلد الزامی است"})
         return attrs
+
+
+class AdminStaffCreateSerializer(serializers.Serializer):
+    """ساخت مدیر جدید پنل — فقط توسط ادمین اصلی."""
+
+    phone = serializers.CharField(max_length=11)
+    password = serializers.CharField(min_length=8, max_length=128)
+    first_name = serializers.CharField(max_length=50)
+    last_name = serializers.CharField(max_length=50)
+    email = serializers.EmailField(required=False, allow_blank=True)
+
+    def validate_phone(self, value):
+        return validate_iranian_phone(value)
+
+
+class AdminStaffSerializer(serializers.ModelSerializer):
+    """نمایش فهرست مدیران پنل."""
+
+    class Meta:
+        model = User
+        fields = ["id", "phone", "first_name", "last_name", "email", "is_superuser", "date_joined"]

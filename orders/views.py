@@ -55,6 +55,8 @@ class CreateOrderView(APIView):
                 address=data['address'],
                 postal_code=data['postal_code'],
                 shipping_cost=data['shipping_cost'],
+                discount=cart.discount_amount,
+                coupon_code=cart.coupon.code if cart.coupon_id and cart.coupon.is_active else '',
             )
         except Exception as exc:  # noqa: BLE001
             return Response(
@@ -71,20 +73,23 @@ class CreateOrderView(APIView):
         )
 
     @transaction.atomic
-    def _create_order(self, *, user, cart, city, address, postal_code, shipping_cost):
+    def _create_order(self, *, user, cart, city, address, postal_code, shipping_cost, discount, coupon_code):
         # ── محاسبه مبلغ سفارش ──────────────────────────────────────────
+        # قیمت هر آیتم بر اساس حجم انتخابی عطر محاسبه می‌شود
         items = cart.items.select_related('product').select_for_update()
         items_total = Decimal('0')
         for item in items:
-            items_total += item.product.final_price * item.quantity
+            items_total += item.unit_price * item.quantity
 
-        total_amount = items_total + Decimal(str(shipping_cost))
+        total_amount = items_total - Decimal(discount) + Decimal(str(shipping_cost))
 
         # ── ساخت سفارش ─────────────────────────────────────────────────
         order = Order.objects.create(
             user=user,
             status=Order.Status.PENDING,
             total_price=total_amount,
+            discount_amount=discount,
+            coupon_code=coupon_code,
             address=f'{city}، {address}، کد پستی: {postal_code}',
         )
 
@@ -95,12 +100,15 @@ class CreateOrderView(APIView):
                 order=order,
                 product=item.product,
                 quantity=item.quantity,
-                price=item.product.final_price,
+                price=item.unit_price,
+                weight_grams=item.weight_grams,
             ))
-            # کاهش موجودی با F expression برای جلوگیری از race condition
-            item.product.__class__.objects.filter(pk=item.product.pk).update(
-                stock=F('stock') - item.quantity
-            )
+            # کاهش موجودی با F expression + شرط موجودی کافی (جلوگیری از منفی شدن در رقابت)
+            updated = item.product.__class__.objects.filter(
+                pk=item.product.pk, stock__gte=item.quantity
+            ).update(stock=F('stock') - item.quantity)
+            if updated == 0:
+                raise ValueError(f'موجودی «{item.product.name}» کافی نیست.')
             # QuerySet.update bypasses model signals; record this stock change explicitly.
             from accounts.models import AdminNotification
             AdminNotification.objects.create(
@@ -112,6 +120,8 @@ class CreateOrderView(APIView):
 
         # ── خالی کردن سبد ──────────────────────────────────────────────
         cart.items.all().delete()
+        cart.coupon = None
+        cart.save(update_fields=['coupon'])
 
         # ── درگاه پرداخت — فعلاً قطع است ───────────────────────────────
         # بعد از اتصال درگاه واقعی (زرین‌پال) این بخش برمی‌گردد:

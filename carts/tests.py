@@ -20,7 +20,7 @@ class CartTests(TestCase):
         self.shiraz = ShippingRate.objects.create(province='Fars Province', city='Shiraz', cost=Decimal('30.00'))
 
     def add(self, quantity=1):
-        return self.client.post('/api/cart/items/', {'product': self.product.pk, 'quantity': quantity}, format='json')
+        return self.client.post('/api/cart/items/', {'product': self.product.pk, 'quantity': quantity, 'weight_grams': 30}, format='json')
 
     def test_all_endpoints_require_authentication(self):
         client = APIClient()

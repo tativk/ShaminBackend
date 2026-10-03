@@ -14,7 +14,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
         model = OrderItem
         fields = [
             'id', 'product', 'product_name', 'product_category', 'product_gender',
-            'product_main_image', 'quantity', 'unit_price', 'total_price',
+            'product_main_image', 'quantity', 'weight_grams', 'unit_price', 'total_price',
         ]
         read_only_fields = fields
 
@@ -32,7 +32,7 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = [
-            'id', 'status', 'total_price', 'address', 'payment_ref_id',
+            'id', 'status', 'total_price', 'discount_amount', 'coupon_code', 'address', 'payment_ref_id',
             'created_at', 'items',
         ]
         read_only_fields = fields
