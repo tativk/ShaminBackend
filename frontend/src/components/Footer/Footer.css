@@ -22,6 +22,47 @@
   margin: 0 0 18px;
 }
 
+.footer__trust {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.footer__enamad {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  max-width: 100%;
+  min-height: 130px;
+  padding: 10px;
+  box-sizing: border-box;
+  border: 1px solid rgba(250, 246, 238, 0.25);
+  border-radius: 14px;
+  background: var(--color-white, #fff);
+  cursor: pointer;
+}
+
+.footer__enamad:focus-visible {
+  outline: 3px solid var(--color-gold-soft, #e7ce97);
+  outline-offset: 4px;
+}
+
+.footer__enamad img {
+  display: block;
+  width: 100px;
+  max-width: 100%;
+  height: 110px;
+  object-fit: contain;
+}
+
+.footer__trust-label {
+  font-size: 0.78rem;
+  color: rgba(250, 246, 238, 0.7);
+}
+
 .footer__col ul {
   list-style: none;
   padding: 0;
@@ -193,6 +234,11 @@
 
 /* Mobile — تک‌ستون با محتوای برند وسط‌چین */
 @media (max-width: 640px) {
+  .footer__trust {
+    align-items: center;
+    margin-top: 20px;
+  }
+
   .footer .footer__grid {
     grid-template-columns: 1fr;
     gap: 26px;

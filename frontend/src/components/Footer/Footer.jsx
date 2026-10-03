@@ -68,6 +68,26 @@ const Footer = () => {
               </li>
             ))}
           </ul>
+          <div className="footer__trust">
+            <a
+              className="footer__enamad"
+              referrerPolicy="origin"
+              target="_blank"
+              rel="noopener"
+              href="https://trustseal.enamad.ir/?id=8024610&Code=jLh5EKvkHg1C1fCIhzcLbXlMgq1KALbg"
+              aria-label="مشاهده نماد اعتماد الکترونیکی فروشگاه شمین (در پنجره جدید)"
+            >
+              <img
+                referrerPolicy="origin"
+                src="https://trustseal.enamad.ir/logo.aspx?id=8024610&Code=jLh5EKvkHg1C1fCIhzcLbXlMgq1KALbg"
+                alt="نماد اعتماد الکترونیکی فروشگاه شمین"
+                code="jLh5EKvkHg1C1fCIhzcLbXlMgq1KALbg"
+                width="100"
+                height="110"
+              />
+            </a>
+            <span className="footer__trust-label">نماد اعتماد الکترونیکی</span>
+          </div>
         </div>
 
         <div className="footer__col">
