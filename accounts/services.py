@@ -2,7 +2,7 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import OtpCode, PendingRegistration, User
 from .sms import send_otp
-
+from django.contrib.auth.hashers import make_password
 
 COOLDOWN_MINUTES = 2
 

@@ -3,13 +3,15 @@ from datetime import timedelta
 from pathlib import Path
 import environ
 env = environ.Env()
-environ.Env.read_env()  # یا read_env(BASE_DIR / '.env')
 
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / '.env')
+
+# .env must live next to manage.py (BASE_DIR / '.env')
+environ.Env.read_env(BASE_DIR / '.env')
+load_dotenv(BASE_DIR / '.env')  # idempotent; keeps os.getenv() reads working
 
 USE_SQLITE = os.getenv('USE_SQLITE', '1').strip().lower() in {'1', 'true', 'yes', 'on'}
 
@@ -118,7 +120,7 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': False,
     'UPDATE_LAST_LOGIN': True,
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,
+    'SIGNING_KEY': os.getenv('JWT_SIGNING_KEY', SECRET_KEY),
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_TOKEN_CLASSES': ['rest_framework_simplejwt.tokens.AccessToken'],
 }
@@ -154,7 +156,15 @@ if not DEBUG:
         SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 SMS_PROVIDER = os.getenv('SMS_PROVIDER', 'console' if DEBUG else 'kavenegar').lower()
+# Kavenegar API key: canonical name KAVENEGAR_API_KEY, legacy alias SMS_API_KEY kept
 KAVENEGAR_API_KEY = os.getenv('KAVENEGAR_API_KEY', os.getenv('SMS_API_KEY', ''))
+# Required only when the Kavenegar provider is actually used in production (DEBUG=False);
+# dev/test with SMS_PROVIDER=console still work without any key.
+if SMS_PROVIDER == 'kavenegar' and not DEBUG and not KAVENEGAR_API_KEY:
+    raise ImproperlyConfigured(
+        "KAVENEGAR_API_KEY (or legacy SMS_API_KEY) must be set in the .env file "
+        "next to manage.py because SMS_PROVIDER=kavenegar and DEBUG=False."
+    )
 KAVENEGAR_TEMPLATE = os.getenv('KAVENEGAR_TEMPLATE', os.getenv('SMS_OTP_TEMPLATE', ''))
 MELLIPAYAM_USERNAME = os.getenv('MELLIPAYAM_USERNAME', '')
 MELLIPAYAM_PASSWORD = os.getenv('MELLIPAYAM_PASSWORD', '')
