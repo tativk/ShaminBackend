@@ -32,11 +32,14 @@ def create_and_send_otp(phone: str) -> tuple[bool, str]:
     OtpCode.objects.filter(phone=phone, is_used=False).update(is_used=True)
 
     code = OtpCode.generate_code()
-    OtpCode.objects.create(phone=phone, code=code)
+    otp = OtpCode.objects.create(phone=phone, code=code)
 
     sent = send_otp(phone, code)
     if not sent:
-        return False, "ارسال پیامک با خطا مواجه شد. لطفاً مجدداً تلاش کنید"
+        # A failed provider request must not leave a usable code behind or
+        # block the user from retrying due to the cooldown.
+        otp.delete()
+        return False, "ارسال پیامک انجام نشد. تنظیمات کاوه‌نگار و گزارش خطا را بررسی کنید و دوباره تلاش کنید."
 
     return True, "کد تأیید ارسال شد"
 
