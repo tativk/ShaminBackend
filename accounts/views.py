@@ -237,10 +237,13 @@ class RegisterView(APIView):
             defaults={"password": make_password(password)},
         )
 
-        # ارسال کد تأیید؛ خطای cooldown گذرنده است چون پسورد ثبت شده
+        # ثبت‌نام فقط وقتی موفق اعلام می‌شود که سرویس پیامک درخواست را پذیرفته باشد.
         success, message = create_and_send_otp(phone)
+        if not success:
+            return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
+
         return Response(
-            {"detail": message if not success else "کد تأیید ارسال شد."},
+            {"detail": "کد تأیید ارسال شد."},
             status=status.HTTP_201_CREATED,
         )
 
