@@ -1,4 +1,5 @@
 import os
+import sys
 from datetime import timedelta
 from pathlib import Path
 import environ
@@ -104,8 +105,13 @@ REST_FRAMEWORK = {
         'config.authentication.OptionalJWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': 'config.pagination.DefaultPagination',
     'PAGE_SIZE': 20,
+    'DEFAULT_THROTTLE_RATES': {
+        # جلوگیری از اسپم پیامکی و حملات حدس کد (در اجرای تست‌ها غیرفعال)
+        'otp_request': '1000000/hour' if 'test' in sys.argv else '10/hour',
+        'otp_verify': '1000000/hour' if 'test' in sys.argv else '30/hour',
+    },
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 

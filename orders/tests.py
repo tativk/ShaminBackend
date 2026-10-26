@@ -43,7 +43,8 @@ class OrderFlowTests(TestCase):
 		self.assertEqual(order.status, Order.Status.PENDING)
 		self.assertEqual(order.total_price, Decimal('220.00'))
 		self.assertEqual(order.items.get().price, Decimal('100.00'))
-		self.assertEqual(self.product.__class__.objects.get(pk=self.product.pk).stock, 3)
+		# عطر گرمی: هر سفارش صرف‌نظر از گرم، یک عدد از موجودی می‌کاهد
+		self.assertEqual(self.product.__class__.objects.get(pk=self.product.pk).stock, 4)
 		self.assertFalse(CartItem.objects.filter(cart__user=self.user).exists())
 
 	def test_admin_can_list_and_update_order_status(self):

@@ -22,6 +22,12 @@ def locked_cart(user):
 def validate_stock(product, quantity):
     if not product.is_active:
         raise ValidationError({'product': 'این محصول غیرفعال است.'})
+    if product.category == 'perfume':
+        # عطر به‌صورت گرمی فروخته می‌شود (گزینه‌های ثابت ۱۰ تا ۱۰۰ گرم)؛
+        # موجودی، تعداد قابل فروش است و هر سفارش یک عدد از آن مصرف می‌کند.
+        if product.stock < 1:
+            raise ValidationError({'product': 'موجودی این محصول تمام شده است.'})
+        return
     if quantity > product.stock:
         raise ValidationError({
             'quantity': f'تعداد درخواستی بیشتر از موجودی است (موجودی: {product.stock} عدد).'

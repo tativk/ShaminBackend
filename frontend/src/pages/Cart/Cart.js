@@ -61,7 +61,7 @@ export default function Cart() {
         const [cartData, provinceData_, productData] = await Promise.all([
           apiRequest('/cart/'),
           apiRequest('/shipping/provinces/'),
-          apiRequest('/products/'),
+          apiRequest('/products/?page_size=50'),
         ]);
         setCart(cartData);
         setProvinces(provinceData_ ?? []);

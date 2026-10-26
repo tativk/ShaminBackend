@@ -19,7 +19,6 @@ const ProductInfo = ({ product }) => {
   const [adding, setAdding] = useState(false);
   const [cartMessage, setCartMessage] = useState(null); // {type:'success'|'error', text}
   const wishlisted = wishHas(product.id);
-  const gramUnavailable = isPerfume && gram > product.stock;
 
   const handleAddToCart = async () => {
     if (outOfStock || adding) return;
@@ -96,28 +95,22 @@ const ProductInfo = ({ product }) => {
         <div className="product-info__field">
           <span className="product-info__field-label">مقدار عطر را انتخاب کنید (گرم)</span>
           <div className="product-info__gram-options" role="radiogroup" aria-label="انتخاب گرم عطر">
-            {PERFUME_GRAMS.map((option) => {
-              const unavailable = option > product.stock;
-              return (
-                <button
-                  key={option}
-                  type="button"
-                  role="radio"
-                  aria-checked={gram === option}
-                  disabled={unavailable}
-                  title={unavailable ? "موجودی کافی نیست" : undefined}
-                  className={[
-                    "product-info__gram-option",
-                    gram === option ? "is-active" : "",
-                    unavailable ? "is-disabled" : "",
-                  ].filter(Boolean).join(" ")}
-                  onClick={() => setGram(option)}
-                >
-                  {option.toLocaleString("fa-IR")}
-                  {!unavailable && option > 30 && <em>ارسال رایگان</em>}
-                </button>
-              );
-            })}
+            {PERFUME_GRAMS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                role="radio"
+                aria-checked={gram === option}
+                className={[
+                  "product-info__gram-option",
+                  gram === option ? "is-active" : "",
+                ].filter(Boolean).join(" ")}
+                onClick={() => setGram(option)}
+              >
+                {option.toLocaleString("fa-IR")}
+                {option > 30 && <em>ارسال رایگان</em>}
+              </button>
+            ))}
           </div>
           <small className="product-info__free-shipping-hint">
             <FiTruck /> ارسال رایگان برای بالای ۳۰ گرم هر عطر
@@ -159,15 +152,9 @@ const ProductInfo = ({ product }) => {
       <button
         className="product-info__add-btn"
         onClick={handleAddToCart}
-        disabled={outOfStock || adding || gramUnavailable}
+        disabled={outOfStock || adding}
       >
-        {outOfStock
-          ? "ناموجود"
-          : gramUnavailable
-            ? "موجودی کافی نیست"
-            : adding
-              ? "در حال افزودن..."
-              : "افزودن به سبد خرید"}
+        {outOfStock ? "ناموجود" : adding ? "در حال افزودن..." : "افزودن به سبد خرید"}
         <FiShoppingCart />
       </button>
       <button

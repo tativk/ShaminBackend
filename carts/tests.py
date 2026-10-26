@@ -58,14 +58,31 @@ class CartTests(TestCase):
         self.assertEqual(response.data['items'][0]['quantity'], 3)
 
     def test_stock_limit_includes_existing_quantity(self):
-        self.add(4)
-        self.assertEqual(self.add(2).status_code, 400)
-        self.assertEqual(CartItem.objects.get().quantity, 4)
+        """عطر گرمی: تا وقتی موجودی ≥ ۱ است هر گزینه گرم قابل سفارش است؛
+        صفر شدن موجودی سفارش را می‌بندد. سایر دسته‌ها سهمیه‌ای هستند."""
+        self.assertEqual(self.add(4).status_code, 201)
+        self.product.refresh_from_db()
+        # عطر: موجودی همچنان ۵ است (کاهش با ثبت سفارش است، نه افزودن به سبد)
+        self.assertEqual(self.product.stock, 5)
+        self.product.stock = 0
+        self.product.save()
+        self.assertEqual(self.add(1).status_code, 400)
+
+        cosmetic = Product.objects.create(name='Cream', category='cosmetic', gender='unisex',
+                                          price=Decimal('50.00'), discount_percent=0, stock=3)
+        response = self.client.post('/api/cart/items/', {'product': cosmetic.pk, 'quantity': 4}, format='json')
+        self.assertEqual(response.status_code, 400)
 
     def test_patch_and_delete_item(self):
         item_id = self.add(2).data['items'][0]['id']
         url = f'/api/cart/items/{item_id}/'
-        self.assertEqual(self.client.patch(url, {'quantity': 6}, format='json').status_code, 400)
+        # عطر گرمی: تغییر گرم سهمیه ندارد؛ فقط صفر شدن موجودی می‌بندد
+        self.assertEqual(self.client.patch(url, {'quantity': 6}, format='json').status_code, 200)
+        self.product.stock = 0
+        self.product.save()
+        self.assertEqual(self.client.patch(url, {'quantity': 1}, format='json').status_code, 400)
+        self.product.stock = 5
+        self.product.save()
         response = self.client.patch(url, {'quantity': 1}, format='json')
         self.assertEqual(response.data['subtotal'], '90.00')
         self.assertEqual(self.client.delete(url).status_code, 204)

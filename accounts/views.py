@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from django.db import transaction
@@ -134,10 +135,21 @@ class PasswordLoginView(APIView):
         }, status=status.HTTP_200_OK)
 
 
+class OtpRequestThrottle(AnonRateThrottle):
+    """محدودیت نرخ درخواست کد پیامکی — جلوگیری از اسپم SMS."""
+    scope = 'otp_request'
+
+
+class OtpVerifyThrottle(AnonRateThrottle):
+    """محدودیت تأیید کد — جلوگیری از حدس کد ۶ رقمی."""
+    scope = 'otp_verify'
+
+
 class RegisterView(APIView):
     """ثبت‌نام با شماره موبایل و رمز عبور — سپس تأیید با کد پیامکی."""
 
     permission_classes = [AllowAny]
+    throttle_classes = [OtpRequestThrottle]
 
     @extend_schema(
         summary="ثبت‌نام با شماره موبایل و رمز عبور",
@@ -177,6 +189,7 @@ class RegisterView(APIView):
 
 class RequestOtpView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [OtpRequestThrottle]
 
     @extend_schema(
         request=RequestOtpSerializer,
@@ -200,6 +213,7 @@ class RequestOtpView(APIView):
 
 class VerifyOtpView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [OtpVerifyThrottle]
 
     @extend_schema(
         request=VerifyOtpSerializer,

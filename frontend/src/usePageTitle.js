@@ -25,4 +25,22 @@ const usePageTitle = (title, description) => {
   }, [title, description]);
 };
 
+/* JSON-LD صفحه را در head جایگزین می‌کند — برای Rich Result گوگل */
+const setJsonLd = (data) => {
+  let tag = document.getElementById("page-json-ld");
+  if (!data) {
+    if (tag) tag.remove();
+    return;
+  }
+  if (!tag) {
+    tag = document.createElement("script");
+    tag.type = "application/ld+json";
+    tag.id = "page-json-ld";
+    document.head.appendChild(tag);
+  }
+  tag.textContent = JSON.stringify(data);
+};
+
+export { setJsonLd };
+
 export default usePageTitle;

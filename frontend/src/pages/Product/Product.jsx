@@ -8,7 +8,7 @@ import ProductInfo from "../../components/Product/ProductInfo";
 import ProductTabs from "../../components/Product/ProductTabs";
 import RelatedProducts from "../../components/Product/RelatedProducts";
 import { CATEGORY_LABEL, GENDER_LABEL, FALLBACK_IMAGE, formatPrice } from "../../components/Product/shared";
-import usePageTitle from "../../usePageTitle";
+import usePageTitle, { setJsonLd } from "../../usePageTitle";
 import "../Home/Home.css";
 import "./Product.css";
 
@@ -23,6 +23,28 @@ const Product = () => {
     product?.name || "جزئیات محصول",
     product ? `${product.name} — خرید با ضمانت اصالت کالا از گالری شمین.` : undefined,
   );
+
+  // داده ساختاریافته محصول برای نتایج غنی گوگل
+  useEffect(() => {
+    if (!product) return undefined;
+    setJsonLd({
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: product.name,
+      description: product.description || `${product.name} — گالری شمین`,
+      image: product.images?.[0] ? [product.images[0]] : undefined,
+      category: product.badge,
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "IRR",
+        price: String(Math.round(product.price * 10)),
+        availability: product.stock > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      },
+    });
+    return () => setJsonLd(null);
+  }, [product]);
 
   useEffect(() => {
     let ignore = false;
@@ -97,7 +119,7 @@ const Product = () => {
           </section>
         ) : error || !product ? (
           <section className="container product-detail">
-            <p>{error || "محصول یافت نشد."}</p>
+            <p>{/No Product matches/i.test(error) ? "محصول مورد نظر یافت نشد یا حذف شده است." : error || "محصول یافت نشد."}</p>
             <Link to="/products" className="product-info__add-btn">بازگشت به لیست محصولات</Link>
           </section>
         ) : (

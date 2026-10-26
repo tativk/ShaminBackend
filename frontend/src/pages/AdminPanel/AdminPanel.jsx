@@ -256,6 +256,7 @@ return(
 <nav className="shamin-dashboard__navigation">{shaminRenderMenu()}</nav>
 </div>
 <div className="shamin-dashboard__sidebar-bottom">
+<a className="shamin-dashboard__logout" href="/"><FiHome/><span>بازگشت به صفحه اصلی</span></a>
 <button type="button" className="shamin-dashboard__logout" onClick={shaminHandleLogout}><FiLogOut/><span>خروج از پنل ادمین</span></button>
 </div>
 </aside>

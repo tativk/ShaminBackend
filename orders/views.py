@@ -99,9 +99,11 @@ class CreateOrderView(APIView):
                 quantity=item.quantity,
                 price=item.product.final_price,
             ))
-            # کاهش موجودی با F expression برای جلوگیری از race condition
+            # کاهش موجودی با F expression برای جلوگیری از race condition؛
+            # عطر گرمی فروخته می‌شود و هر سفارش یک عدد از موجودی می‌کاهد.
+            sold_quantity = 1 if item.product.category == 'perfume' else item.quantity
             item.product.__class__.objects.filter(pk=item.product.pk).update(
-                stock=F('stock') - item.quantity
+                stock=F('stock') - sold_quantity
             )
             # QuerySet.update bypasses model signals; record this stock change explicitly.
             from accounts.models import AdminNotification

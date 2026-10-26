@@ -3,6 +3,8 @@ import { FiUser, FiHeart, FiShoppingCart, FiMenu, FiX } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import SearchBox from "../SearchBox/SearchBox";
 import { useCartCount } from "../../context/CartCountContext";
+import { hasAuthToken } from "../../api";
+import { AUTH_CHANGED_EVENT } from "../../cart-notice";
 import "./Header.css";
 
 const NAV_LINKS = [
@@ -15,10 +17,29 @@ const NAV_LINKS = [
 
 const toFa = (value) => Number(value || 0).toLocaleString("fa-IR");
 
+/* مقصد آیکون کاربر: اگر در حساب خود است، بدون ورود مجدد به پنلش می‌رود؛
+   وگرنه به صفحه ورود/ثبت‌نام. خروج فقط از داخل پنل انجام می‌شود. */
+const readUserPanelPath = () => {
+  if (!hasAuthToken()) return "/register";
+  try {
+    const stored = JSON.parse(localStorage.getItem("user") || sessionStorage.getItem("user") || "null");
+    return stored?.role === "admin" ? "/admin" : "/dashboard";
+  } catch {
+    return "/dashboard";
+  }
+};
+
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const headerRef = useRef(null);
   const { count: cartCount } = useCartCount();
+  const [panelPath, setPanelPath] = useState(readUserPanelPath);
+
+  useEffect(() => {
+    const sync = () => setPanelPath(readUserPanelPath());
+    window.addEventListener(AUTH_CHANGED_EVENT, sync);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, sync);
+  }, []);
 
   /* ارتفاع هدر به‌صورت متغیر CSS در ریشه سند منتشر می‌شود تا
      محتوای صفحه با padding معادل، زیر هدر ثابت پنهان نشود. */
@@ -62,7 +83,11 @@ const Header = () => {
 
         <div className="header__actions">
           <SearchBox variant="desktop" />
-          <Link to="/register" className="header__icon-btn" aria-label="ورود / ثبت نام">
+          <Link
+            to={panelPath}
+            className="header__icon-btn"
+            aria-label={panelPath === "/register" ? "ورود / ثبت نام" : "حساب کاربری من"}
+          >
             <FiUser />
           </Link>
           <Link to="/favorites" className="header__icon-btn" aria-label="علاقه‌مندی‌ها">

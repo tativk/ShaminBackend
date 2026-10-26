@@ -88,7 +88,8 @@ const ProductList = () => {
 
   useEffect(() => {
     let ignore = false;
-    apiRequest("/products/")
+    // حداکثر اندازه صفحه سرور ۲۰۰ است؛ فیلترها سمت کاربر روی همین فهرست اعمال می‌شوند
+    apiRequest("/products/?page_size=200")
       .then((data) => {
         if (ignore) return;
         const rows = Array.isArray(data) ? data : data?.results || [];

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 const HERO_SLIDES = [
@@ -56,10 +57,10 @@ const Hero = () => {
           <span className="hero__eyebrow">{slide.eyebrow}</span>
           <h1 className="hero__title">{slide.title}</h1>
           <p className="hero__desc">{slide.description}</p>
-          <a href="#products" className="btn btn--primary hero__cta">
+          <Link to="/products" className="btn btn--primary hero__cta">
             {slide.cta}
             <FiChevronLeft />
-          </a>
+          </Link>
         </div>
         <div className="hero__image-wrap">
           <img src={slide.image} alt={slide.title} className="hero__image" />
