@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FiShoppingCart, FiHeart } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../../api";
 import { notifyCartAdded, notifyCartError } from "../../cart-notice";
 import { useWishlist } from "../../context/WishlistContext";
@@ -17,6 +18,7 @@ const Stars = ({ rating }) => (
 
 const ProductCard = ({ product }) => {
   const { has, toggle } = useWishlist();
+  const navigate = useNavigate();
   const wishlisted = has(product.id);
   const [adding, setAdding] = useState(false);
 
@@ -32,7 +34,12 @@ const ProductCard = ({ product }) => {
       });
       notifyCartAdded({ added: 1, totalItems: data?.total_items, productName: product.name });
     } catch (err) {
-      notifyCartError(err?.message || "افزودن به سبد خرید انجام نشد.");
+      if (/Authentication credentials/i.test(err?.message || "")) {
+        notifyCartError("برای افزودن به سبد خرید ابتدا وارد حساب خود شوید.");
+        navigate("/Login");
+      } else {
+        notifyCartError(err?.message || "افزودن به سبد خرید انجام نشد.");
+      }
     } finally {
       setAdding(false);
     }

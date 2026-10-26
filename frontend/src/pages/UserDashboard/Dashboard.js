@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { FiArrowLeft, FiCamera, FiCheck, FiEdit3, FiHeart, FiHome, FiLogOut, FiMapPin, FiMenu, FiPackage, FiSave, FiShoppingBag, FiUser, FiX } from "react-icons/fi";
+import { FiArrowLeft, FiCamera, FiCheck, FiEdit3, FiHeart, FiHome, FiLogOut, FiMapPin, FiMenu, FiMoon, FiPackage, FiSave, FiShoppingBag, FiSun, FiUser, FiX } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import { apiRequest, clearStoredAuth, getAssetUrl } from "../../api";
 import { useWishlist } from "../../context/WishlistContext";
@@ -25,6 +25,12 @@ const Dashboard = () => {
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const avatarInputRef = useRef(null);
+  // دارک‌مد — همان کلید ذخیره پنل ادمین تا ترجیح کاربر بین پنل‌ها مشترک باشد
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem("shamin-dashboard-theme") === "dark");
+
+  useEffect(() => {
+    localStorage.setItem("shamin-dashboard-theme", darkMode ? "dark" : "light");
+  }, [darkMode]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -102,10 +108,10 @@ const Dashboard = () => {
   const profileImageSrc = avatarPreview || (profile.profile_image ? getAssetUrl(profile.profile_image) : null);
 
   if (loading) return <div className="user-dashboard user-dashboard--state" dir="rtl"><FiUser /><p>در حال آماده‌سازی حساب شما...</p></div>;
-  return <div className="user-dashboard" dir="rtl">
-    <aside className={`user-dashboard__sidebar ${mobileMenu ? "is-open" : ""}`}><div className="user-dashboard__brand"><span>ش</span><div><strong>گالری شمین</strong><small>حساب کاربری</small></div><button onClick={() => setMobileMenu(false)} aria-label="بستن منو"><FiX /></button></div><nav>{menu.map(([id, label, Icon]) => <button key={id} className={section === id ? "is-active" : ""} onClick={() => chooseSection(id)}><Icon /><span>{label}</span><FiArrowLeft /></button>)}</nav><div className="user-dashboard__sidebar-bottom"><Link to="/"><FiHome /> بازگشت به صفحه اصلی</Link><Link to="/favorites"><FiHeart /> علاقه‌مندی‌های من</Link><button onClick={logout}><FiLogOut /> خروج از حساب</button></div></aside>
+  return <div className={`user-dashboard ${darkMode ? "user-dashboard--dark" : ""}`} dir="rtl">
+    <aside className={`user-dashboard__sidebar ${mobileMenu ? "is-open" : ""}`}><div className="user-dashboard__brand"><img src="/logo.png" alt="لوگوی گالری شمین" className="user-dashboard__brand-logo" /><div><strong>گالری شمین</strong><small>حساب کاربری</small></div><button onClick={() => setMobileMenu(false)} aria-label="بستن منو"><FiX /></button></div><nav>{menu.map(([id, label, Icon]) => <button key={id} className={section === id ? "is-active" : ""} onClick={() => chooseSection(id)}><Icon /><span>{label}</span><FiArrowLeft /></button>)}</nav><div className="user-dashboard__sidebar-bottom"><Link to="/"><FiHome /> بازگشت به صفحه اصلی</Link><Link to="/favorites"><FiHeart /> علاقه‌مندی‌های من</Link><button onClick={logout}><FiLogOut /> خروج از حساب</button></div></aside>
     {mobileMenu && <button className="user-dashboard__backdrop" onClick={() => setMobileMenu(false)} aria-label="بستن منو" />}
-    <main className="user-dashboard__main"><header className="user-dashboard__header"><button className="user-dashboard__menu-button" onClick={() => setMobileMenu(true)} aria-label="باز کردن منو"><FiMenu /></button><div><span>حساب کاربری</span><h1>{section === "overview" ? `سلام ${name}` : menu.find(([id]) => id === section)?.[1]}</h1></div><div className="user-dashboard__header-user">{profileImageSrc ? <img src={profileImageSrc} alt={name} className="user-dashboard__header-avatar" /> : <span>{name.charAt(0)}</span>}<strong>{name}</strong></div></header>
+    <main className="user-dashboard__main"><header className="user-dashboard__header"><button className="user-dashboard__menu-button" onClick={() => setMobileMenu(true)} aria-label="باز کردن منو"><FiMenu /></button><div><span>حساب کاربری</span><h1>{section === "overview" ? `سلام ${name}` : menu.find(([id]) => id === section)?.[1]}</h1></div><div className="user-dashboard__header-side"><button className="user-dashboard__theme-toggle" onClick={() => setDarkMode(!darkMode)} aria-label={darkMode ? "حالت روشن" : "حالت تاریک"} title={darkMode ? "حالت روشن" : "حالت تاریک"}>{darkMode ? <FiSun /> : <FiMoon />}</button><div className="user-dashboard__header-user">{profileImageSrc ? <img src={profileImageSrc} alt={name} className="user-dashboard__header-avatar" /> : <span>{name.charAt(0)}</span>}<strong>{name}</strong></div></div></header>
       {(error || message) && <div className={`user-dashboard__notice ${error ? "is-error" : ""}`}>{error || message}</div>}
       <div className="user-dashboard__content">
         {section === "overview" && <><section className="user-dashboard__welcome"><div><span>داشبورد شما</span><h2>همه چیز برای خرید بعدی آماده است</h2><p>سفارش‌ها، اطلاعات حساب و علاقه‌مندی‌هایتان را از همین‌جا مدیریت کنید.</p></div><div className="user-dashboard__welcome-mark"><FiPackage /></div></section><div className="user-dashboard__stats"><div><FiShoppingBag /><strong>{uniquePurchases.length.toLocaleString("fa-IR")}</strong><span>محصول خریداری‌شده</span></div><div><FiHeart /><strong>{favoritesCount.toLocaleString("fa-IR")}</strong><span>علاقه‌مندی</span></div><div><FiCheck /><strong>{profileProgress.toLocaleString("fa-IR")} / ۶</strong><span>تکمیل اطلاعات</span></div></div><div className="user-dashboard__columns"><section className="user-dashboard__panel"><div className="user-dashboard__panel-title"><h2>آخرین خریدها</h2><button onClick={() => chooseSection("purchases")}>مشاهده همه <FiArrowLeft /></button></div>{uniquePurchases.length ? uniquePurchases.slice(0, 3).map(renderPurchase) : <p className="user-dashboard__empty">هنوز خریدی ثبت نشده است.</p>}</section><section className="user-dashboard__panel user-dashboard__completion"><div className="user-dashboard__panel-title"><h2>وضعیت حساب</h2><FiUser /></div><div className="user-dashboard__progress"><span style={{ width: `${(profileProgress / 6) * 100}%` }} /></div><strong>{Math.round((profileProgress / 6) * 100).toLocaleString("fa-IR")}٪ تکمیل شده</strong><p>با تکمیل اطلاعات، ثبت سفارش سریع‌تر انجام می‌شود.</p><button onClick={() => chooseSection("profile")}>تکمیل اطلاعات <FiArrowLeft /></button></section></div></>}

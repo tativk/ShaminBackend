@@ -158,7 +158,38 @@ class CartTests(TestCase):
                                           price=Decimal('50.00'), discount_percent=0, stock=200)
         self.client.post('/api/cart/items/', {'product': cosmetic.pk, 'quantity': 100}, format='json')
         response = self.client.patch('/api/cart/', {'province': 'Tehran Province', 'city': 'Tehran'}, format='json')
-        self.assertEqual(response.data['shipping_cost'], '20.00')
+        # رایگان نمی‌شود؛ ۱۰۰ عدد = ۱۰۰ پله = ۱۰۰ برابر نرخ تهران
+        self.assertEqual(response.data['shipping_cost'], '2000.00')
+
+    def test_shipping_scales_with_quantity_for_non_perfume(self):
+        """هزینه ارسال با تعداد زیاد می‌شود: هر عدد = یک پله وزنی."""
+        pad = Product.objects.create(name='Pad', category='cosmetic', gender='female',
+                                     price=Decimal('30.00'), discount_percent=0, stock=50)
+        self.client.post('/api/cart/items/', {'product': pad.pk, 'quantity': 2}, format='json')
+        response = self.client.patch('/api/cart/', {'province': 'Fars Province', 'city': 'Shiraz'}, format='json')
+        # دو عدد پد = ۲ کیلوگرم = ۲ پله = ۲ برابر نرخ شیراز
+        self.assertEqual(response.data['shipping_cost'], '60.00')
+
+        self.client.patch(f'/api/cart/items/{response.data["items"][0]["id"]}/', {'quantity': 3}, format='json')
+        response = self.client.get('/api/cart/')
+        self.assertEqual(response.data['shipping_cost'], '90.00')
+
+    def test_small_perfume_order_pays_base_rate(self):
+        """عطر زیر سقف رایگان، نرخ ثابت استان را می‌پردازد (وزن زیر یک پله)."""
+        self.add(20)  # ۲۰ گرم عطر
+        response = self.client.patch('/api/cart/', {'province': 'Fars Province', 'city': 'Shiraz'}, format='json')
+        self.assertEqual(response.data['shipping_cost'], '30.00')
+
+    def test_free_perfume_makes_whole_cart_free(self):
+        """عطر بالای ۳۰ گرم، ارسال کل سبد را رایگان می‌کند."""
+        perfume = Product.objects.create(name='Perfume XL', category='perfume', gender='unisex',
+                                         price=Decimal('10.00'), discount_percent=0, stock=200)
+        pad = Product.objects.create(name='Pad', category='cosmetic', gender='female',
+                                     price=Decimal('30.00'), discount_percent=0, stock=50)
+        self.client.post('/api/cart/items/', {'product': perfume.pk, 'quantity': 50}, format='json')
+        self.client.post('/api/cart/items/', {'product': pad.pk, 'quantity': 3}, format='json')
+        response = self.client.patch('/api/cart/', {'province': 'Tehran Province', 'city': 'Tehran'}, format='json')
+        self.assertEqual(response.data['shipping_cost'], '0.00')
 
     def test_other_users_item_is_private(self):
         other = get_user_model().objects.create_user(phone='09123456788')

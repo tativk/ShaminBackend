@@ -73,6 +73,33 @@ class AdminCustomerSerializer(serializers.Serializer):
     total_spent = serializers.FloatField()
 
 
+class AdminCreateSerializer(serializers.Serializer):
+    """افزودن ادمین جدید به‌صورت دستی از پنل ادمین."""
+    phone = serializers.CharField(max_length=11)
+    first_name = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    last_name = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    email = serializers.EmailField(required=False, allow_blank=True)
+    password = serializers.CharField(max_length=128, trim_whitespace=False, min_length=4)
+
+    def validate_phone(self, value):
+        return validate_iranian_phone(value)
+
+
+class AdminListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "phone", "first_name", "last_name", "email", "is_active", "date_joined"]
+
+
+class ChangePhoneSerializer(serializers.Serializer):
+    """تغییر شماره موبایل خود کاربر (با تأیید رمز فعلی)."""
+    phone = serializers.CharField(max_length=11)
+    current_password = serializers.CharField(max_length=128, trim_whitespace=False)
+
+    def validate_phone(self, value):
+        return validate_iranian_phone(value)
+
+
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address

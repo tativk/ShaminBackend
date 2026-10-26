@@ -64,6 +64,100 @@
   color: var(--ud-gold);
 }
 
+/* ── دارک‌مد (هماهنگ با پنل ادمین) ───────────────────── */
+.user-dashboard--dark {
+  --ud-bg: #0d1513;
+  --ud-surface: #141d1a;
+  --ud-surface-soft: #19231f;
+  --ud-text: #edf2ef;
+  --ud-text-soft: #aebbb5;
+  --ud-text-muted: #75837d;
+  --ud-border: #26332e;
+}
+
+.user-dashboard--dark .user-dashboard__header {
+  background: rgba(13, 21, 19, 0.94);
+  border-bottom-color: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 4px 26px rgba(0, 0, 0, 0.2);
+}
+
+.user-dashboard--dark .user-dashboard__menu-button {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: #26332e;
+  color: var(--ud-gold-light);
+}
+
+.user-dashboard--dark .user-dashboard__purchase-image,
+.user-dashboard--dark .user-dashboard__details-avatar,
+.user-dashboard--dark .user-dashboard__avatar-hint strong {
+  color: var(--ud-text);
+}
+
+.user-dashboard--dark .user-dashboard__avatar-block,
+.user-dashboard--dark .user-dashboard__avatar-remove,
+.user-dashboard--dark .user-dashboard__form input,
+.user-dashboard--dark .user-dashboard__details > div,
+.user-dashboard__address {
+  border-color: #2a3833;
+}
+
+.user-dashboard--dark .user-dashboard__avatar-remove {
+  color: #d98a8a;
+  border-color: rgba(217, 138, 138, 0.35);
+}
+
+.user-dashboard--dark .user-dashboard__welcome {
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+}
+
+.user-dashboard--dark .user-dashboard__notice {
+  background: rgba(216, 193, 141, 0.08);
+  border-color: rgba(216, 193, 141, 0.2);
+  color: var(--ud-gold-light);
+}
+
+.user-dashboard--dark .user-dashboard__notice.is-error {
+  background: rgba(178, 58, 58, 0.12);
+  border-color: rgba(178, 58, 58, 0.3);
+  color: #e8a0a0;
+}
+
+/* دکمه تغییر تم در سربرگ */
+.user-dashboard__header-side {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-dashboard__theme-toggle {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+  border: 1px solid var(--ud-border);
+  background: var(--ud-surface-soft);
+
+  color: var(--ud-green);
+  font-size: 16px;
+  cursor: pointer;
+
+  transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
+}
+
+.user-dashboard__theme-toggle:hover {
+  background: rgba(194, 165, 106, 0.12);
+  color: var(--ud-gold);
+  transform: translateY(-1px);
+}
+
+.user-dashboard--dark .user-dashboard__theme-toggle {
+  color: var(--ud-gold-light);
+}
+
 /* ── سایدبار ─────────────────────────────────────────── */
 .user-dashboard__sidebar {
   position: fixed;
@@ -131,6 +225,14 @@
   color: var(--ud-gold-light);
   font-size: 1.25rem;
   font-weight: 700;
+}
+
+/* لوگوی واقعی فروشگاه در سایدبار (هماهنگ با پنل ادمین) */
+.user-dashboard__brand-logo {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .user-dashboard__brand strong {

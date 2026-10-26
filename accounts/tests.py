@@ -3,6 +3,7 @@ from unittest.mock import patch
 from django.test import SimpleTestCase, override_settings
 from django.test import TestCase
 from rest_framework.test import APIClient
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.sms import send_otp, send_otp_kavenegar
 from accounts.models import Address, User
@@ -80,3 +81,60 @@ class RegistrationApiTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertFalse(Address.objects.filter(user=self.user).exists())
+
+
+class AdminManagementTests(TestCase):
+    """تب ادمین‌ها + تغییر شماره خود کاربر."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.admin = User.objects.create_user(phone='09120000001')
+        self.admin.is_staff = True
+        self.admin.set_password('AdminPass1')
+        self.admin.save()
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {RefreshToken.for_user(self.admin).access_token}')
+
+    def test_admin_can_list_and_create_admins(self):
+        response = self.client.post('/api/auth/admin/admins/', {
+            'phone': '09120000002', 'first_name': 'مدیر', 'last_name': 'دوم', 'password': 'Secret2',
+        }, format='json')
+        self.assertEqual(response.status_code, 201)
+        created = User.objects.get(phone='09120000002')
+        self.assertTrue(created.is_staff)
+        self.assertTrue(created.check_password('Secret2'))
+        self.assertEqual(self.client.get('/api/auth/admin/admins/').status_code, 200)
+
+    def test_duplicate_admin_phone_rejected(self):
+        self.client.post('/api/auth/admin/admins/', {'phone': '09120000003', 'password': 'Secret3'}, format='json')
+        response = self.client.post('/api/auth/admin/admins/', {'phone': '09120000003', 'password': 'Secret3'}, format='json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_customer_cannot_manage_admins(self):
+        customer = User.objects.create_user(phone='09120000004')
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f'Bearer {RefreshToken.for_user(customer).access_token}')
+        self.assertEqual(client.get('/api/auth/admin/admins/').status_code, 403)
+
+    def test_admin_cannot_deactivate_self(self):
+        me = User.objects.get(phone='09120000001')
+        response = self.client.patch(f'/api/auth/admin/admins/{me.pk}/', {'is_active': False}, format='json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_user_can_change_own_phone_with_password(self):
+        response = self.client.post('/api/auth/change-phone/', {
+            'phone': '09120000009', 'current_password': 'AdminPass1',
+        }, format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(User.objects.filter(phone='09120000009').exists())
+
+    def test_change_phone_requires_correct_password_and_unique(self):
+        response = self.client.post('/api/auth/change-phone/', {
+            'phone': '09120000010', 'current_password': 'wrong',
+        }, format='json')
+        self.assertEqual(response.status_code, 400)
+
+        User.objects.create_user(phone='09120000011')
+        response = self.client.post('/api/auth/change-phone/', {
+            'phone': '09120000011', 'current_password': 'AdminPass1',
+        }, format='json')
+        self.assertEqual(response.status_code, 400)

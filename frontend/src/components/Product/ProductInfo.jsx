@@ -37,7 +37,12 @@ const ProductInfo = ({ product }) => {
         productName: product.name,
       });
     } catch (err) {
-      setCartMessage({ type: "error", text: err?.message || "افزودن به سبد ناموفق بود." });
+      if (/Authentication credentials/i.test(err?.message || "")) {
+        setCartMessage({ type: "error", text: "برای افزودن به سبد خرید ابتدا وارد حساب خود شوید." });
+        navigate("/Login");
+      } else {
+        setCartMessage({ type: "error", text: err?.message || "افزودن به سبد ناموفق بود." });
+      }
     } finally {
       setAdding(false);
     }

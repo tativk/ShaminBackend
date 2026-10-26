@@ -127,8 +127,8 @@ const ReviewsSection = () => {
             <tbody>
               {filtered.map((r) => (
                 <tr key={r.id} className={r.is_approved ? "" : "adm-row--pending"}>
-                  <td><strong>{r.product_name || `محصول #${r.product}`}</strong></td>
-                  <td>
+                  <td data-label="محصول"><strong>{r.product_name || `محصول #${r.product}`}</strong></td>
+                  <td data-label="کاربر">
                     <div className="adm-customer">
                       <span className="adm-avatar">{(r.user_name || r.user_phone || "م").charAt(0)}</span>
                       <div>
@@ -137,15 +137,15 @@ const ReviewsSection = () => {
                       </div>
                     </div>
                   </td>
-                  <td><Stars rating={r.rating} /></td>
-                  <td className="adm-review-text">{r.text || "—"}</td>
-                  <td>{faDate(r.created_at)}</td>
-                  <td>
+                  <td data-label="امتیاز"><Stars rating={r.rating} /></td>
+                  <td data-label="متن نظر" className="adm-review-text">{r.text || "—"}</td>
+                  <td data-label="تاریخ">{faDate(r.created_at)}</td>
+                  <td data-label="وضعیت">
                     <span className={r.is_approved ? "adm-badge adm-badge--green" : "adm-badge adm-badge--gold"}>
                       {r.is_approved ? "تأییدشده" : "در انتظار"}
                     </span>
                   </td>
-                  <td>
+                  <td data-label="عملیات">
                     <div className="adm-actions">
                       {r.is_approved ? (
                         <button type="button" className="adm-btn adm-btn--danger-soft" disabled={busyId === r.id} onClick={() => moderate(r, false)}>

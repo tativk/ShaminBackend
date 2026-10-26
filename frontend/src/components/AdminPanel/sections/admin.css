@@ -513,9 +513,7 @@
   display: flex;
   flex-direction: column;
   gap: 11px;
-}
-
-.adm-bars__row {
+}.adm-bars__row {
   display: grid;
   grid-template-columns: 92px 1fr 90px;
   align-items: center;
@@ -618,4 +616,194 @@
   color: #2e7d5a;
   border-color: var(--sd-green-soft);
   background: var(--sd-green-soft);
+}
+
+/* ── فرم افزودن ادمین ────────────────────────────────────── */
+.adm-add-card {
+  background: var(--sd-card);
+  border: 1px solid var(--sd-border);
+  border-radius: 16px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.adm-add-card__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--sd-text);
+}
+
+.adm-add-card__head svg {
+  width: 17px;
+  height: 17px;
+  color: var(--sd-primary);
+}
+
+.adm-add-card__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.adm-add-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--sd-muted);
+}
+
+.adm-add-card input {
+  padding: 11px 14px;
+  border-radius: 11px;
+  border: 1px solid var(--sd-border);
+  background: var(--sd-soft);
+  color: var(--sd-text);
+  font: inherit;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.adm-add-card input:focus-visible {
+  border-color: var(--sd-primary);
+  background: var(--sd-card);
+}
+
+.adm-password-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.adm-password-wrap input {
+  width: 100%;
+  padding-left: 42px;
+}
+
+.adm-password-wrap button {
+  position: absolute;
+  left: 8px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sd-muted);
+  cursor: pointer;
+}
+
+.adm-password-wrap button:hover {
+  color: var(--sd-primary);
+}
+
+.adm-form-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--sd-red-soft, rgba(178, 58, 58, 0.08));
+  border: 1px solid rgba(178, 58, 58, 0.25);
+  color: #a33a3a;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.adm-form-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--sd-green-soft, rgba(46, 125, 90, 0.08));
+  border: 1px solid rgba(46, 125, 90, 0.25);
+  color: #2e7d5a;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+@media (max-width: 700px) {
+  .adm-add-card__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── ریسپانسیو جدول‌ها (تب نظرات و سایر سکشن‌ها) ─────────── */
+@media (max-width: 700px) {
+  .adm-section__head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .adm-cards-row {
+    grid-template-columns: 1fr;
+  }
+
+  .adm-filters {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+  }
+
+  .adm-table {
+    min-width: 0;
+  }
+
+  /* جدول به کارت‌های عمودی تبدیل می‌شود */
+  .adm-table thead {
+    display: none;
+  }
+
+  .adm-table tbody tr {
+    display: block;
+    border-bottom: 1px solid var(--sd-border);
+    padding: 8px 0;
+  }
+
+  .adm-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .adm-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 9px 14px;
+    border-bottom: 1px dashed var(--sd-border);
+    text-align: left;
+  }
+
+  .adm-table td:last-child {
+    border-bottom: none;
+  }
+
+  .adm-table td::before {
+    content: attr(data-label);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--sd-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .adm-review-text {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .adm-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }

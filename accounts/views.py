@@ -16,6 +16,9 @@ from config.permissions import IsStaffUser
 
 from .serializers import (
     AddressSerializer,
+    AdminCreateSerializer,
+    AdminListSerializer,
+    ChangePhoneSerializer,
     CompleteRegistrationSerializer,
     RequestOtpSerializer,
     StoreSettingSerializer,
@@ -77,6 +80,69 @@ class AdminCustomersView(APIView):
         user.is_active = bool(is_active)
         user.save(update_fields=["is_active"])
         return Response({"id": user.id, "is_active": user.is_active})
+
+
+class AdminAdminsView(APIView):
+    """مدیریت ادمین‌ها از پنل ادمین: فهرست + افزودن دستی + فعال/غیرفعال."""
+    permission_classes = [IsStaffUser]
+
+    def get(self, request):
+        admins = User.objects.filter(is_staff=True).order_by("date_joined")
+        return Response(AdminListSerializer(admins, many=True).data)
+
+    def post(self, request):
+        serializer = AdminCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        if User.objects.filter(phone=data["phone"]).exists():
+            return Response(
+                {"phone": ["این شماره قبلاً ثبت شده است."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        admin = User.objects.create_user(phone=data["phone"])
+        admin.first_name = data.get("first_name", "").strip()
+        admin.last_name = data.get("last_name", "").strip()
+        admin.email = data.get("email", "").strip()
+        admin.is_staff = True
+        admin.is_active = True
+        admin.set_password(data["password"])
+        admin.save()
+        return Response(AdminListSerializer(admin).data, status=status.HTTP_201_CREATED)
+
+    def patch(self, request, pk):
+        admin = get_object_or_404(User, pk=pk, is_staff=True)
+        is_active = request.data.get("is_active")
+        if is_active is None:
+            return Response({"detail": "مقدار is_active الزامی است."}, status=status.HTTP_400_BAD_REQUEST)
+        if admin.pk == request.user.pk and not is_active:
+            return Response({"detail": "نمی‌توانید حساب خودتان را غیرفعال کنید."}, status=status.HTTP_400_BAD_REQUEST)
+        admin.is_active = bool(is_active)
+        admin.save(update_fields=["is_active"])
+        return Response({"id": admin.id, "is_active": admin.is_active})
+
+
+class ChangePhoneView(APIView):
+    """تغییر شماره موبایل خود کاربر/ادمین با تأیید رمز عبور فعلی."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = ChangePhoneSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        if not request.user.check_password(data["current_password"]):
+            return Response(
+                {"current_password": ["رمز عبور فعلی اشتباه است."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if User.objects.filter(phone=data["phone"]).exclude(pk=request.user.pk).exists():
+            return Response(
+                {"phone": ["این شماره قبلاً ثبت شده است."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        request.user.phone = data["phone"]
+        request.user.save(update_fields=["phone"])
+        # توکن‌های قدیمی به شماره گره ندارند اما پروفایل ذخیره‌شده در مرورگر تازه شود
+        return Response(UserSerializer(request.user).data)
 
 
 class StoreSettingsView(APIView):
