@@ -10,7 +10,8 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from products.models import Product
 from .models import Cart, CartItem, ShippingRate
 from .serializers import (AddItemSerializer, CartCitySerializer, CartSerializer,
-                          QuantitySerializer, ShippingRateSerializer)
+                          CartShippingSerializer, QuantitySerializer, ShippingRateSerializer)
+from .shipping import resolve_shipping_rate
 
 
 def locked_cart(user):
@@ -22,12 +23,14 @@ def validate_stock(product, quantity):
     if not product.is_active:
         raise ValidationError({'product': 'این محصول غیرفعال است.'})
     if quantity > product.stock:
-        raise ValidationError({'quantity': 'تعداد درخواستی بیشتر از موجودی است.'})
+        raise ValidationError({
+            'quantity': f'تعداد درخواستی بیشتر از موجودی است (موجودی: {product.stock} عدد).'
+        })
 
 
 @extend_schema_view(
     get=extend_schema(responses=CartSerializer),
-    patch=extend_schema(request=CartCitySerializer, responses=CartSerializer),
+    patch=extend_schema(request=CartShippingSerializer, responses=CartSerializer),
 )
 class CartView(APIView):
     permission_classes = [IsAuthenticated]
@@ -38,10 +41,28 @@ class CartView(APIView):
 
     @transaction.atomic
     def patch(self, request):
-        serializer = CartCitySerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
         cart = locked_cart(request.user)
-        cart.city = serializer.validated_data['city']
+
+        # حالت قدیمی کلاینت: ثبت شهر با شناسه عددی ShippingRate
+        raw_city = request.data.get('city')
+        if raw_city is not None and 'province' not in request.data and str(raw_city).isdigit():
+            serializer = CartCitySerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            cart.city = serializer.validated_data['city']
+            cart.save(update_fields=['city'])
+            return Response(CartSerializer(cart).data)
+
+        # حالت جدید: تایپ دستی استان و شهر — هزینه ارسال مطابق نرخ‌های پست
+        serializer = CartShippingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        rate = resolve_shipping_rate(data.get('province'), data.get('city'))
+        if rate is None:
+            return Response(
+                {'detail': 'استان یا شهر واردشده در فهرست هزینه ارسال یافت نشد. لطفاً نام استان و شهر را دقیق وارد کنید.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        cart.city = rate
         cart.save(update_fields=['city'])
         return Response(CartSerializer(cart).data)
 

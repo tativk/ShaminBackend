@@ -32,6 +32,9 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=50, blank=True, verbose_name="نام")
     last_name = models.CharField(max_length=50, blank=True, verbose_name="نام خانوادگی")
     email = models.EmailField(blank=True, verbose_name="ایمیل")
+    profile_image = models.ImageField(
+        upload_to="profile_images/", blank=True, null=True, verbose_name="عکس پروفایل"
+    )
     is_active = models.BooleanField(default=True)
 
     USERNAME_FIELD = "phone"

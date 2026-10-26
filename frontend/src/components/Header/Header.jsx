@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { FiUser, FiHeart, FiShoppingCart, FiMenu, FiX } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import SearchBox from "../SearchBox/SearchBox";
+import { useCartCount } from "../../context/CartCountContext";
 import "./Header.css";
 
 const NAV_LINKS = [
@@ -12,9 +13,12 @@ const NAV_LINKS = [
   { label: "وبلاگ", to: "/blog" },
 ];
 
+const toFa = (value) => Number(value || 0).toLocaleString("fa-IR");
+
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const headerRef = useRef(null);
+  const { count: cartCount } = useCartCount();
 
   /* ارتفاع هدر به‌صورت متغیر CSS در ریشه سند منتشر می‌شود تا
      محتوای صفحه با padding معادل، زیر هدر ثابت پنهان نشود. */
@@ -61,12 +65,16 @@ const Header = () => {
           <Link to="/register" className="header__icon-btn" aria-label="ورود / ثبت نام">
             <FiUser />
           </Link>
-          <button className="header__icon-btn" aria-label="علاقه‌مندی‌ها">
+          <Link to="/favorites" className="header__icon-btn" aria-label="علاقه‌مندی‌ها">
             <FiHeart />
-          </button>
-          <Link to="/cart" className="header__icon-btn" aria-label="سبد خرید">
+          </Link>
+          <Link
+            to="/cart"
+            className="header__icon-btn"
+            aria-label={cartCount > 0 ? `سبد خرید (${toFa(cartCount)} کالا)` : "سبد خرید"}
+          >
             <FiShoppingCart />
-            <span className="header__badge">0</span>
+            {cartCount > 0 && <span className="header__badge">{toFa(cartCount)}</span>}
           </Link>
         </div>
       </div>

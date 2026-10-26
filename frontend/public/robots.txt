@@ -1,3 +1,15 @@
-# https://www.robotstxt.org/robotstxt.html
+# گالری شمین — فایل robots
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /Login
+Disallow: /Register
+Disallow: /Verify
+Disallow: /cart
+Disallow: /Cart
+Disallow: /favorites
+Disallow: /payment
+Disallow: /api/
+
+Sitemap: /sitemap.xml

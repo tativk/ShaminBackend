@@ -41,6 +41,18 @@ class CartCitySerializer(serializers.Serializer):
     city = serializers.PrimaryKeyRelatedField(queryset=ShippingRate.objects.all())
 
 
+class CartShippingSerializer(serializers.Serializer):
+    """ثبت مقصد ارسال با تایپ دستی استان و شهر (متن آزاد)."""
+
+    province = serializers.CharField(required=False, allow_blank=True, max_length=100)
+    city = serializers.CharField(required=False, allow_blank=True, max_length=100)
+
+    def validate(self, attrs):
+        if not str(attrs.get('city') or '').strip() and not str(attrs.get('province') or '').strip():
+            raise serializers.ValidationError({'city': 'استان و شهر مقصد را وارد کنید.'})
+        return attrs
+
+
 class QuantitySerializer(serializers.Serializer):
     quantity = serializers.IntegerField(min_value=1, max_value=2147483647)
 

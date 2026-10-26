@@ -1,6 +1,9 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "گالری شمین",
+  "name": "گالری شمین | فروشگاه عطر، لوازم آرایشی و اکسسوری",
+  "description": "خرید آنلاین عطر و ادکلن، لوازم آرایشی و بهداشتی و اکسسوری اصل از گالری شمین با ارسال به سراسر ایران.",
+  "lang": "fa",
+  "dir": "rtl",
   "icons": [
     {
       "src": "favicon.ico",
@@ -10,16 +13,19 @@
     {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "logo512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#0e2f24",
   "background_color": "#ffffff"
 }

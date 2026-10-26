@@ -7,6 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from products.models import Product
 from .models import Cart, CartItem, ShippingRate
+from .shipping import resolve_shipping_rate
 
 
 class CartTests(TestCase):
@@ -86,6 +87,61 @@ class CartTests(TestCase):
         self.client.patch('/api/cart/', {'city': self.tehran.pk}, format='json')
         self.assertEqual(self.client.patch('/api/cart/', {'city': 999999}, format='json').status_code, 400)
         self.assertEqual(self.client.get('/api/cart/').data['city'], 'Tehran')
+
+    def test_manual_province_city_text_sets_shipping(self):
+        """تایپ دستی استان و شهر باید هزینه ارسال همان مقصد را ثبت کند."""
+        self.add(2)
+        response = self.client.patch('/api/cart/', {'province': 'Fars Province', 'city': 'Shiraz'}, format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['city'], 'Shiraz')
+        self.assertEqual(response.data['shipping_cost'], '30.00')
+        self.assertEqual(response.data['total'], '210.00')
+
+    def test_manual_text_matches_arabic_characters_and_partial_city(self):
+        """نویسه‌های عربی (ك/ي) و نیم‌فاصله نباید تطبیق را از کار بیندازند."""
+        self.assertEqual(resolve_shipping_rate('Fars Province', 'Shiraz').pk, self.shiraz.pk)
+        self.assertEqual(resolve_shipping_rate('فارس', 'شیراز'), None)  # دیتای آزمایش لاتین است
+        self.assertIsNone(resolve_shipping_rate('', ''))
+        self.assertIsNone(resolve_shipping_rate('استان ناموجود', 'شهر ناموجود'))
+
+    def test_province_only_text_falls_back_to_province_rate(self):
+        response = self.client.patch('/api/cart/', {'province': 'Tehran Province', 'city': ''}, format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['city'], 'Tehran')
+        self.assertEqual(response.data['shipping_cost'], '20.00')
+
+    def test_manual_text_city_without_province(self):
+        response = self.client.patch('/api/cart/', {'city': 'Shiraz'}, format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['city'], 'Shiraz')
+
+    def test_manual_text_unknown_city_rejected(self):
+        self.add(1)
+        response = self.client.patch('/api/cart/', {'province': 'Nowhere', 'city': 'Atlantis'}, format='json')
+        self.assertEqual(response.status_code, 400)
+        self.assertIsNone(self.client.get('/api/cart/').data['city'])
+
+    def test_free_shipping_for_perfume_above_30(self):
+        """قاعده کارفرما: هر عطر بالای ۳۰ گرم، ارسال رایگان."""
+        perfume = Product.objects.create(name='Perfume 100g', category='perfume', gender='unisex',
+                                         price=Decimal('50.00'), discount_percent=0, stock=200)
+        self.client.post('/api/cart/items/', {'product': perfume.pk, 'quantity': 31}, format='json')
+        response = self.client.patch('/api/cart/', {'province': 'Tehran Province', 'city': 'Tehran'}, format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['shipping_cost'], '0.00')
+        self.assertEqual(response.data['total'], '1550.00')
+
+        # در سقف ۳۰ گرم، نرخ عادی استان اعمال می‌شود
+        item_id = response.data['items'][0]['id']
+        response = self.client.patch(f'/api/cart/items/{item_id}/', {'quantity': 30}, format='json')
+        self.assertEqual(response.data['shipping_cost'], '20.00')
+
+    def test_free_shipping_does_not_apply_to_other_categories(self):
+        cosmetic = Product.objects.create(name='Cream XL', category='cosmetic', gender='unisex',
+                                          price=Decimal('50.00'), discount_percent=0, stock=200)
+        self.client.post('/api/cart/items/', {'product': cosmetic.pk, 'quantity': 100}, format='json')
+        response = self.client.patch('/api/cart/', {'province': 'Tehran Province', 'city': 'Tehran'}, format='json')
+        self.assertEqual(response.data['shipping_cost'], '20.00')
 
     def test_other_users_item_is_private(self):
         other = get_user_model().objects.create_user(phone='09123456788')

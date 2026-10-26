@@ -32,17 +32,23 @@ class VerifyOtpSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
     is_profile_complete = serializers.ReadOnlyField()
+    profile_image = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = User
         fields = [
             "id", "phone", "first_name", "last_name", "email",
-            "role", "is_profile_complete",
+            "role", "is_profile_complete", "profile_image",
         ]
         read_only_fields = ["id", "phone"]
 
     def get_role(self, obj):
         return "admin" if obj.is_staff or obj.is_superuser else "customer"
+
+    def validate_profile_image(self, value):
+        if value and value.size > 5 * 1024 * 1024:
+            raise serializers.ValidationError("حجم عکس پروفایل باید کمتر از ۵ مگابایت باشد.")
+        return value
 
 
 class StoreSettingSerializer(serializers.ModelSerializer):

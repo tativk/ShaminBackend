@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import "./Footer.css";
 
 const FOOTER_SERVICE_LINKS = [
+  { id: "favorites", label: "علاقه‌مندی‌های من", href: "/favorites" },
   { id: "blog", label: "وبلاگ", href: "/blog" },
   { id: "contact", label: "درباره ما", href: "/about-us" },
   { id: "faq", label: "سوالات متداول", href: "/faq" },

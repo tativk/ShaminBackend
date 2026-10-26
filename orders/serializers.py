@@ -77,6 +77,7 @@ class OrderStatusUpdateSerializer(serializers.ModelSerializer):
 
 class CreateOrderSerializer(serializers.Serializer):
     """اطلاعات تحویل سفارش و مبلغ ارسالِ انتخاب‌شده در سبد."""
+    province = serializers.CharField(required=False, allow_blank=True, max_length=100)
     city = serializers.CharField(max_length=100)
     address = serializers.CharField(max_length=500)
     postal_code = serializers.CharField(max_length=10, min_length=10)

@@ -51,6 +51,7 @@ class CreateOrderView(APIView):
             order = self._create_order(
                 user=request.user,
                 cart=cart,
+                province=data.get('province', ''),
                 city=data['city'],
                 address=data['address'],
                 postal_code=data['postal_code'],
@@ -71,7 +72,7 @@ class CreateOrderView(APIView):
         )
 
     @transaction.atomic
-    def _create_order(self, *, user, cart, city, address, postal_code, shipping_cost):
+    def _create_order(self, *, user, cart, province, city, address, postal_code, shipping_cost):
         # ── محاسبه مبلغ سفارش ──────────────────────────────────────────
         items = cart.items.select_related('product').select_for_update()
         items_total = Decimal('0')
@@ -81,11 +82,12 @@ class CreateOrderView(APIView):
         total_amount = items_total + Decimal(str(shipping_cost))
 
         # ── ساخت سفارش ─────────────────────────────────────────────────
+        destination = f'{province}، {city}' if province.strip() else city
         order = Order.objects.create(
             user=user,
             status=Order.Status.PENDING,
             total_price=total_amount,
-            address=f'{city}، {address}، کد پستی: {postal_code}',
+            address=f'{destination}، {address}، کد پستی: {postal_code}',
         )
 
         # ── کپی آیتم‌ها با ثبت (snapshot) ──────────────────────────────

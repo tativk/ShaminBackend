@@ -22,14 +22,26 @@ class Cart(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='cart')
     city = models.ForeignKey(ShippingRate, null=True, blank=True, on_delete=models.PROTECT, related_name='carts')
 
+    # قاعده کارفرما: برای هر عطر بالای ۳۰ میل/گرم، ارسال رایگان است.
+    FREE_SHIPPING_PERFUME_MIN = 30
+
     @property
     def subtotal(self):
         return sum((item.line_total for item in self.items.select_related('product').all()), Decimal('0.00'))
 
     @property
+    def has_free_shipping(self):
+        return any(
+            item.product.category == 'perfume' and item.quantity > self.FREE_SHIPPING_PERFUME_MIN
+            for item in self.items.select_related('product').all()
+        )
+
+    @property
     def shipping_cost(self):
         # An unset city has no quoted shipping cost, never an implicit free rate.
-        return self.city.cost if self.city_id else None
+        if not self.city_id:
+            return None
+        return Decimal('0.00') if self.has_free_shipping else self.city.cost
 
     @property
     def total(self):

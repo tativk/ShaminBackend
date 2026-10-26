@@ -6,6 +6,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
    ========================================================= */
 
 const STORAGE_KEY = "shamin_wishlist";
+const LEGACY_STORAGE_KEY = "shamin-favorites"; // نسخه قدیمی صفحه علاقه‌مندی‌ها
 
 const WishlistContext = createContext(null);
 
@@ -13,7 +14,25 @@ const readStorage = () => {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
+    const items = Array.isArray(parsed) ? parsed : [];
+
+    // یک‌بارِ اول: علاقه‌مندی‌های سیستم قدیمی به لیست یکپارچه منتقل می‌شوند
+    try {
+      const legacyRaw = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+      const legacy = legacyRaw ? JSON.parse(legacyRaw) : [];
+      if (Array.isArray(legacy) && legacy.length) {
+        const knownIds = new Set(items.map((item) => String(item.id)));
+        legacy.forEach((product) => {
+          if (product && product.id != null && !knownIds.has(String(product.id))) items.push(product);
+        });
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+      }
+    } catch {
+      /* انتقال لیست قدیمی مهم نیست */
+    }
+
+    return items;
   } catch {
     return [];
   }
