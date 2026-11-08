@@ -1,0 +1,117 @@
+/* ریسپانسیو موبایل فوتر — گالری شمین */
+@media (max-width: 768px) {
+  .footer .footer__grid {
+    grid-template-columns: 1fr;
+    grid-gap: 28px;
+    gap: 28px;
+    padding: 36px 16px 24px;
+    text-align: center;
+  }
+  .footer__col { width: 100%; max-width: 100%; }
+  .footer__col h4 { margin-bottom: 12px; }
+  .footer__col ul { align-items: center; }
+  .footer__social { justify-content: center; flex-wrap: wrap; }
+  .footer__contact { align-items: center; text-align: center; }
+  .footer__bottom-inner {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+}
+/* ارتقای استایل بنر هیرو سبد خرید — حفظ عکس با پوشش خوانا و چینش صحیح متن */
+.cart-hero {
+  height: 260px !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+.cart-hero__bg {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+.cart-hero::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background: linear-gradient(to bottom, rgba(14, 47, 36, 0.72) 0%, rgba(14, 47, 36, 0.55) 55%, rgba(14, 47, 36, 0.72) 100%) !important;
+  z-index: 1 !important;
+}
+.cart-hero__content {
+  position: relative !important;
+  z-index: 2 !important;
+  height: 260px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 16px !important;
+  text-align: center !important;
+}
+.cart-hero__icon { color: #e8c67a !important; }
+.cart-hero__title { color: #ffffff !important; margin: 10px 0 6px !important; }
+.cart-hero__subtitle { color: rgba(255, 255, 255, 0.9) !important; margin: 0 !important; }
+/* حذف فضای سفید زیر فوتر در صفحه سبد خرید */
+.cart-page { padding-bottom: 0 !important; }
+/* وسط‌چین‌کردن لوگو و توضیح برند در موبایل */
+@media (max-width: 768px) {
+  .footer__col--brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .header__logo--footer { justify-content: center; }
+  .footer__col--brand p { text-align: center; }
+}
+/* اینماد */
+.footer__trust{margin:18px 0 4px;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.footer__enamad{display:inline-block;line-height:0}
+.footer__enamad img{width:100px;height:110px;object-fit:contain;border-radius:6px;background:#fff}
+.footer__trust-label{font-size:.78rem;opacity:.85}
+@media(max-width:768px){.footer__trust{align-items:center;text-align:center}}
+/* رنگ رسمی آیکون‌های اجتماعی */
+.footer__social a[href*="t.me"]{color:#229ED9 !important}
+.footer__social a[href*="instagram"]{color:#E4405F !important}
+/* دکمه هیرو: متن راست، فلش رو به راست */
+.hero__cta{flex-direction:row !important}
+/* سایدبار موبایل — کامل، یکپاراچه، بدون اسکرول */
+@media (max-width: 768px) {
+  /* پنل ادمین */
+  .shamin-dashboard__sidebar {
+    position: static !important;
+    transform: none !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    z-index: auto !important;
+    box-shadow: none !important;
+  }
+  .shamin-dashboard__sidebar-scroll {
+    overflow: visible !important;
+    height: auto !important;
+    flex: none !important;
+  }
+  .shamin-dashboard__topbar {
+    position: static !important;
+    right: 0 !important;
+    width: 100% !important;
+  }
+  .shamin-dashboard__content {
+    min-height: auto !important;
+    padding-top: 20px !important;
+  }
+  /* داشبورد کاربر */
+  .user-dashboard__sidebar {
+    position: static !important;
+    transform: none !important;
+    width: 100% !important;
+    height: auto !important;
+    inset: auto !important;
+    z-index: auto !important;
+    box-shadow: none !important;
+    padding-top: 16px !important;
+  }
+  .user-dashboard__sidebar-bottom { margin-top: 16px !important; }
+  .user-dashboard__main { width: 100% !important; margin: 0 !important; }
+}
