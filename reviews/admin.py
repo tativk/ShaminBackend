@@ -27,3 +27,12 @@ class ReviewAdmin(admin.ModelAdmin):
         self.message_user(request, f'{updated} نظر رد شدند')
     
     disapprove_reviews.short_description = "❌ رد نظرات انتخاب شده"
+
+from .models import BlogPost
+
+@admin.register(BlogPost)
+class BlogPostAdmin(admin.ModelAdmin):
+    list_display = ('title', 'slug', 'category', 'is_published')
+    list_filter = ('is_published', 'category')
+    search_fields = ('title', 'slug', 'excerpt')
+    prepopulated_fields = {'slug': ('title',)}

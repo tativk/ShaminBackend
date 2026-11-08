@@ -14,10 +14,27 @@ class CartItemSerializer(serializers.ModelSerializer):
     unit_price = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
     line_total = serializers.DecimalField(max_digits=24, decimal_places=2, read_only=True)
     weight_grams = serializers.IntegerField(read_only=True, allow_null=True)
+    # عکس اصلی محصول برای نمایش در سبد خرید — فیلد image هم برای سازگاری با فرانت
+    main_image = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = CartItem
-        fields = ['id', 'product', 'name', 'quantity', 'weight_grams', 'unit_price', 'line_total']
+        fields = ['id', 'product', 'name', 'quantity', 'weight_grams', 'unit_price', 'line_total', 'main_image', 'image']
+
+    def _main_image_url(self, obj):
+        request = self.context.get('request')
+        img = obj.product.images.filter(is_main=True).first() or obj.product.images.first()
+        if not img or not img.image:
+            return None
+        url = img.image.url
+        return request.build_absolute_uri(url) if request else url
+
+    def get_main_image(self, obj):
+        return self._main_image_url(obj)
+
+    def get_image(self, obj):
+        return self._main_image_url(obj)
 
 
 class CartSerializer(serializers.ModelSerializer):
@@ -41,8 +58,9 @@ class CartSerializer(serializers.ModelSerializer):
 
 
 class CartCitySerializer(serializers.Serializer):
-    # انتخاب شهر با شناسه (id) ShippingRate — جلوگیری از ابهام شهرهای هم‌نام در استان‌های مختلف
-    city = serializers.PrimaryKeyRelatedField(queryset=ShippingRate.objects.all())
+    # ثبت مقصد ارسال با «نام شهر» (متن آزاد) — سازگار با تایپ دستی کاربر در فرانت؛
+    # اگر نام در فهرست ShippingRate باشد هزینه ارسال رسمی همان ردیف لحاظ می‌شود.
+    city = serializers.CharField(max_length=100)
 
 
 class CouponApplySerializer(serializers.Serializer):
@@ -59,4 +77,4 @@ class AddItemSerializer(QuantitySerializer):
     weight_grams = serializers.IntegerField(required=False, allow_null=True)
 
 
-ALLOWED_WEIGHTS = (15, 20, 30, 50, 100)
+ALLOWED_WEIGHTS = (10, 15, 20, 30, 50, 100)

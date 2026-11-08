@@ -75,3 +75,84 @@ class ReviewViewSet(viewsets.ModelViewSet):
         reviews = Review.objects.filter(product=product, is_approved=True).select_related('user')
         serializer = ReviewSerializer(reviews, many=True)
         return Response(serializer.data)
+
+
+# =========================================================
+# وبلاگ — مدیریت از پنل ادمین، خواندن عمومی
+# =========================================================
+from django.shortcuts import get_object_or_404
+from rest_framework import serializers as rest_serializers
+from rest_framework.views import APIView as _BlogAPIView
+from rest_framework.permissions import AllowAny
+from config.permissions import IsStaffUser
+from .models import BlogPost
+
+
+class BlogPostSerializer(rest_serializers.ModelSerializer):
+    class Meta:
+        model = BlogPost
+        fields = ['id', 'slug', 'title', 'category', 'date', 'reading_time', 'author', 'image', 'image_caption', 'excerpt', 'sections', 'is_published', 'created_at', 'updated_at']
+
+
+class AdminBlogView(_BlogAPIView):
+    """فهرست و افزودن مقاله — فقط ادمین."""
+    permission_classes = [IsStaffUser]
+
+    def get(self, request):
+        return Response(BlogPostSerializer(BlogPost.objects.all().order_by('-id'), many=True).data)
+
+    def post(self, request):
+        s = BlogPostSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        s.save()
+        return Response(BlogPostSerializer(s.instance).data, status=status.HTTP_201_CREATED)
+
+
+class AdminBlogDetailView(_BlogAPIView):
+    permission_classes = [IsStaffUser]
+
+    def put(self, request, slug):
+        obj = get_object_or_404(BlogPost, slug=slug)
+        s = BlogPostSerializer(obj, data=request.data)
+        s.is_valid(raise_exception=True)
+        s.save()
+        return Response(BlogPostSerializer(s.instance).data)
+
+    def delete(self, request, slug):
+        get_object_or_404(BlogPost, slug=slug).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PublicBlogView(_BlogAPIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response(BlogPostSerializer(BlogPost.objects.filter(is_published=True).order_by('-id'), many=True).data)
+
+
+class PublicBlogDetailView(_BlogAPIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, slug):
+        obj = get_object_or_404(BlogPost, slug=slug, is_published=True)
+        return Response(BlogPostSerializer(obj).data)
+
+
+class BlogImageUploadView(_BlogAPIView):
+    """آپلود عکس مقاله — فقط ادمین، ملتی‌پارت با فیلد image."""
+    permission_classes = [IsStaffUser]
+
+    def post(self, request):
+        img = request.FILES.get('image')
+        if not img:
+            return Response({'detail': 'فایل عکس ارسال نشده است.'}, status=status.HTTP_400_BAD_REQUEST)
+        if img.size > 5 * 1024 * 1024:
+            return Response({'detail': 'حجم عکس نباید بیشتر از ۵ مگابایت باشد.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not img.content_type or not img.content_type.startswith('image/'):
+            return Response({'detail': 'فقط فایل تصویری مجاز است.'}, status=status.HTTP_400_BAD_REQUEST)
+        import uuid
+        from django.core.files.storage import default_storage
+        ext = (img.name.rsplit('.', 1)[-1] or 'jpg').lower()
+        path = 'blog/' + uuid.uuid4().hex + '.' + ext
+        saved = default_storage.save(path, img)
+        return Response({'url': request.build_absolute_uri(default_storage.url(saved))}, status=status.HTTP_201_CREATED)

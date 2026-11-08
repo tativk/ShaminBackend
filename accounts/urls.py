@@ -5,11 +5,13 @@ from .account_settings import ChangePasswordView
 from .recovery import RequestPasswordResetView, VerifyPasswordResetView, ResetPasswordView
 
 from .views import (
+    AdminAdminsView,
     AdminCustomersView,
     AdminStaffView,
     AddressDetailView,
     AddressListView,
     AddressView,
+    ChangePhoneView,
     CompleteRegistrationView,
     PasswordLoginView,
     ProfileImageView,
@@ -22,6 +24,9 @@ from .views import (
 )
 
 urlpatterns = [
+    path("auth/admin/admins/", AdminAdminsView.as_view(), name="admin-admins"),
+    path("auth/admin/admins/<int:pk>/", AdminAdminsView.as_view()),
+    path("auth/change-phone/", ChangePhoneView.as_view(), name="change-phone"),
     path("admin/notifications/", AdminNotificationsView.as_view()),
     path("auth/password-reset/request/", RequestPasswordResetView.as_view()),
     path("auth/password-reset/verify/", VerifyPasswordResetView.as_view()),

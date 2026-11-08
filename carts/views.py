@@ -41,8 +41,11 @@ class CartView(APIView):
     def patch(self, request):
         serializer = CartCitySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        city_name = serializer.validated_data['city'].strip()
         cart = locked_cart(request.user)
-        cart.city = serializer.validated_data['city']
+        # شهر با نام متن آزاد مطابقت داده می‌شود؛ اگر در فهرست نبود، مقصد خالی می‌ماند
+        rate = ShippingRate.objects.filter(city__iexact=city_name).first()
+        cart.city = rate
         cart.save(update_fields=['city'])
         return Response(CartSerializer(cart).data)
 
@@ -58,15 +61,22 @@ class CartItemsView(APIView):
         cart = locked_cart(request.user)
         product = get_object_or_404(Product.objects.select_for_update(), pk=serializer.validated_data['product'])
         weight = serializer.validated_data.get('weight_grams')
+        quantity = serializer.validated_data['quantity']
         if product.category == 'perfume':
             # عطر باید با یکی از حجم‌های مجاز سفارش داده شود
+            # سازگاری با فرانت: اگر weight_grams ارسال نشد، مقدار quantity همان گرم انتخابی است
             if weight not in ALLOWED_WEIGHTS:
-                raise ValidationError({'weight_grams': 'حجم باید یکی از ۱۵، ۲۰، ۳۰، ۵۰ یا ۱۰۰ گرم باشد.'})
+                if quantity in ALLOWED_WEIGHTS:
+                    weight = quantity
+                    quantity = 1
+                else:
+                    # افزودن سریع بدون انتخاب حجم — کم‌ترین حجم مجاز پیش‌فرض می‌شود
+                    weight = ALLOWED_WEIGHTS[0]
         else:
             weight = None
         # همان محصول با همان حجم آیتم واحد است؛ حجم متفاوت ردیف جداگانه می‌گیرد
         item = CartItem.objects.filter(cart=cart, product=product, weight_grams=weight).first()
-        quantity = serializer.validated_data['quantity'] + (item.quantity if item else 0)
+        quantity = quantity + (item.quantity if item else 0)
         validate_stock(product, quantity)
         if item:
             item.quantity = quantity

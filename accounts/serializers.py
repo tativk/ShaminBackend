@@ -32,7 +32,8 @@ class VerifyOtpSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
     is_profile_complete = serializers.ReadOnlyField()
-    profile_image = serializers.SerializerMethodField()
+    # عکس پروفایل: در PATCH می‌تواند فایل (multipart) یا null باشد؛ در پاسخ آدرس مطلق برمی‌گردد
+    profile_image = serializers.ImageField(required=False, allow_null=True)
     is_superuser = serializers.ReadOnlyField()
 
     class Meta:
@@ -46,12 +47,12 @@ class UserSerializer(serializers.ModelSerializer):
     def get_role(self, obj):
         return "admin" if obj.is_staff or obj.is_superuser else "customer"
 
-    def get_profile_image(self, obj):
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
         request = self.context.get("request")
-        if not obj.profile_image:
-            return None
-        url = obj.profile_image.url
-        return request.build_absolute_uri(url) if request else url
+        if data.get("profile_image") and request:
+            data["profile_image"] = request.build_absolute_uri(data["profile_image"])
+        return data
 
 
 class StoreSettingSerializer(serializers.ModelSerializer):
@@ -74,6 +75,33 @@ class AdminCustomerSerializer(serializers.Serializer):
     date_joined = serializers.DateTimeField()
     orders_count = serializers.IntegerField()
     total_spent = serializers.FloatField()
+
+
+class AdminCreateSerializer(serializers.Serializer):
+    """افزودن ادمین جدید به‌صورت دستی از پنل ادمین."""
+    phone = serializers.CharField(max_length=11)
+    first_name = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    last_name = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    email = serializers.EmailField(required=False, allow_blank=True)
+    password = serializers.CharField(max_length=128, trim_whitespace=False, min_length=4)
+
+    def validate_phone(self, value):
+        return validate_iranian_phone(value)
+
+
+class AdminListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "phone", "first_name", "last_name", "email", "is_active", "date_joined"]
+
+
+class ChangePhoneSerializer(serializers.Serializer):
+    """تغییر شماره موبایل خود کاربر (با تأیید رمز فعلی)."""
+    phone = serializers.CharField(max_length=11)
+    current_password = serializers.CharField(max_length=128, trim_whitespace=False)
+
+    def validate_phone(self, value):
+        return validate_iranian_phone(value)
 
 
 class AddressSerializer(serializers.ModelSerializer):
