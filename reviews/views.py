@@ -136,3 +136,23 @@ class PublicBlogDetailView(_BlogAPIView):
     def get(self, request, slug):
         obj = get_object_or_404(BlogPost, slug=slug, is_published=True)
         return Response(BlogPostSerializer(obj).data)
+
+
+class BlogImageUploadView(_BlogAPIView):
+    """آپلود عکس مقاله — فقط ادمین، ملتی‌پارت با فیلد image."""
+    permission_classes = [IsStaffUser]
+
+    def post(self, request):
+        img = request.FILES.get('image')
+        if not img:
+            return Response({'detail': 'فایل عکس ارسال نشده است.'}, status=status.HTTP_400_BAD_REQUEST)
+        if img.size > 5 * 1024 * 1024:
+            return Response({'detail': 'حجم عکس نباید بیشتر از ۵ مگابایت باشد.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not img.content_type or not img.content_type.startswith('image/'):
+            return Response({'detail': 'فقط فایل تصویری مجاز است.'}, status=status.HTTP_400_BAD_REQUEST)
+        import uuid
+        from django.core.files.storage import default_storage
+        ext = (img.name.rsplit('.', 1)[-1] or 'jpg').lower()
+        path = 'blog/' + uuid.uuid4().hex + '.' + ext
+        saved = default_storage.save(path, img)
+        return Response({'url': request.build_absolute_uri(default_storage.url(saved))}, status=status.HTTP_201_CREATED)
