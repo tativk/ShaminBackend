@@ -75,3 +75,64 @@ class ReviewViewSet(viewsets.ModelViewSet):
         reviews = Review.objects.filter(product=product, is_approved=True).select_related('user')
         serializer = ReviewSerializer(reviews, many=True)
         return Response(serializer.data)
+
+
+# =========================================================
+# وبلاگ — مدیریت از پنل ادمین، خواندن عمومی
+# =========================================================
+from django.shortcuts import get_object_or_404
+from rest_framework import serializers as rest_serializers
+from rest_framework.views import APIView as _BlogAPIView
+from rest_framework.permissions import AllowAny
+from config.permissions import IsStaffUser
+from .models import BlogPost
+
+
+class BlogPostSerializer(rest_serializers.ModelSerializer):
+    class Meta:
+        model = BlogPost
+        fields = ['id', 'slug', 'title', 'category', 'date', 'reading_time', 'author', 'image', 'image_caption', 'excerpt', 'sections', 'is_published', 'created_at', 'updated_at']
+
+
+class AdminBlogView(_BlogAPIView):
+    """فهرست و افزودن مقاله — فقط ادمین."""
+    permission_classes = [IsStaffUser]
+
+    def get(self, request):
+        return Response(BlogPostSerializer(BlogPost.objects.all().order_by('-id'), many=True).data)
+
+    def post(self, request):
+        s = BlogPostSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        s.save()
+        return Response(BlogPostSerializer(s.instance).data, status=status.HTTP_201_CREATED)
+
+
+class AdminBlogDetailView(_BlogAPIView):
+    permission_classes = [IsStaffUser]
+
+    def put(self, request, slug):
+        obj = get_object_or_404(BlogPost, slug=slug)
+        s = BlogPostSerializer(obj, data=request.data)
+        s.is_valid(raise_exception=True)
+        s.save()
+        return Response(BlogPostSerializer(s.instance).data)
+
+    def delete(self, request, slug):
+        get_object_or_404(BlogPost, slug=slug).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PublicBlogView(_BlogAPIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response(BlogPostSerializer(BlogPost.objects.filter(is_published=True).order_by('-id'), many=True).data)
+
+
+class PublicBlogDetailView(_BlogAPIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, slug):
+        obj = get_object_or_404(BlogPost, slug=slug, is_published=True)
+        return Response(BlogPostSerializer(obj).data)
