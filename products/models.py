@@ -41,6 +41,8 @@ class Product(models.Model):
     is_best_seller = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # حجم‌های موجود برای فروش عطر — خالی یعنی همه حجم‌های استاندارد (۱۵ تا ۱۰۰)
+    available_weights = models.JSONField(null=True, blank=True)
     # قیمت اختصاصی هر حجم عطر — اگر خالی باشد قیمت پایه لحاظ می‌شود
     price_15 = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     price_20 = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)

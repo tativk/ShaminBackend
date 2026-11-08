@@ -54,11 +54,13 @@ class Cart(models.Model):
         # An unset city has no quoted shipping cost, never an implicit free rate.
         if not self.city_id:
             return None
+        items = list(self.items.all())
         # عطر بالای ۳۰ میل — ارسال رایگان
-        if self.items.filter(weight_grams__gt=30).exists():
+        if any(item.weight_grams and item.weight_grams > 30 for item in items):
             return Decimal('0.00')
-        return self.city.cost
-
+        # هزینه ارسال به اندازه تعداد کل اقلام — عطر و غیرعطر با هم جمع می‌شوند
+        total_units = sum(item.quantity for item in items)
+        return self.city.cost * total_units
     @property
     def total(self):
         if not self.city_id:

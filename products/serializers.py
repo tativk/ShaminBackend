@@ -38,6 +38,7 @@ class ProductListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'brand', 'category', 'gender', 'description',
             'price', 'discount_percent', 'final_price', 'size_prices',
+            'available_weights',
             'main_image', 'is_active', 'is_best_seller',
         ]
 
@@ -45,7 +46,14 @@ class ProductListSerializer(serializers.ModelSerializer):
         """قیمت نهایی هر حجم عطر — برای محصولات غیرعطری None."""
         if obj.category != 'perfume':
             return None
-        return {str(w): obj.final_price_for_weight(w) for w in (15, 20, 30, 50, 100)}
+        return {str(w): obj.final_price_for_weight(w) for w in self._weights(obj)}
+
+    @staticmethod
+    def _weights(obj):
+        """حجم‌های موجود — اگر مدیر تنظیم کرده باشد فقط همان‌ها، وارنا همهِ استاندارد."""
+        weights = obj.available_weights or [15, 20, 30, 50, 100]
+        valid = [w for w in weights if w in (10, 15, 20, 30, 50, 100)]
+        return sorted(set(valid)) or [15, 20, 30, 50, 100]
 
 
     def get_final_price(self, obj) -> Decimal:
@@ -108,6 +116,7 @@ class AdminProductSerializer(serializers.ModelSerializer):
             'id', 'name', 'brand', 'brand_name', 'category', 'gender',
             'description', 'price', 'discount_percent', 'stock', 'is_active', 'is_best_seller',
             'price_15', 'price_20', 'price_30', 'price_50', 'price_100',
+            'available_weights',
             'created_at', 'images', 'new_images', 'keep_image_ids',
             'main_image_id', 'main_new_index',
         ]
