@@ -155,4 +155,4 @@ class BlogImageUploadView(_BlogAPIView):
         ext = (img.name.rsplit('.', 1)[-1] or 'jpg').lower()
         path = 'blog/' + uuid.uuid4().hex + '.' + ext
         saved = default_storage.save(path, img)
-        return Response({'url': request.build_absolute_uri(default_storage.url(saved))}, status=status.HTTP_201_CREATED)
+        return Response({'url': request.build_absolute_uri(default_storage.url(saved)).replace('http://', 'https://')}, status=status.HTTP_201_CREATED)
