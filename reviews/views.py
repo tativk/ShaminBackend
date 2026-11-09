@@ -102,10 +102,36 @@ class AdminBlogView(_BlogAPIView):
         return Response(BlogPostSerializer(BlogPost.objects.all().order_by('-id'), many=True).data)
 
     def post(self, request):
-        s = BlogPostSerializer(data=request.data)
+        data, image_file, image_url = self._parse_request(request)
+        s = BlogPostSerializer(data=data)
         s.is_valid(raise_exception=True)
-        s.save()
-        return Response(BlogPostSerializer(s.instance).data, status=status.HTTP_201_CREATED)
+        obj = s.save()
+        self._handle_image(request, obj, image_file, image_url)
+        return Response(BlogPostSerializer(obj).data, status=status.HTTP_201_CREATED)
+
+    @staticmethod
+    def _parse_request(request):
+        if request.content_type and 'multipart' in request.content_type:
+            data = {k: v for k, v in request.POST.items()}
+            if 'is_published' in data:
+                data['is_published'] = data['is_published'] in ('true', 'True', '1', 'on')
+            image_url = data.pop('image_url', None)
+            return data, request.FILES.get('image'), image_url
+        image_url = request.data.get('image_url') if isinstance(request.data, dict) else None
+        return request.data, getattr(request, 'FILES', {}).get('image'), image_url
+
+    @staticmethod
+    def _handle_image(request, obj, image_file, image_url):
+        import uuid
+        from django.core.files.storage import default_storage
+        if image_file:
+            ext = (image_file.name.rsplit('.', 1)[-1] or 'jpg').lower()
+            saved = default_storage.save('blog/' + uuid.uuid4().hex + '.' + ext, image_file)
+            obj.image = request.build_absolute_uri(default_storage.url(saved)).replace('http://', 'https://')
+            obj.save(update_fields=['image'])
+        elif image_url:
+            obj.image = str(image_url).replace('http://', 'https://')
+            obj.save(update_fields=['image'])
 
 
 class AdminBlogDetailView(_BlogAPIView):
@@ -113,10 +139,12 @@ class AdminBlogDetailView(_BlogAPIView):
 
     def put(self, request, slug):
         obj = get_object_or_404(BlogPost, slug=slug)
-        s = BlogPostSerializer(obj, data=request.data)
+        data, image_file, image_url = AdminBlogView._parse_request(request)
+        s = BlogPostSerializer(obj, data=data)
         s.is_valid(raise_exception=True)
-        s.save()
-        return Response(BlogPostSerializer(s.instance).data)
+        obj = s.save()
+        AdminBlogView._handle_image(request, obj, image_file, image_url)
+        return Response(BlogPostSerializer(obj).data)
 
     def delete(self, request, slug):
         get_object_or_404(BlogPost, slug=slug).delete()
