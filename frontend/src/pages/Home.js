@@ -333,6 +333,7 @@ const BestSellingProducts = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const bestSellerTrackRef = useRef(null);
 
   useEffect(() => {
     let ignore = false;
@@ -380,10 +381,28 @@ const BestSellingProducts = () => {
       ) : products.length === 0 ? (
         <p className="products-state">هنوز محصولی ثبت نشده است.</p>
       ) : (
-        <div className="products-grid">
-          {products.map((p) => (
-            <ProductCard product={p} key={p.id} />
-          ))}
+        <div className="products-slider-shell" aria-label="اسلایدر محصولات پرفروش">
+          <button
+            type="button"
+            className="products-slider-nav"
+            aria-label="نمایش محصولات قبلی"
+            onClick={() => bestSellerTrackRef.current?.scrollBy({ left: -360, behavior: "smooth" })}
+          >
+            <FiChevronRight />
+          </button>
+          <div className="products-grid products-grid--slider" ref={bestSellerTrackRef} tabIndex={0} aria-label="محصولات پرفروش">
+            {products.map((p) => (
+              <ProductCard product={p} key={p.id} />
+            ))}
+          </div>
+          <button
+            type="button"
+            className="products-slider-nav"
+            aria-label="نمایش محصولات بعدی"
+            onClick={() => bestSellerTrackRef.current?.scrollBy({ left: 360, behavior: "smooth" })}
+          >
+            <FiChevronLeft />
+          </button>
         </div>
       )}
     </section>
