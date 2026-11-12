@@ -68,8 +68,9 @@ jobs:
       - name: Publish downloadable preview release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: shami-frontend-final-2026-11-12
-          name: Shami Gallery Frontend Final Preview
+          tag_name: shami-frontend-final-build-2026-11-12
+          name: Shami Gallery Frontend Final Build 2026-11-12
+          target_commitish: ${{ github.sha }}
           body: |
             Production frontend build for Shami Gallery.
             Built from branch shami-frontend-final-2026-11-12.
