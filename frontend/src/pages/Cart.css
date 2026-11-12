@@ -1111,3 +1111,16 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
+
+/* Premium cart hero treatment */
+.cart-hero{isolation:isolate;max-width:1280px;height:clamp(230px,27vw,350px);margin:16px auto 28px;border-radius:26px;background:radial-gradient(circle at 14% 18%,rgba(198,169,104,.22),transparent 32%),linear-gradient(115deg,#092b22 0%,#123f30 55%,#1b5140 100%);box-shadow:0 18px 44px rgba(9,43,34,.16)}
+.cart-hero::before{content:"";position:absolute;z-index:1;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(7,34,27,.96) 0%,rgba(7,34,27,.84) 39%,rgba(7,34,27,.32) 100%)}
+.cart-hero::after{content:"";position:absolute;z-index:1;left:-70px;bottom:-150px;width:360px;height:360px;border:1px solid rgba(226,199,135,.24);border-radius:50%;box-shadow:0 0 0 28px rgba(226,199,135,.035),0 0 0 60px rgba(226,199,135,.025);pointer-events:none}
+.cart-hero__bg{z-index:0;opacity:.52;object-position:center 45%;filter:brightness(.82) saturate(.78);transform:scale(1.015)}
+.cart-hero__content{z-index:2;align-items:flex-start;justify-content:center;padding:0 clamp(24px,8vw,112px);text-align:right}
+.cart-hero__icon{width:56px;height:56px;display:flex;align-items:center;justify-content:center;margin:0 0 13px;border:1px solid rgba(224,196,130,.45);border-radius:18px;background:rgba(255,255,255,.09);color:#e2c887;backdrop-filter:blur(8px)}
+.cart-hero__title{margin:0 0 9px;color:#fff;font-size:clamp(34px,4.2vw,58px);font-weight:850;letter-spacing:0;line-height:1.25;text-shadow:0 3px 18px rgba(0,0,0,.2)}
+.cart-hero__subtitle{max-width:460px;margin:0;color:rgba(255,255,255,.82);font-size:clamp(13px,1.4vw,17px);line-height:1.9}
+@media(max-width:767px){.cart-hero{height:clamp(205px,58vw,270px);margin:10px 12px 20px;border-radius:20px}.cart-hero::before{background:linear-gradient(90deg,rgba(7,34,27,.94) 0%,rgba(7,34,27,.75) 60%,rgba(7,34,27,.46) 100%)}.cart-hero::after{left:-145px;bottom:-205px;width:300px;height:300px}.cart-hero__bg{object-position:62% center;opacity:.42}.cart-hero__content{padding:0 24px}.cart-hero__icon{width:46px;height:46px;margin-bottom:10px;border-radius:14px}.cart-hero__title{width:auto;margin-bottom:7px;font-size:clamp(30px,8vw,40px)}.cart-hero__subtitle{width:min(82%,340px);font-size:13px;line-height:1.8}}
+@media(min-width:768px) and (max-width:1099px){.cart-hero{margin-left:20px;margin-right:20px}.cart-hero__content{padding:0 56px}}
