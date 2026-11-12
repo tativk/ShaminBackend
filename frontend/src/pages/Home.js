@@ -386,7 +386,7 @@ const BestSellingProducts = () => {
             type="button"
             className="products-slider-nav"
             aria-label="نمایش محصولات قبلی"
-            onClick={() => bestSellerTrackRef.current?.scrollBy({ left: -360, behavior: "smooth" })}
+            onClick={() => bestSellerTrackRef.current?.scrollBy({ left: 360, behavior: "smooth" })}
           >
             <FiChevronRight />
           </button>
@@ -399,7 +399,7 @@ const BestSellingProducts = () => {
             type="button"
             className="products-slider-nav"
             aria-label="نمایش محصولات بعدی"
-            onClick={() => bestSellerTrackRef.current?.scrollBy({ left: 360, behavior: "smooth" })}
+            onClick={() => bestSellerTrackRef.current?.scrollBy({ left: -360, behavior: "smooth" })}
           >
             <FiChevronLeft />
           </button>
