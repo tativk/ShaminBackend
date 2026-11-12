@@ -399,3 +399,15 @@
   height: 18px;
   accent-color: var(--shamin-green, #063c34);
 }
+
+
+/* Dedicated perfume variant editor */
+.sp-perfume-weights{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border:1px solid #dce8e2;border-radius:14px;background:linear-gradient(135deg,#f7fbf8,#fff)}
+.sp-perfume-weights>span{font-size:12px;font-weight:850;color:#073f36}
+.sp-perfume-weights>small{font-size:10px;line-height:1.8;color:#71817a}
+.sp-weight-options{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.sp-weight-option{min-height:40px;display:flex;align-items:center;justify-content:center;gap:7px;padding:7px 9px;border:1px solid #dce8e2;border-radius:10px;background:#fff;color:#29443a;font-size:11px;font-weight:750;cursor:pointer;transition:border-color .2s,background .2s}
+.sp-weight-option:has(input:checked){border-color:#1b6b52;background:#eaf4ef;color:#07513d}
+.sp-weight-option input{accent-color:#176346;width:15px;height:15px}
+@media(max-width:720px){.sp-weight-options{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:420px){.sp-weight-options{grid-template-columns:repeat(2,minmax(0,1fr))}}
