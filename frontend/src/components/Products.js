@@ -10,7 +10,7 @@ const SP_STATUS={active:{label:"فعال",icon:FiCheckCircle},low:{label:"موج
 const SP_CATEGORY_LABEL={perfume:"عطر",cosmetic:"لوازم آرایشی",accessory:"اکسسوری"};
 const SP_GENDER_LABEL={male:"مردانه",female:"زنانه",unisex:"یونیسکس"};
 const SP_STATUS_OF=stock=>Number(stock||0)<=0?"out":Number(stock||0)<=5?"low":"active";
-const SP_EMPTY_FORM={name:"",brand:"",category:"perfume",gender:"unisex",price:"",discount_percent:"0",stock:"",description:"",is_best_seller:false,price_15:"",price_20:"",price_30:"",price_50:"",price_100:""};
+const SP_EMPTY_FORM={name:"",brand:"",category:"perfume",gender:"unisex",price:"",discount_percent:"0",stock:"",description:"",is_best_seller:false,available_weights:[10,15,20,30,50,100],price_10:"",price_15:"",price_20:"",price_30:"",price_50:"",price_100:""};
 const SP_PRICE=value=>Number(value||0).toLocaleString("fa-IR");
 const SP_NORMALIZE=value=>String(value||"").replace(/ي/g,"ی").replace(/ى/g,"ی").replace(/ك/g,"ک").toLowerCase().trim();
 
@@ -30,7 +30,8 @@ finalPrice:Number((product.final_price!=null?product.final_price:product.price)|
 stock:Number(product.stock||0),
 isActive:product.is_active!==false,
 isBestSeller:!!product.is_best_seller,
-sizePrices:{15:product.price_15,20:product.price_20,30:product.price_30,50:product.price_50,100:product.price_100},
+sizePrices:{10:product.price_10,15:product.price_15,20:product.price_20,30:product.price_30,50:product.price_50,100:product.price_100},
+availableWeights:Array.isArray(product.available_weights)?product.available_weights.map(Number):[10,15,20,30,50,100],
 description:product.description||"",
 status:SP_STATUS_OF(product.stock),
 image:main?main.url:SP_FALLBACK_IMAGE,
@@ -77,7 +78,7 @@ const visibleProducts=filteredProducts.slice((currentPage-1)*perPage,currentPage
 const openMenu=(id,event)=>{if(menuId===id){setMenuId(null);setMenuPos(null);return}const rect=event.currentTarget.getBoundingClientRect();const width=175,height=142,gap=7;let top=rect.bottom+gap,left=rect.left;if(top+height>window.innerHeight-12)top=rect.top-height-gap;if(left+width>window.innerWidth-12)left=window.innerWidth-width-12;if(left<12)left=12;setMenuId(id);setMenuPos({top,left})};
 const closeMenu=()=>{setMenuId(null);setMenuPos(null)};
 const openAddModal=()=>{closeMenu();setEditingProduct(null);setForm(SP_EMPTY_FORM);setProductImages([]);setImageUrl("");setShowModal(true)};
-const openEditModal=product=>{closeMenu();setEditingProduct(product);setForm({name:product.name,brand:product.brandId?String(product.brandId):"",category:product.category,gender:product.gender,price:String(product.price),discount_percent:String(product.discountPercent||0),stock:String(product.stock),description:product.description,is_best_seller:!!product.isBestSeller,price_15:product.sizePrices?.[15]?String(product.sizePrices[15]):"",price_20:product.sizePrices?.[20]?String(product.sizePrices[20]):"",price_30:product.sizePrices?.[30]?String(product.sizePrices[30]):"",price_50:product.sizePrices?.[50]?String(product.sizePrices[50]):"",price_100:product.sizePrices?.[100]?String(product.sizePrices[100]):""});setProductImages(product.images.map(img=>({...img})));setImageUrl("");setShowModal(true)};
+const openEditModal=product=>{closeMenu();setEditingProduct(product);setForm({name:product.name,brand:product.brandId?String(product.brandId):"",category:product.category,gender:product.gender,price:String(product.price),discount_percent:String(product.discountPercent||0),stock:String(product.stock),description:product.description,is_best_seller:!!product.isBestSeller,available_weights:Array.isArray(product.availableWeights)?product.availableWeights.slice():[10,15,20,30,50,100],price_10:product.sizePrices?.[10]!=null?String(product.sizePrices[10]):"",price_15:product.sizePrices?.[15]!=null?String(product.sizePrices[15]):"",price_20:product.sizePrices?.[20]!=null?String(product.sizePrices[20]):"",price_30:product.sizePrices?.[30]!=null?String(product.sizePrices[30]):"",price_50:product.sizePrices?.[50]!=null?String(product.sizePrices[50]):"",price_100:product.sizePrices?.[100]!=null?String(product.sizePrices[100]):""});setProductImages(product.images.map(img=>({...img})));setImageUrl("");setShowModal(true)};
 const closeModal=()=>{setShowModal(false);setEditingProduct(null);setForm(SP_EMPTY_FORM);productImages.forEach(img=>{if(img.file)URL.revokeObjectURL(img.url)});setProductImages([]);setImageUrl("")};
 const changeForm=(field,value)=>setForm(prev=>({...prev,[field]:value}));
 const handleProductImages=e=>{const files=Array.from(e.target.files||[]);const remaining=Math.max(0,6-productImages.length);const newImages=files.slice(0,remaining).map(file=>({id:`${file.name}-${file.lastModified}-${Math.random()}`,file,url:URL.createObjectURL(file)}));setProductImages(prev=>[...prev,...newImages]);e.target.value=""};
@@ -102,7 +103,7 @@ payload.append("discount_percent",String(discount));
 payload.append("stock",String(stock));
 payload.append("description",form.description.trim());
 payload.append("is_best_seller",form.is_best_seller?"true":"false");
-["15","20","30","50","100"].forEach(w=>{if(String(form["price_"+w]||"").trim()!=="")payload.append("price_"+w,String(form["price_"+w]).replace(/[^\d]/g,""));});
+if(form.category==="perfume"){["10","15","20","30","50","100"].forEach(w=>payload.append("price_"+w,String(form["price_"+w]||"").replace(/[^\d]/g,"")));payload.append("available_weights",JSON.stringify(form.available_weights||[]));}
 if(form.brand)payload.append("brand",form.brand);
 
 const keepIds=productImages.filter(img=>img.serverId).map(img=>img.serverId);
@@ -331,11 +332,22 @@ return(
 </label>
 <label className="sp-field sp-field-checkbox"><span>محصول پرفروش (نمایش در صفحه اصلی)</span><input type="checkbox" checked={form.is_best_seller} onChange={event=>changeForm("is_best_seller",event.target.checked)}/></label>
 {form.category==="perfume"&&(<>
-<label className="sp-field"><span>قیمت ۱۵ گرمی <small>(اختیاری)</small></span><div className="sp-input-unit"><input type="text" inputMode="numeric" value={form.price_15} onChange={event=>changeForm("price_15",event.target.value.replace(/[^\d]/g,""))} placeholder="پیش‌فرض: قیمت اصلی"/><span>تومان</span></div></label>
-<label className="sp-field"><span>قیمت ۲۰ گرمی <small>(اختیاری)</small></span><div className="sp-input-unit"><input type="text" inputMode="numeric" value={form.price_20} onChange={event=>changeForm("price_20",event.target.value.replace(/[^\d]/g,""))} placeholder="پیش‌فرض: قیمت اصلی"/><span>تومان</span></div></label>
-<label className="sp-field"><span>قیمت ۳۰ گرمی <small>(اختیاری)</small></span><div className="sp-input-unit"><input type="text" inputMode="numeric" value={form.price_30} onChange={event=>changeForm("price_30",event.target.value.replace(/[^\d]/g,""))} placeholder="پیش‌فرض: قیمت اصلی"/><span>تومان</span></div></label>
-<label className="sp-field"><span>قیمت ۵۰ گرمی <small>(اختیاری)</small></span><div className="sp-input-unit"><input type="text" inputMode="numeric" value={form.price_50} onChange={event=>changeForm("price_50",event.target.value.replace(/[^\d]/g,""))} placeholder="پیش‌فرض: قیمت اصلی"/><span>تومان</span></div></label>
-<label className="sp-field"><span>قیمت ۱۰۰ گرمی <small>(اختیاری)</small></span><div className="sp-input-unit"><input type="text" inputMode="numeric" value={form.price_100} onChange={event=>changeForm("price_100",event.target.value.replace(/[^\d]/g,""))} placeholder="پیش‌فرض: قیمت اصلی"/><span>تومان</span></div></label>
+<div className="sp-field sp-field-full sp-perfume-weights">
+<span>وزن‌های قابل عرضه به مشتری</span>
+<div className="sp-weight-options">
+{[10,15,20,30,50,100].map(weight=><label key={weight} className="sp-weight-option">
+<input type="checkbox" checked={(form.available_weights||[]).includes(weight)} onChange={event=>changeForm("available_weights",event.target.checked?[...new Set([...(form.available_weights||[]),weight])]: (form.available_weights||[]).filter(item=>item!==weight))}/>
+<span>{weight.toLocaleString("fa-IR")} گرم</span>
+</label>)}
+</div>
+<small>فقط وزن انتخاب‌شده‌ای که قیمت مستقل و مثبت داشته باشد در فروشگاه قابل انتخاب است.</small>
+</div>
+<label className="sp-field"><span>قیمت ۱۰ گرمی</span><div className="sp-input-unit"><input type="text" inputMode="numeric" value={form.price_10} onChange={event=>changeForm("price_10",event.target.value.replace(/[^\\d]/g,""))} placeholder="قیمت مستقل را وارد کنید"/><span>تومان</span></div></label>
+<label className="sp-field"><span>قیمت ۱۵ گرمی</span><div className="sp-input-unit"><input type="text" inputMode="numeric" value={form.price_15} onChange={event=>changeForm("price_15",event.target.value.replace(/[^\\d]/g,""))} placeholder="قیمت مستقل را وارد کنید"/><span>تومان</span></div></label>
+<label className="sp-field"><span>قیمت ۲۰ گرمی</span><div className="sp-input-unit"><input type="text" inputMode="numeric" value={form.price_20} onChange={event=>changeForm("price_20",event.target.value.replace(/[^\\d]/g,""))} placeholder="قیمت مستقل را وارد کنید"/><span>تومان</span></div></label>
+<label className="sp-field"><span>قیمت ۳۰ گرمی</span><div className="sp-input-unit"><input type="text" inputMode="numeric" value={form.price_30} onChange={event=>changeForm("price_30",event.target.value.replace(/[^\\d]/g,""))} placeholder="قیمت مستقل را وارد کنید"/><span>تومان</span></div></label>
+<label className="sp-field"><span>قیمت ۵۰ گرمی</span><div className="sp-input-unit"><input type="text" inputMode="numeric" value={form.price_50} onChange={event=>changeForm("price_50",event.target.value.replace(/[^\\d]/g,""))} placeholder="قیمت مستقل را وارد کنید"/><span>تومان</span></div></label>
+<label className="sp-field"><span>قیمت ۱۰۰ گرمی</span><div className="sp-input-unit"><input type="text" inputMode="numeric" value={form.price_100} onChange={event=>changeForm("price_100",event.target.value.replace(/[^\\d]/g,""))} placeholder="قیمت مستقل را وارد کنید"/><span>تومان</span></div></label>
 </>)}
 <label className="sp-field sp-field-full"><span>توضیحات کوتاه</span><textarea value={form.description} onChange={event=>changeForm("description",event.target.value)} placeholder="توضیحات کوتاه درباره محصول..." rows={3}/></label>
 </div>
