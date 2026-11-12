@@ -154,10 +154,14 @@ const ProductInfo = ({ product }) => {
     : [];
   const [size, setSize] = useState(availablePerfumeSizes[0] || 0);
   const [quantity, setQuantity] = useState(1);
+  const availablePerfumeSizesKey = availablePerfumeSizes.join(",");
   useEffect(() => {
-    const nextSize = availablePerfumeSizes[0] || 0;
-    if (!availablePerfumeSizes.includes(size) && size !== nextSize) setSize(nextSize);
-  }, [product.id, availablePerfumeSizes.join(","), size]);
+    const currentAvailableSizes = availablePerfumeSizesKey
+      ? availablePerfumeSizesKey.split(",").map(Number)
+      : [];
+    const nextSize = currentAvailableSizes[0] || 0;
+    if (!currentAvailableSizes.includes(size) && size !== nextSize) setSize(nextSize);
+  }, [product.id, availablePerfumeSizesKey, size]);
   const currentSizePrice = isPerfume ? product.sizePrices?.[size] : product.price;
   const hasSelectedPrice = !isPerfume || (
     availablePerfumeSizes.includes(size) && currentSizePrice != null && Number.isFinite(Number(currentSizePrice))
