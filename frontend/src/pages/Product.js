@@ -32,7 +32,7 @@ const GENDER_LABEL = { male: "مردانه", female: "زنانه", unisex: "یو
 const FALLBACK_IMAGE = "/logo.png";
 
 // حجم‌های مجاز عطر — بالای ۳۰ میل ارسال رایگان است
-const PERFUME_SIZES = [15, 20, 30, 50, 100];
+const PERFUME_SIZES = [10, 15, 20, 30, 50, 100];
 
 const formatPrice = (value) => new Intl.NumberFormat("fa-IR").format(value) + " تومان";
 
@@ -145,19 +145,34 @@ const ProductInfo = ({ product }) => {
   const wishlisted = has(product.id);
   const isPerfume = product.category === "perfume";
   const outOfStock = product.stock <= 0;
-  const [size, setSize] = useState(15);
+  const availablePerfumeSizes = isPerfume
+    ? (Array.isArray(product.availableWeights)
+      ? product.availableWeights
+      : Object.keys(product.sizePrices || {}).map(Number))
+        .map(Number)
+        .filter(weight => PERFUME_SIZES.includes(weight) && Object.prototype.hasOwnProperty.call(product.sizePrices || {}, weight))
+    : [];
+  const [size, setSize] = useState(availablePerfumeSizes[0] || 0);
   const [quantity, setQuantity] = useState(1);
-  // قیمت هر حجم — اگر ادمین قیمت اختصاصی نداده باشد، قیمت پایه استفاده می‌شود
-  const currentSizePrice = (isPerfume && product.sizePrices?.[size]) || product.price;
+  useEffect(() => {
+    const nextSize = availablePerfumeSizes[0] || 0;
+    if (!availablePerfumeSizes.includes(size) && size !== nextSize) setSize(nextSize);
+  }, [product.id, availablePerfumeSizes.join(","), size]);
+  const currentSizePrice = isPerfume ? product.sizePrices?.[size] : product.price;
+  const hasSelectedPrice = !isPerfume || (
+    availablePerfumeSizes.includes(size) && currentSizePrice != null && Number.isFinite(Number(currentSizePrice))
+  );
   const currentSizeOldPrice =
-    product.oldPrice && (isPerfume && product.sizePrices?.[size])
-      ? Math.round(product.sizePrices[size] * 100 / (100 - (product.discountPercent || 0)))
+    isPerfume
+      ? (hasSelectedPrice && product.discountPercent > 0 && product.discountPercent < 100
+          ? Math.round(Number(currentSizePrice) * 100 / (100 - product.discountPercent))
+          : null)
       : product.oldPrice;
   const [adding, setAdding] = useState(false);
   const [cartMessage, setCartMessage] = useState(null); // {type:'success'|'error', text}
 
   const handleAddToCart = async () => {
-    if (outOfStock || adding) return;
+    if (outOfStock || adding || !hasSelectedPrice) return;
     // کاربر مهمان اجازه افزودن به سبد ندارد — باید ابتدا ثبت‌نام کند
     if (!isLoggedIn()) {
       setCartMessage({
@@ -221,7 +236,7 @@ const ProductInfo = ({ product }) => {
         {currentSizeOldPrice && (
           <span className="product-info__price-old">{formatPrice(currentSizeOldPrice)}</span>
         )}
-        {formatPrice(currentSizePrice)}
+        {isPerfume && !hasSelectedPrice ? "برای این وزن قیمت ثبت نشده" : formatPrice(currentSizePrice)}
       </div>
 
       <div className="product-info__trust">
@@ -243,22 +258,18 @@ const ProductInfo = ({ product }) => {
         <div className="product-info__field">
           <span className="product-info__field-label">حجم (گرم)</span>
           <div className="product-info__sizes">
-            {PERFUME_SIZES.map((option) => (
+            {availablePerfumeSizes.length ? availablePerfumeSizes.map((option) => (
               <button
                 key={option}
                 type="button"
-                className={
-                  size === option
-                    ? "product-info__size product-info__size--active"
-                    : "product-info__size"
-                }
+                className={size === option ? "product-info__size product-info__size--active" : "product-info__size"}
                 onClick={() => setSize(option)}
                 aria-pressed={size === option}
               >
                 {option.toLocaleString("fa-IR")} گرم
                 {option > 30 && <small>ارسال رایگان</small>}
               </button>
-            ))}
+            )) : <p className="product-info__no-weights">برای این عطر هنوز وزنِ دارای قیمت ثبت نشده است.</p>}
           </div>
         </div>
       ) : (
@@ -300,9 +311,9 @@ const ProductInfo = ({ product }) => {
       <button
         className="product-info__add-btn"
         onClick={handleAddToCart}
-        disabled={outOfStock || adding}
+        disabled={outOfStock || adding || !hasSelectedPrice}
       >
-        {outOfStock ? "ناموجود" : adding ? "در حال افزودن..." : "افزودن به سبد خرید"}
+        {outOfStock ? "ناموجود" : isPerfume && !availablePerfumeSizes.length ? "وزن قابل فروش ثبت نشده" : adding ? "در حال افزودن..." : !hasSelectedPrice ? "وزن انتخابی نامعتبر" : "افزودن به سبد خرید"}
         <FiShoppingCart />
       </button>
       <button className="product-info__wishlist-btn" onClick={handleAddToWishlist}>
@@ -631,6 +642,9 @@ const Product = () => {
           sizePrices: data.size_prices
             ? Object.fromEntries(Object.entries(data.size_prices).map(([k, v]) => [Number(k), Number(v)]))
             : null,
+          availableWeights: Array.isArray(data.available_weights)
+            ? data.available_weights.map(Number)
+            : data.size_prices ? Object.keys(data.size_prices).map(Number) : [],
           images: images.length ? images : [FALLBACK_IMAGE],
           specs: [
             { label: "نوع محصول", value: CATEGORY_LABEL[data.category] || data.category },
